@@ -100,7 +100,7 @@ function runTests() {
   console.assert(toCsv([{ name: 'A "quoted" name' }]).includes('"A ""quoted"" name"'), "CSV escaping failed");
   console.assert(normalize({ name: "Test" }).status === "Not Open Yet", "normalize default status failed");
 }
-runTests();
+if (import.meta.env.DEV) runTests();
 
 function Icon({ name, className = "" }) {
   const icons = {
@@ -845,7 +845,7 @@ export default function ApplicationTrackerWebsite() {
                         <span className="ml-3 text-sm text-slate-400">Loading your applications…</span>
                       </div>
                     ) : applications.length === 0 ? (
-                      <EmptyDashboard onAdd={() => openNew()} onReset={resetSampleData} />
+                      <EmptyDashboard onAdd={() => openNew()} />
                     ) : (
                       <>
                         <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -1125,7 +1125,7 @@ function UpcomingDeadlinesCard({ apps }) {
   );
 }
 
-function EmptyDashboard({ onAdd, onReset }) {
+function EmptyDashboard({ onAdd }) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="py-16 text-center">
       <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -1135,12 +1135,9 @@ function EmptyDashboard({ onAdd, onReset }) {
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400">
         Add your first application to start building your pipeline, tracking deadlines, and measuring progress.
       </p>
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-7">
         <button onClick={onAdd} className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
           <Icon name="plus" className="h-4 w-4" /> Add application
-        </button>
-        <button onClick={onReset} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
-          <Icon name="reset" className="h-4 w-4" /> Load sample data
         </button>
       </div>
     </motion.div>
