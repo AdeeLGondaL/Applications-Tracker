@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 const TYPES = ["University", "Job"];
 const STATUSES = ["Not Open Yet", "Open", "Applying", "Submitted", "Awaiting Response", "Interview", "Accepted", "Rejected", "Deferred"];
 const PRIORITIES = ["High", "Medium", "Low"];
+const ACTIONABLE_STATUSES = ["Not Open Yet", "Open", "Applying"];
 
 const EMPTY_FORM = {
   type: "University",
@@ -358,15 +359,19 @@ export default function ApplicationTrackerWebsite() {
     const universities = applications.filter((app) => app.type === "University").length;
     const jobs = applications.filter((app) => app.type === "Job").length;
     const submitted = applications.filter((app) => ["Submitted", "Awaiting Response", "Interview", "Accepted"].includes(app.status)).length;
+    const accepted = applications.filter((app) => app.status === "Accepted").length;
+    const interviews = applications.filter((app) => app.status === "Interview").length;
     const urgent = applications.filter((app) => {
+      if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
       const d = daysUntil(app.deadline);
       return d !== null && d >= 0 && d <= 14;
     }).length;
     const overdue = applications.filter((app) => {
+      if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
       const d = daysUntil(app.deadline);
       return d !== null && d < 0;
     }).length;
-    return { total, universities, jobs, submitted, urgent, overdue, progress: total ? Math.round((submitted / total) * 100) : 0 };
+    return { total, universities, jobs, submitted, accepted, interviews, urgent, overdue, progress: total ? Math.round((submitted / total) * 100) : 0 };
   }, [applications]);
 
   const filtered = useMemo(() => {
@@ -380,6 +385,7 @@ export default function ApplicationTrackerWebsite() {
       .filter((app) => !q || [app.name, app.programRole, app.city, app.status, app.priority, app.applicationType, app.documents, app.notes].join(" ").toLowerCase().includes(q))
       .filter((app) => {
         if (!urgentOnly) return true;
+        if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
         const days = daysUntil(app.deadline);
         return days !== null && days <= 14;
       })
@@ -394,7 +400,7 @@ export default function ApplicationTrackerWebsite() {
 
   const topDeadlines = useMemo(() => {
     return [...applications]
-      .filter((app) => daysUntil(app.deadline) !== null)
+      .filter((app) => ACTIONABLE_STATUSES.includes(app.status) && daysUntil(app.deadline) !== null)
       .sort((a, b) => deadlineInfo(a.deadline).sort - deadlineInfo(b.deadline).sort)
       .slice(0, 4);
   }, [applications]);
@@ -918,8 +924,8 @@ export default function ApplicationTrackerWebsite() {
                           <Metric icon="dashboard" label="Total"            value={stats.total}                       hint="All tracked entries"             accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"    value={stats.universities}                hint="Master's applications"           accent="blue"    delay={0.05} />
                           <Metric icon="job"        label="Jobs"            value={stats.jobs}                        hint="Work applications"               accent="violet"  delay={0.1}  />
-                          <Metric icon="calendar"   label="Needs attention" value={stats.urgent + stats.overdue}     hint={`${stats.overdue} overdue · ${stats.urgent} urgent`} danger={stats.urgent + stats.overdue > 0} delay={0.15} />
-                          <Metric icon="check"      label="Submitted +"     value={stats.submitted}                  hint="Submitted or further"            accent="emerald" delay={0.2}  />
+                          <Metric icon="calendar"   label="Needs attention" value={stats.urgent + stats.overdue}     hint={stats.urgent + stats.overdue === 0 ? "All deadlines on track" : `${stats.overdue} overdue · ${stats.urgent} due soon`} danger={stats.urgent + stats.overdue > 0} delay={0.15} />
+                          <Metric icon="check"      label="Submitted +"     value={stats.submitted}                  hint={stats.accepted > 0 || stats.interviews > 0 ? `${stats.accepted} accepted · ${stats.interviews} interviews` : "Submitted or further"} accent="emerald" delay={0.2}  />
                         </div>
                         <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
                           <PipelineCard pipeline={pipeline} total={stats.total} onReset={resetSampleData} />
@@ -1288,13 +1294,122 @@ function ApplicationCard({ app, onEdit, onDelete, onDuplicate }) {
   );
 }
 
+function DrawerSection({ label, children }) {
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-3">
+        <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+        <div className="flex-1 border-t border-slate-100" />
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function ApplicationDrawer({ form, editingId, onChange, onSave, onClose }) {
+  const isUni = form.type === "University";
   return (
     <motion.div className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 250 }} className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 p-6"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">{editingId ? "Edit record" : "New record"}</p><h2 className="mt-1 text-2xl font-black">{editingId ? "Update application" : "Add application"}</h2><p className="mt-1 text-sm text-slate-500">Fill only what you know now. You can update everything later.</p></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50"><Icon name="close" /></button></div>
-        <div className="flex-1 overflow-y-auto p-6"><div className="grid gap-4 sm:grid-cols-2"><Field label="Type"><Select value={form.type} onChange={(e) => onChange("type", e.target.value)} options={TYPES} /></Field><Field label="Status"><Select value={form.status} onChange={(e) => onChange("status", e.target.value)} options={STATUSES} /></Field><Field label="Priority"><Select value={form.priority} onChange={(e) => onChange("priority", e.target.value)} options={PRIORITIES} /></Field><Field label="Application channel"><Input value={form.applicationType} onChange={(e) => onChange("applicationType", e.target.value)} placeholder="Direct, uni-assist, referral" /></Field><Field label={form.type === "University" ? "University" : "Company"} required><Input value={form.name} onChange={(e) => onChange("name", e.target.value)} placeholder="e.g., Saarland University" /></Field><Field label={form.type === "University" ? "Course / Program" : "Job title"} required><Input value={form.programRole} onChange={(e) => onChange("programRole", e.target.value)} placeholder="e.g., Computer Science M.Sc." /></Field><Field label="City"><Input value={form.city} onChange={(e) => onChange("city", e.target.value)} placeholder="e.g., Stuttgart" /></Field><Field label="Portal / job link"><Input value={form.link} onChange={(e) => onChange("link", e.target.value)} placeholder="https://..." /></Field><Field label="Opening date"><Input type="date" value={form.openingDate} onChange={(e) => onChange("openingDate", e.target.value)} /></Field><Field label="Deadline"><Input type="date" value={form.deadline} onChange={(e) => onChange("deadline", e.target.value)} /></Field><Field label="Required documents" wide><Textarea value={form.documents} onChange={(e) => onChange("documents", e.target.value)} placeholder="CV, transcript, module handbook, cover letter" /></Field><Field label="Notes / next action" wide><Textarea value={form.notes} onChange={(e) => onChange("notes", e.target.value)} placeholder="What is missing? What should you do next?" /></Field></div></div>
-        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5"><Button variant="outline" onClick={onClose} className="rounded-2xl bg-white">Cancel</Button><Button onClick={onSave} className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800"><Icon name={editingId ? "edit" : "plus"} className="mr-2" /> {editingId ? "Save changes" : "Create application"}</Button></div>
+
+        {/* Header */}
+        <div className="flex items-start justify-between border-b border-slate-200 p-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">{editingId ? "Edit record" : "New record"}</p>
+            <h2 className="mt-1 text-2xl font-black">{editingId ? "Update application" : "Add application"}</h2>
+            <p className="mt-1 text-sm text-slate-500">Fill only what you know now — you can update anything later.</p>
+          </div>
+          <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50"><Icon name="close" /></button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 space-y-7 overflow-y-auto p-6">
+
+          {/* Type pill switcher */}
+          <div className="flex rounded-2xl bg-slate-100 p-1">
+            {TYPES.map((t) => (
+              <button key={t} type="button" onClick={() => onChange("type", t)} className="relative flex-1 rounded-xl py-2.5 text-sm font-bold">
+                {form.type === t && (
+                  <motion.span layoutId="drawer-type-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
+                )}
+                <span className={`relative z-10 flex items-center justify-center gap-2 transition-colors ${form.type === t ? "text-slate-950" : "text-slate-400"}`}>
+                  <Icon name={t === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
+                  {t}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Section: Institution / Company */}
+          <DrawerSection label={isUni ? "Institution" : "Company"}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={isUni ? "University name" : "Company name"} required>
+                <Input value={form.name} onChange={(e) => onChange("name", e.target.value)} placeholder={isUni ? "e.g., TU Munich, Saarland University" : "e.g., Siemens, BMW, Bosch"} />
+              </Field>
+              <Field label={isUni ? "Program / Course" : "Role / Job title"} required>
+                <Input value={form.programRole} onChange={(e) => onChange("programRole", e.target.value)} placeholder={isUni ? "e.g., M.Sc. Computer Science" : "e.g., Software Engineer Intern"} />
+              </Field>
+              <Field label={isUni ? "City / Campus" : "Location"}>
+                <Input value={form.city} onChange={(e) => onChange("city", e.target.value)} placeholder={isUni ? "e.g., Berlin, Munich, Stuttgart" : "e.g., Stuttgart · Remote · Hybrid"} />
+              </Field>
+              <Field label={isUni ? "Application portal URL" : "Job listing URL"}>
+                <Input value={form.link} onChange={(e) => onChange("link", e.target.value)} placeholder={isUni ? "https://portal.university.de/..." : "https://careers.company.com/..."} />
+              </Field>
+            </div>
+          </DrawerSection>
+
+          {/* Section: Timeline */}
+          <DrawerSection label="Timeline">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={isUni ? "Portal opens" : "Date posted"}>
+                <Input type="date" value={form.openingDate} onChange={(e) => onChange("openingDate", e.target.value)} />
+              </Field>
+              <Field label="Application deadline">
+                <Input type="date" value={form.deadline} onChange={(e) => onChange("deadline", e.target.value)} />
+              </Field>
+            </div>
+          </DrawerSection>
+
+          {/* Section: Application */}
+          <DrawerSection label="Application">
+            <div className="grid gap-4">
+              <Field label="How to apply">
+                <Input value={form.applicationType} onChange={(e) => onChange("applicationType", e.target.value)} placeholder={isUni ? "e.g., uni-assist, direct portal, Hochschulstart, email" : "e.g., LinkedIn, company website, referral, recruiter"} />
+              </Field>
+              <Field label={isUni ? "Documents required" : "Documents to prepare"}>
+                <Textarea value={form.documents} onChange={(e) => onChange("documents", e.target.value)} placeholder={isUni ? "e.g., CV, transcript, module handbook, motivation letter, language certificate (IELTS/TOEFL)" : "e.g., CV, cover letter, portfolio link, references, work samples"} />
+              </Field>
+            </div>
+          </DrawerSection>
+
+          {/* Section: Tracking */}
+          <DrawerSection label="Tracking">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Status">
+                <Select value={form.status} onChange={(e) => onChange("status", e.target.value)} options={STATUSES} />
+              </Field>
+              <Field label="Priority">
+                <Select value={form.priority} onChange={(e) => onChange("priority", e.target.value)} options={PRIORITIES} />
+              </Field>
+            </div>
+          </DrawerSection>
+
+          {/* Section: Notes */}
+          <DrawerSection label="Notes & next action">
+            <Textarea value={form.notes} onChange={(e) => onChange("notes", e.target.value)} placeholder={isUni ? "e.g., Check credit transfer requirements, contact admissions about module equivalency" : "e.g., Tailor CV to automotive sector, highlight Python and ML experience"} />
+          </DrawerSection>
+
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5">
+          <Button variant="outline" onClick={onClose} className="rounded-2xl bg-white">Cancel</Button>
+          <Button onClick={onSave} className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800">
+            <Icon name={editingId ? "edit" : "plus"} className="mr-2" />
+            {editingId ? "Save changes" : "Create application"}
+          </Button>
+        </div>
+
       </motion.aside>
     </motion.div>
   );
