@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -187,11 +187,11 @@ export default function ApplicationTrackerWebsite() {
 
   useEffect(() => {
     if (!session?.user) {
-      setApplications([]);
+      setApplications([]); // eslint-disable-line react-hooks/set-state-in-effect
       return;
     }
     fetchApplications();
-  }, [session]);
+  }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -329,12 +329,6 @@ export default function ApplicationTrackerWebsite() {
       });
   }, [applications, query, typeFilter, statusFilter, priorityFilter, sortBy, sidebarView]);
 
-  const nextDeadline = useMemo(() => {
-    return [...applications]
-      .filter((app) => daysUntil(app.deadline) !== null)
-      .sort((a, b) => deadlineInfo(a.deadline).sort - deadlineInfo(b.deadline).sort)[0] || null;
-  }, [applications]);
-
   const topDeadlines = useMemo(() => {
     return [...applications]
       .filter((app) => daysUntil(app.deadline) !== null)
@@ -353,7 +347,7 @@ export default function ApplicationTrackerWebsite() {
   }
 
   function openEdit(app) {
-    const { id, lastUpdated, ...editable } = app;
+    const { id, ...editable } = app;
     setForm({ ...EMPTY_FORM, ...editable });
     setEditingId(id);
     setDrawerOpen(true);
@@ -525,8 +519,8 @@ export default function ApplicationTrackerWebsite() {
                 <Icon name="dashboard" className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-lg font-black tracking-tight">ApplyFlow</p>
-                <p className="text-xs text-slate-500">Application tracker</p>
+                <p className="text-lg font-black tracking-tight">ApplyBuddy</p>
+                <p className="text-xs text-slate-500">Your application buddy</p>
               </div>
             </motion.div>
 
@@ -932,8 +926,8 @@ function Brand() {
         <Icon name="dashboard" className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-sm font-black leading-tight">ApplyFlow</p>
-        <p className="text-[10px] text-slate-400">Application tracker</p>
+        <p className="text-sm font-black leading-tight">ApplyBuddy</p>
+        <p className="text-[10px] text-slate-400">Your application buddy</p>
       </div>
     </div>
   );
@@ -1283,10 +1277,6 @@ function Select({ options, ...props }) {
 
 function Info({ label, value }) {
   return <div className="rounded-2xl bg-slate-50 p-3"><p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 truncate text-sm font-bold text-slate-700">{value}</p></div>;
-}
-
-function DarkInfo({ label, value }) {
-  return <div className="rounded-2xl bg-white/10 p-3"><p className="text-xs text-slate-100">{label}</p><p className="mt-1 font-bold text-slate-100">{value}</p></div>;
 }
 
 function PasswordStrength({ password }) {

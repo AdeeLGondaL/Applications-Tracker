@@ -1,4 +1,3 @@
-import React from "react";
 
 const variants = {
   default: "bg-slate-950 text-white hover:bg-slate-800",
