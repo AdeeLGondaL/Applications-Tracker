@@ -83,13 +83,6 @@ function toCsv(rows) {
   return [headers.join(","), ...rows.map((row) => headers.map((key) => csvEscape(row[key])).join(","))].join("\n");
 }
 
-const SAMPLE_DATA = [
-  { type: "University", status: "Applying", name: "TU Darmstadt", programRole: "M.Sc. Artificial Intelligence and Machine Learning", city: "Darmstadt", openingDate: "2026-04-01", deadline: "2026-07-15", applicationType: "University portal", priority: "High", link: "https://www.tu-darmstadt.de/studieren/studieninteressierte/bewerbung_zulassung_tu/online_bewerbung/index.en.jsp", documents: "CV, transcript, module handbook, language certificate", notes: "Strong AI/ML option. Check CS credit requirements." },
-  { type: "University", status: "Open", name: "Saarland University", programRole: "M.Sc. Computer Science", city: "Saarbrücken", openingDate: "", deadline: "2026-05-15", applicationType: "SIC portal", priority: "High", link: "https://saarland-informatics-campus.de/en/studium-studies/master-english/application-guide/", documents: "CV, transcript, module handbook, motivation letter", notes: "Very strong CS and AI environment." },
-  { type: "University", status: "Not Open Yet", name: "University of Bonn", programRole: "M.Sc. Computer Science", city: "Bonn", openingDate: "2026-04-15", deadline: "2026-05-01", applicationType: "University portal", priority: "High", link: "https://www.informatik.uni-bonn.de/en/studies/master-programs/master-computer-science", documents: "CV, transcript, module handbook", notes: "Short deadline. Prepare documents early." },
-  { type: "University", status: "Not Open Yet", name: "University of Cologne", programRole: "M.Sc. Computational Sciences", city: "Cologne", openingDate: "2026-06-01", deadline: "2026-07-15", applicationType: "University portal", priority: "Medium", link: "https://computationalsciences.uni-koeln.de/info/application", documents: "CV, transcript, language certificate", notes: "Check if the course is too data-science heavy." },
-  { type: "Job", status: "Open", name: "Mercedes-Benz", programRole: "Working Student / Internship", city: "Stuttgart", openingDate: "", deadline: "", applicationType: "Career portal", priority: "High", link: "", documents: "CV, cover letter", notes: "Tailor CV toward automotive software, AI, BMS, and testing." },
-].map((item) => normalize({ ...item, id: makeId() }));
 
 function runTests() {
   const base = new Date(2026, 4, 2);
@@ -782,32 +775,6 @@ export default function ApplicationTrackerWebsite() {
     notify("Application duplicated.");
   }
 
-  async function resetSampleData() {
-    if (!session?.user) {
-      notify("Please sign in to reset sample data.", "error");
-      return;
-    }
-    const ok = typeof window === "undefined" ? true : window.confirm("Replace current data with sample data?");
-    if (!ok) return;
-
-    setLoading(true);
-    const userId = session.user.id;
-    const items = SAMPLE_DATA.map((app) => ({ ...app, id: makeId(), lastUpdated: todayIso(), user_id: userId }));
-    const { error: deleteError } = await supabase.from("applications").delete().eq("user_id", userId);
-    if (deleteError) {
-      notify(deleteError.message, "error");
-      setLoading(false);
-      return;
-    }
-    const { error: insertError } = await supabase.from("applications").insert(items);
-    setLoading(false);
-    if (insertError) {
-      notify(insertError.message, "error");
-      return;
-    }
-    setApplications(items.map(normalize));
-    notify("Sample data restored.");
-  }
 
   function downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType });
@@ -1124,14 +1091,21 @@ export default function ApplicationTrackerWebsite() {
             </div>
           </div>
 
-          <div className="border-t border-slate-100 px-4 pt-3 pb-0">
+          <div className="px-4 pb-2">
             <button
               type="button"
               onClick={() => setFeedbackOpen(true)}
-              className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-xs font-semibold text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"
+              className="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-3.5 py-3 text-left transition hover:bg-emerald-100"
             >
-              <Icon name="messageSquare" className="h-3.5 w-3.5 shrink-0" />
-              Report a bug · Request a feature
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <Icon name="messageSquare" className="h-3.5 w-3.5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-emerald-900">Share feedback</p>
+                  <p className="text-[10px] leading-4 text-emerald-700/70">Bug report or feature idea</p>
+                </div>
+              </div>
             </button>
           </div>
 
@@ -1313,7 +1287,7 @@ export default function ApplicationTrackerWebsite() {
                           <Metric icon="check"      label="Submitted +"     value={stats.submitted}                  hint={stats.accepted > 0 || stats.interviews > 0 ? `${stats.accepted} accepted · ${stats.interviews} interviews` : "Submitted or further"} accent="emerald" delay={0.2}  />
                         </div>
                         <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
-                          <PipelineCard pipeline={pipeline} total={stats.total} onReset={resetSampleData} />
+                          <PipelineCard pipeline={pipeline} total={stats.total} />
                           <UpcomingDeadlinesCard apps={topDeadlines} />
                         </div>
                       </>
@@ -1349,6 +1323,16 @@ export default function ApplicationTrackerWebsite() {
           <LandingFooter />
         </main>
       </div>
+
+      {/* Mobile floating feedback button */}
+      <button
+        type="button"
+        onClick={() => setFeedbackOpen(true)}
+        className="fixed bottom-[4.5rem] right-4 z-30 flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 md:hidden"
+      >
+        <Icon name="messageSquare" className="h-4 w-4" />
+        Feedback
+      </button>
 
       <AnimatePresence>
         {drawerOpen && (
@@ -1812,7 +1796,7 @@ const STATUS_COLOR = {
   "Deferred":          "bg-slate-400",
 };
 
-function PipelineCard({ pipeline, total, onReset }) {
+function PipelineCard({ pipeline, total }) {
   const rows = STATUSES.map((status) => ({
     status,
     count: pipeline.find((p) => p.status === status)?.count || 0,
@@ -1822,14 +1806,9 @@ function PipelineCard({ pipeline, total, onReset }) {
   return (
     <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <CardContent className="p-5">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-base font-black">Application Pipeline</h2>
-            <p className="mt-0.5 text-xs text-slate-400">{total} total · status breakdown</p>
-          </div>
-          <button onClick={onReset} className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">
-            <Icon name="reset" className="h-3.5 w-3.5" /> Reset data
-          </button>
+        <div className="mb-5">
+          <h2 className="text-base font-black">Application Pipeline</h2>
+          <p className="mt-0.5 text-xs text-slate-400">{total} total · status breakdown</p>
         </div>
 
         {total === 0 ? (
