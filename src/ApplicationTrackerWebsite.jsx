@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -167,6 +167,9 @@ export default function ApplicationTrackerWebsite() {
   const [sidebarView, setSidebarView] = useState("dashboard");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toastKind, setToastKind] = useState("success");
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -192,9 +195,17 @@ export default function ApplicationTrackerWebsite() {
 
   useEffect(() => {
     if (!toast) return undefined;
-    const timer = window.setTimeout(() => setToast(""), 2200);
+    const timer = window.setTimeout(() => setToast(""), 2800);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   async function fetchApplications() {
     if (!session?.user) return;
@@ -205,7 +216,7 @@ export default function ApplicationTrackerWebsite() {
       .eq("user_id", session.user.id)
       .order("lastUpdated", { ascending: false });
     if (error) {
-      setToast(error.message);
+      notify(error.message, "error");
     } else {
       setApplications(data.map(normalize));
     }
@@ -262,11 +273,16 @@ export default function ApplicationTrackerWebsite() {
     setSignupSent(true);
   }
 
+  function notify(msg, kind = "success") {
+    setToast(msg);
+    setToastKind(kind);
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     setApplications([]);
     setSession(null);
-    setToast("Signed out.");
+    notify("Signed out.", "info");
   }
 
   function handleSidebarView(view) {
@@ -319,6 +335,13 @@ export default function ApplicationTrackerWebsite() {
       .sort((a, b) => deadlineInfo(a.deadline).sort - deadlineInfo(b.deadline).sort)[0] || null;
   }, [applications]);
 
+  const topDeadlines = useMemo(() => {
+    return [...applications]
+      .filter((app) => daysUntil(app.deadline) !== null)
+      .sort((a, b) => deadlineInfo(a.deadline).sort - deadlineInfo(b.deadline).sort)
+      .slice(0, 4);
+  }, [applications]);
+
   const pipeline = useMemo(() => {
     return STATUSES.map((status) => ({ status, count: applications.filter((app) => app.status === status).length }));
   }, [applications]);
@@ -338,11 +361,11 @@ export default function ApplicationTrackerWebsite() {
 
   async function saveApplication() {
     if (!form.name.trim() || !form.programRole.trim()) {
-      setToast("Add name and course/job title first.");
+      notify("Add name and course/job title first.", "error");
       return;
     }
     if (!session?.user) {
-      setToast("Please sign in to save applications.");
+      notify("Please sign in to save applications.", "error");
       return;
     }
 
@@ -361,20 +384,20 @@ export default function ApplicationTrackerWebsite() {
         .eq("id", editingId)
         .eq("user_id", session.user.id);
       if (error) {
-        setToast(error.message);
+        notify(error.message, "error");
         return;
       }
       setApplications((old) => old.map((app) => (app.id === editingId ? normalize({ ...app, ...payload }) : app)));
-      setToast("Application updated.");
+      notify("Application updated.");
     } else {
       const newApp = { id: makeId(), ...payload };
       const { error } = await supabase.from("applications").insert([newApp]);
       if (error) {
-        setToast(error.message);
+        notify(error.message, "error");
         return;
       }
       setApplications((old) => [normalize(newApp), ...old]);
-      setToast("Application added.");
+      notify("Application added.");
     }
 
     setDrawerOpen(false);
@@ -387,7 +410,7 @@ export default function ApplicationTrackerWebsite() {
     const ok = typeof window === "undefined" ? true : window.confirm(`Delete ${app?.name || "this entry"}?`);
     if (!ok) return;
     if (!session?.user) {
-      setToast("Please sign in to delete applications.");
+      notify("Please sign in to delete applications.", "error");
       return;
     }
 
@@ -397,16 +420,16 @@ export default function ApplicationTrackerWebsite() {
       .eq("id", id)
       .eq("user_id", session.user.id);
     if (error) {
-      setToast(error.message);
+      notify(error.message, "error");
       return;
     }
     setApplications((old) => old.filter((entry) => entry.id !== id));
-    setToast("Application deleted.");
+    notify("Application deleted.");
   }
 
   async function duplicateApplication(app) {
     if (!session?.user) {
-      setToast("Please sign in to duplicate applications.");
+      notify("Please sign in to duplicate applications.", "error");
       return;
     }
     const newApp = {
@@ -419,16 +442,16 @@ export default function ApplicationTrackerWebsite() {
     };
     const { error } = await supabase.from("applications").insert([newApp]);
     if (error) {
-      setToast(error.message);
+      notify(error.message, "error");
       return;
     }
     setApplications((old) => [normalize(newApp), ...old]);
-    setToast("Application duplicated.");
+    notify("Application duplicated.");
   }
 
   async function resetSampleData() {
     if (!session?.user) {
-      setToast("Please sign in to reset sample data.");
+      notify("Please sign in to reset sample data.", "error");
       return;
     }
     const ok = typeof window === "undefined" ? true : window.confirm("Replace current data with sample data?");
@@ -439,18 +462,18 @@ export default function ApplicationTrackerWebsite() {
     const items = SAMPLE_DATA.map((app) => ({ ...app, id: makeId(), lastUpdated: todayIso(), user_id: userId }));
     const { error: deleteError } = await supabase.from("applications").delete().eq("user_id", userId);
     if (deleteError) {
-      setToast(deleteError.message);
+      notify(deleteError.message, "error");
       setLoading(false);
       return;
     }
     const { error: insertError } = await supabase.from("applications").insert(items);
     setLoading(false);
     if (insertError) {
-      setToast(insertError.message);
+      notify(insertError.message, "error");
       return;
     }
     setApplications(items.map(normalize));
-    setToast("Sample data restored.");
+    notify("Sample data restored.");
   }
 
   function downloadFile(filename, content, mimeType) {
@@ -467,7 +490,7 @@ export default function ApplicationTrackerWebsite() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!session?.user) {
-      setToast("Please sign in to import data.");
+      notify("Please sign in to import data.", "error");
       event.target.value = "";
       return;
     }
@@ -481,9 +504,9 @@ export default function ApplicationTrackerWebsite() {
         const { error } = await supabase.from("applications").upsert(rows, { onConflict: "id" });
         if (error) throw error;
         setApplications(rows);
-        setToast("Backup imported.");
+        notify("Backup imported.");
       } catch {
-        setToast("Could not import this JSON file.");
+        notify("Could not import this JSON file.", "error");
       }
     };
     reader.readAsText(file);
@@ -707,91 +730,161 @@ export default function ApplicationTrackerWebsite() {
     </div>
   );
 
+  const VIEW_META = {
+    dashboard:    { title: "Dashboard",    sub: "Overview" },
+    universities: { title: "Universities", sub: "Applications" },
+    jobs:         { title: "Jobs",         sub: "Applications" },
+    urgent:       { title: "Urgent",       sub: "Action needed" },
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-950">
       <div className="flex min-h-screen">
-        <aside className="max-md:hidden md:block w-72 shrink-0 border-r border-slate-200 bg-white px-5 py-6">
-          <Brand />
-          <nav className="space-y-2 text-sm font-semibold">
-            <NavItem active={sidebarView === "dashboard"} onClick={() => handleSidebarView("dashboard")} icon="dashboard" label="Dashboard" />
-            <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities" count={stats.universities} />
-            <NavItem active={sidebarView === "jobs"} onClick={() => handleSidebarView("jobs")} icon="job" label="Jobs" count={stats.jobs} />
-            <NavItem active={sidebarView === "urgent"} onClick={() => handleSidebarView("urgent")} icon="calendar" label="Urgent" count={stats.urgent + stats.overdue} />
-          </nav>
-          <ProgressCard progress={stats.progress} />
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950 p-4 text-white shadow-sm">
-            <p className="text-sm font-black">Workflow tip</p>
-            <p className="mt-2 text-xs leading-5 text-slate-300">Keep one next action per application so your dashboard stays actionable and easy to review.</p>
+
+        {/* ── Sidebar ── */}
+        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
+          <div className="border-b border-slate-100 px-4 py-4">
+            <Brand />
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-3 py-4">
+            <p className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Menu</p>
+            <nav className="space-y-0.5">
+              <NavItem active={sidebarView === "dashboard"} onClick={() => handleSidebarView("dashboard")} icon="dashboard" label="Dashboard" />
+              <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities" count={stats.universities} />
+              <NavItem active={sidebarView === "jobs"} onClick={() => handleSidebarView("jobs")} icon="job" label="Jobs" count={stats.jobs} />
+              <NavItem active={sidebarView === "urgent"} onClick={() => handleSidebarView("urgent")} icon="calendar" label="Urgent" count={stats.urgent + stats.overdue} alert={stats.urgent + stats.overdue > 0} />
+            </nav>
+
+            <div className="mt-6 px-1">
+              <p className="mb-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Progress</p>
+              <ProgressCard progress={stats.progress} submitted={stats.submitted} total={stats.total} />
+            </div>
+          </div>
+
+          <div className="border-t border-slate-100 px-4 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white">
+                {session?.user?.email?.[0]?.toUpperCase() || "?"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-700">{session?.user?.email}</p>
+                <p className="text-[10px] text-slate-400">Signed in</p>
+              </div>
+              <button onClick={signOut} className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
+                Out
+              </button>
+            </div>
           </div>
         </aside>
 
+        {/* ── Main ── */}
         <main className="min-w-0 flex-1">
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Personal application CRM</p>
-                <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Job & University Application Tracker</h1>
-              </div>
-              <div className="flex flex-wrap gap-2 items-center">
-                <Button onClick={() => openNew("University")} className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800"><Icon name="plus" className="mr-2" /> Add application</Button>
-                <Button variant="outline" onClick={() => downloadFile("applications.csv", toCsv(applications), "text/csv")} className="rounded-2xl bg-white"><Icon name="download" className="mr-2" /> CSV</Button>
-                <Button variant="outline" onClick={() => downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json")} className="rounded-2xl bg-white"><Icon name="download" className="mr-2" /> Backup</Button>
-                <label className="inline-flex h-10 cursor-pointer items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold shadow-sm hover:bg-slate-50">
-                  <Icon name="upload" className="mr-2" /> Import
-                  <input type="file" accept="application/json" className="hidden" onChange={importJson} />
-                </label>
-                <div className="ml-auto flex flex-wrap items-center gap-2">
-                  {session?.user?.email && <span className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">Signed in as {session.user.email}</span>}
-                  <Button variant="outline" onClick={signOut} className="rounded-2xl bg-white">Sign out</Button>
+
+          {/* Header */}
+          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+            <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+              <AnimatePresence mode="wait">
+                <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }}>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{VIEW_META[sidebarView]?.sub}</p>
+                  <h1 className="text-xl font-black leading-tight">{VIEW_META[sidebarView]?.title}</h1>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => openNew(sidebarView === "jobs" ? "Job" : "University")}
+                  className="rounded-xl bg-slate-950 text-white hover:bg-slate-800 h-9 px-3.5 text-sm"
+                >
+                  <Icon name="plus" className="mr-1.5" />
+                  <span className="hidden sm:inline">Add application</span>
+                  <span className="sm:hidden">Add</span>
+                </Button>
+
+                <div ref={exportMenuRef} className="relative">
+                  <button
+                    onClick={() => setExportMenuOpen((v) => !v)}
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    <Icon name="download" className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Export</span>
+                    <svg className="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <AnimatePresence>
+                    {exportMenuOpen && (
+                      <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }} className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80">
+                        <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Export CSV
+                        </button>
+                        <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Download backup
+                        </button>
+                        <div className="mx-3 my-1 border-t border-slate-100" />
+                        <label className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import backup
+                          <input type="file" accept="application/json" className="hidden" onChange={(e) => { importJson(e); setExportMenuOpen(false); }} />
+                        </label>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
           </header>
 
+          {/* Content */}
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            {sidebarView === "dashboard" && (
-              <>
-                <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                  <Metric icon="dashboard" label="Total" value={stats.total} hint="All tracked entries" />
-                  <Metric icon="university" label="Universities" value={stats.universities} hint="Master applications" />
-                  <Metric icon="job" label="Jobs" value={stats.jobs} hint="Work applications" />
-                  <Metric icon="calendar" label="Needs attention" value={stats.urgent + stats.overdue} hint={`${stats.overdue} overdue, ${stats.urgent} urgent`} danger={stats.urgent + stats.overdue > 0} />
-                  <Metric icon="check" label="Submitted+" value={stats.submitted} hint="Submitted or later" />
-                </section>
+            <AnimatePresence mode="wait">
+              <motion.div key={sidebarView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
 
-                <section className="mb-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-                  <PipelineCard pipeline={pipeline} onReset={resetSampleData} />
-                  <NextDeadlineCard app={nextDeadline} />
-                </section>
-              </>
-            )}
-
-            {sidebarView !== "dashboard" && (
-              <>
-                <Toolbar
-                  query={query}
-                  setQuery={setQuery}
-                  typeFilter={typeFilter}
-                  setTypeFilter={setTypeFilter}
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
-                  priorityFilter={priorityFilter}
-                  setPriorityFilter={setPriorityFilter}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  showing={filtered.length}
-                  total={applications.length}
-                />
-
-                {viewMode === "table" ? (
-                  <ApplicationTable apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
-                ) : (
-                  <ApplicationGrid apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
+                {sidebarView === "dashboard" && (
+                  <>
+                    {loading && applications.length === 0 ? (
+                      <div className="flex items-center justify-center py-20">
+                        <svg className="h-6 w-6 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
+                        <span className="ml-3 text-sm text-slate-400">Loading your applications…</span>
+                      </div>
+                    ) : applications.length === 0 ? (
+                      <EmptyDashboard onAdd={() => openNew()} onReset={resetSampleData} />
+                    ) : (
+                      <>
+                        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                          <Metric icon="dashboard" label="Total"            value={stats.total}                       hint="All tracked entries"             accent="slate"   delay={0}    />
+                          <Metric icon="university" label="Universities"    value={stats.universities}                hint="Master's applications"           accent="blue"    delay={0.05} />
+                          <Metric icon="job"        label="Jobs"            value={stats.jobs}                        hint="Work applications"               accent="violet"  delay={0.1}  />
+                          <Metric icon="calendar"   label="Needs attention" value={stats.urgent + stats.overdue}     hint={`${stats.overdue} overdue · ${stats.urgent} urgent`} danger={stats.urgent + stats.overdue > 0} delay={0.15} />
+                          <Metric icon="check"      label="Submitted +"     value={stats.submitted}                  hint="Submitted or further"            accent="emerald" delay={0.2}  />
+                        </div>
+                        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
+                          <PipelineCard pipeline={pipeline} total={stats.total} onReset={resetSampleData} />
+                          <UpcomingDeadlinesCard apps={topDeadlines} />
+                        </div>
+                      </>
+                    )}
+                  </>
                 )}
-              </>
-            )}
+
+                {sidebarView !== "dashboard" && (
+                  <>
+                    <Toolbar
+                      query={query} setQuery={setQuery}
+                      typeFilter={typeFilter} setTypeFilter={setTypeFilter}
+                      statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+                      priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter}
+                      sortBy={sortBy} setSortBy={setSortBy}
+                      viewMode={viewMode} setViewMode={setViewMode}
+                      showing={filtered.length} total={applications.length}
+                    />
+                    {viewMode === "table" ? (
+                      <ApplicationTable apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
+                    ) : (
+                      <ApplicationGrid apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
+                    )}
+                  </>
+                )}
+
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>
@@ -803,18 +896,27 @@ export default function ApplicationTrackerWebsite() {
             editingId={editingId}
             onChange={(field, value) => setForm((old) => ({ ...old, [field]: value }))}
             onSave={saveApplication}
-            onClose={() => {
-              setDrawerOpen(false);
-              setEditingId(null);
-              setForm(EMPTY_FORM);
-            }}
+            onClose={() => { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {toast && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold shadow-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className={`fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl ${
+              toastKind === "error" ? "border-rose-200 bg-rose-50 text-rose-800" :
+              toastKind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" :
+              "border-slate-200 bg-white text-slate-700"
+            }`}
+          >
+            <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${toastKind === "error" ? "bg-rose-200 text-rose-700" : toastKind === "success" ? "bg-emerald-200 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>
+              <Icon name={toastKind === "error" ? "close" : "check"} className="h-3 w-3" />
+            </div>
             {toast}
           </motion.div>
         )}
@@ -825,83 +927,223 @@ export default function ApplicationTrackerWebsite() {
 
 function Brand() {
   return (
-    <div className="mb-8 flex items-center gap-3">
-      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white"><Icon name="dashboard" className="h-5 w-5" /></div>
-      <div><p className="text-sm font-black">ApplyFlow</p><p className="text-xs text-slate-500">Tracker dashboard</p></div>
+    <div className="flex items-center gap-3">
+      <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 text-white shadow-sm">
+        <Icon name="dashboard" className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-sm font-black leading-tight">ApplyFlow</p>
+        <p className="text-[10px] text-slate-400">Application tracker</p>
+      </div>
     </div>
   );
 }
 
-function NavItem({ icon, label, count, active = false, onClick }) {
+function NavItem({ icon, label, count, active = false, alert = false, onClick }) {
   return (
-    <button type="button" onClick={onClick} className={`w-full text-left flex items-center justify-between rounded-2xl px-3 py-2.5 transition ${active ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
-      <span className="flex items-center gap-3"><Icon name={icon} /> {label}</span>
-      {typeof count === "number" && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{count}</span>}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group w-full flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+        active ? "bg-slate-950 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+      }`}
+    >
+      <span className="flex items-center gap-2.5">
+        <Icon name={icon} className={active ? "text-white" : "text-slate-400 group-hover:text-slate-600"} />
+        {label}
+      </span>
+      {typeof count === "number" && count > 0 && (
+        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+          active ? "bg-white/20 text-white" : alert ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-500"
+        }`}>
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
-function ProgressCard({ progress }) {
+function ProgressCard({ progress, submitted, total }) {
   return (
-    <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-      <div className="mb-3 flex justify-between text-sm"><span className="font-bold">Submission progress</span><span className="font-black">{progress}%</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-slate-950" style={{ width: `${progress}%` }} /></div>
-      <p className="mt-3 text-xs leading-5 text-slate-500">Submitted, awaiting response, interview, and accepted are counted as progress.</p>
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-bold text-slate-600">Submission progress</span>
+        <span className="text-xs font-black text-slate-900">{progress}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+        <motion.div
+          className="h-full rounded-full bg-slate-950"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+        />
+      </div>
+      <p className="mt-2.5 text-[10px] leading-4 text-slate-400">
+        {submitted} of {total} reached submitted or further.
+      </p>
     </div>
   );
 }
 
-function Metric({ icon, label, value, hint, danger = false }) {
-  return (
-    <Card className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <CardContent className="p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className={`grid h-11 w-11 place-items-center rounded-2xl ${danger ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-700"}`}><Icon name={icon} /></div>
-          {danger && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700">Action</span>}
-        </div>
-        <p className="text-3xl font-black">{value}</p>
-        <p className="mt-1 text-sm font-bold text-slate-700">{label}</p>
-        <p className="mt-1 text-xs text-slate-500">{hint}</p>
-      </CardContent>
-    </Card>
-  );
-}
+const ACCENT = {
+  slate:   { icon: "bg-slate-100 text-slate-600",   ring: "ring-slate-200" },
+  blue:    { icon: "bg-blue-50 text-blue-600",       ring: "ring-blue-100" },
+  violet:  { icon: "bg-violet-50 text-violet-600",   ring: "ring-violet-100" },
+  emerald: { icon: "bg-emerald-50 text-emerald-600", ring: "ring-emerald-100" },
+  rose:    { icon: "bg-rose-50 text-rose-600",       ring: "ring-rose-100" },
+};
 
-function PipelineCard({ pipeline, onReset }) {
-  const visible = pipeline.filter((item) => item.count > 0 || ["Applying", "Submitted", "Awaiting Response", "Interview", "Accepted"].includes(item.status));
+function Metric({ icon, label, value, hint, accent = "slate", danger = false, delay = 0 }) {
+  const a = ACCENT[danger ? "rose" : accent] || ACCENT.slate;
   return (
-    <Card className="rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-      <CardContent className="p-5">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div><h2 className="text-lg font-black">Application pipeline</h2><p className="text-sm text-slate-500">Your current application status distribution.</p></div>
-          <Button variant="outline" onClick={onReset} className="rounded-2xl bg-white"><Icon name="reset" className="mr-2" /> Reset</Button>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {visible.map((item) => <div key={item.status} className="rounded-3xl border border-slate-200 bg-slate-50 p-4"><p className="text-2xl font-black">{item.count}</p><p className="mt-1 text-xs font-bold text-slate-500">{item.status}</p></div>)}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function NextDeadlineCard({ app }) {
-  if (!app) {
-    return (
-      <Card className="rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-sm">
-        <CardContent className="p-6"><Icon name="calendar" className="mb-4 h-8 w-8" /><h2 className="text-xl font-black">Next deadline focus</h2><p className="mt-3 text-sm text-slate-100">No deadlines added yet.</p></CardContent>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay }}>
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+        <CardContent className="p-5">
+          <div className="mb-4 flex items-start justify-between">
+            <div className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${a.icon} ${a.ring}`}>
+              <Icon name={icon} />
+            </div>
+            {danger && value > 0 && (
+              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-rose-600">
+                Urgent
+              </span>
+            )}
+          </div>
+          <p className="text-3xl font-black tabular-nums leading-none">{value}</p>
+          <p className="mt-1.5 text-sm font-bold text-slate-700">{label}</p>
+          <p className="mt-0.5 text-xs text-slate-400">{hint}</p>
+        </CardContent>
       </Card>
-    );
-  }
-  const info = deadlineInfo(app.deadline);
+    </motion.div>
+  );
+}
+
+const STATUS_COLOR = {
+  "Not Open Yet":      "bg-slate-300",
+  "Open":              "bg-sky-400",
+  "Applying":          "bg-violet-500",
+  "Submitted":         "bg-indigo-500",
+  "Awaiting Response": "bg-amber-400",
+  "Interview":         "bg-orange-500",
+  "Accepted":          "bg-emerald-500",
+  "Rejected":          "bg-rose-400",
+  "Deferred":          "bg-slate-400",
+};
+
+function PipelineCard({ pipeline, total, onReset }) {
+  const rows = STATUSES.map((status) => ({
+    status,
+    count: pipeline.find((p) => p.status === status)?.count || 0,
+    color: STATUS_COLOR[status] || "bg-slate-300",
+  }));
+
   return (
-    <Card className="rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-sm">
-      <CardContent className="p-6">
-        <Icon name="calendar" className="mb-4 h-8 w-8" />
-        <h2 className="text-xl font-black">Next deadline focus</h2>
-        <div className="mt-4"><Badge tone="dark">{info.label}</Badge><p className="mt-3 text-lg font-black">{app.name}</p><p className="mt-1 text-sm text-slate-100">{app.programRole}</p></div>
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><DarkInfo label="Deadline" value={formatDate(app.deadline)} /><DarkInfo label="Priority" value={app.priority} /></div>
+    <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardContent className="p-5">
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-black">Application Pipeline</h2>
+            <p className="mt-0.5 text-xs text-slate-400">{total} total · status breakdown</p>
+          </div>
+          <button onClick={onReset} className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">
+            <Icon name="reset" className="h-3.5 w-3.5" /> Reset data
+          </button>
+        </div>
+
+        {total === 0 ? (
+          <p className="py-6 text-center text-sm text-slate-400">No applications yet.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {rows.map(({ status, count, color }, i) => {
+              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+              return (
+                <div key={status} className="flex items-center gap-3">
+                  <div className="w-36 shrink-0 truncate text-xs font-semibold text-slate-500">{status}</div>
+                  <div className="flex-1 overflow-hidden rounded-full bg-slate-100 h-2">
+                    <motion.div
+                      className={`h-full rounded-full ${color}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.55, ease: "easeOut", delay: 0.1 + i * 0.04 }}
+                    />
+                  </div>
+                  <div className="w-16 shrink-0 text-right text-xs">
+                    <span className="font-black text-slate-800">{count}</span>
+                    {pct > 0 && <span className="ml-1 text-slate-400">{pct}%</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
+  );
+}
+
+function UpcomingDeadlinesCard({ apps }) {
+  return (
+    <Card className="rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm">
+      <CardContent className="p-5">
+        <div className="mb-4 flex items-center gap-2.5">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/10">
+            <Icon name="calendar" className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black">Upcoming Deadlines</h2>
+            <p className="text-[10px] text-slate-400">Sorted by urgency</p>
+          </div>
+        </div>
+
+        {apps.length === 0 ? (
+          <p className="py-4 text-sm text-slate-400">No deadlines set yet. Add applications with deadlines to see them here.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {apps.map((app, i) => {
+              const info = deadlineInfo(app.deadline);
+              return (
+                <motion.div
+                  key={app.id}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.07, duration: 0.25 }}
+                  className="rounded-xl bg-white/10 p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 truncate text-sm font-bold leading-tight">{app.name}</p>
+                    <Badge tone="dark">{info.label}</Badge>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-slate-400">{app.programRole}</p>
+                  <p className="mt-1.5 text-[10px] text-slate-500">{formatDate(app.deadline)}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EmptyDashboard({ onAdd, onReset }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="py-16 text-center">
+      <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
+        <Icon name="dashboard" className="h-9 w-9 text-slate-300" />
+      </div>
+      <h2 className="text-2xl font-black">Nothing tracked yet</h2>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400">
+        Add your first application to start building your pipeline, tracking deadlines, and measuring progress.
+      </p>
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <button onClick={onAdd} className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
+          <Icon name="plus" className="h-4 w-4" /> Add application
+        </button>
+        <button onClick={onReset} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+          <Icon name="reset" className="h-4 w-4" /> Load sample data
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
