@@ -155,12 +155,7 @@ function LandingFooter() {
   ];
 
   return (
-    <motion.footer
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.9, duration: 0.4 }}
-      className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center"
-    >
+    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center">
       <p className="text-sm font-black text-slate-800">Know someone still tracking applications in spreadsheets?</p>
       <p className="mt-1 text-xs text-slate-500">Share ApplyBuddy — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
@@ -168,7 +163,7 @@ function LandingFooter() {
           <button
             type="button"
             onClick={handleNativeShare}
-            className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100"
+            className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100"
           >
             <Icon name="share" className="h-3.5 w-3.5" />
             Share
@@ -195,7 +190,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400">© {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required</p>
-    </motion.footer>
+    </footer>
   );
 }
 
@@ -576,7 +571,7 @@ export default function ApplicationTrackerWebsite() {
   }
 
   if (!session) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 text-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
         <div className="my-auto grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
 
@@ -586,14 +581,14 @@ export default function ApplicationTrackerWebsite() {
             {/* Giant brand wordmark */}
             <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.45 }}>
               <h1 className="text-[4rem] font-black leading-none tracking-tight sm:text-7xl lg:text-[5rem]">
-                <span className="text-slate-950">Apply</span><span className="text-indigo-600">Buddy</span>
+                <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
               </h1>
               <p className="mt-3 text-base font-semibold text-slate-500 sm:text-lg">Your buddy for every application.</p>
             </motion.div>
 
             <div className="space-y-4">
               <motion.span
-                className="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-indigo-700"
+                className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700"
                 initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.3 }}
               >
                 Free · No credit card
@@ -618,7 +613,7 @@ export default function ApplicationTrackerWebsite() {
                   className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 + i * 0.07, duration: 0.35 }}
                 >
-                  <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
                     <Icon name={item.icon} className="h-3.5 w-3.5" />
                   </div>
                   <div>
@@ -654,7 +649,7 @@ export default function ApplicationTrackerWebsite() {
                   <button
                     type="button"
                     onClick={() => switchAuthMode("signin")}
-                    className="mt-6 w-full rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-indigo-500"
+                    className="mt-6 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
                   >
                     Back to sign in
                   </button>
@@ -693,7 +688,7 @@ export default function ApplicationTrackerWebsite() {
                             type="email"
                             placeholder="you@example.com"
                             autoComplete="email"
-                            className={`h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.email ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-indigo-300 focus:ring-indigo-50"}`}
+                            className={`h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.email ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-emerald-300 focus:ring-emerald-50"}`}
                           />
                           <AnimatePresence>
                             {fieldErrors.email && (
@@ -715,7 +710,7 @@ export default function ApplicationTrackerWebsite() {
                               type={showPassword ? "text" : "password"}
                               placeholder={authMode === "signup" ? "Min. 6 characters" : "Enter your password"}
                               autoComplete={authMode === "signup" ? "new-password" : "current-password"}
-                              className={`h-12 w-full rounded-2xl border bg-slate-50 px-4 pr-12 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.password ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-indigo-300 focus:ring-indigo-50"}`}
+                              className={`h-12 w-full rounded-2xl border bg-slate-50 px-4 pr-12 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.password ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-emerald-300 focus:ring-emerald-50"}`}
                             />
                             <button
                               type="button"
@@ -763,7 +758,7 @@ export default function ApplicationTrackerWebsite() {
                         <Button
                           onClick={handleAuthSubmit}
                           disabled={authLoading}
-                          className="h-12 w-full rounded-2xl bg-indigo-600 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-60"
+                          className="h-12 w-full rounded-2xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-60"
                         >
                           {authLoading ? (
                             <span className="flex items-center justify-center gap-2">
@@ -778,14 +773,14 @@ export default function ApplicationTrackerWebsite() {
                     </motion.div>
                   </AnimatePresence>
 
-                  <div className="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4">
+                  <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-indigo-100">
-                        <Icon name="check" className="h-3.5 w-3.5 text-indigo-600" />
+                      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-emerald-100">
+                        <Icon name="check" className="h-3.5 w-3.5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-indigo-900">Your data stays private</p>
-                        <p className="mt-1 text-xs leading-5 text-indigo-700/70">Each account is isolated in Supabase. Your applications are only visible to you.</p>
+                        <p className="text-sm font-black text-emerald-900">Your data stays private</p>
+                        <p className="mt-1 text-xs leading-5 text-emerald-700/70">Each account is isolated in Supabase. Your applications are only visible to you.</p>
                       </div>
                     </div>
                   </div>
@@ -957,6 +952,8 @@ export default function ApplicationTrackerWebsite() {
               </motion.div>
             </AnimatePresence>
           </div>
+
+          <LandingFooter />
         </main>
       </div>
 
@@ -1093,7 +1090,7 @@ const STATUS_COLOR = {
   "Not Open Yet":      "bg-slate-300",
   "Open":              "bg-sky-400",
   "Applying":          "bg-violet-500",
-  "Submitted":         "bg-indigo-500",
+  "Submitted":         "bg-emerald-500",
   "Awaiting Response": "bg-amber-400",
   "Interview":         "bg-orange-500",
   "Accepted":          "bg-emerald-500",
