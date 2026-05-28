@@ -205,10 +205,8 @@ function LandingPage({ onGetStarted }) {
       {/* ── Sticky nav ── */}
       <nav className="sticky top-0 z-50 border-b border-slate-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-600 shadow-sm shadow-emerald-600/30">
-              <Icon name="dashboard" className="h-4 w-4 text-white" />
-            </div>
+          <div className="flex items-center gap-2">
+            <img src="/Logo.png" alt="ApplyBuddy" className="h-9 w-9 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
               <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
             </span>
@@ -229,12 +227,15 @@ function LandingPage({ onGetStarted }) {
             </span>
           </motion.div>
 
-          <motion.h1
-            className="mt-6 text-[4.5rem] font-black leading-none tracking-tight sm:text-8xl lg:text-9xl"
+          <motion.div
+            className="mt-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
           >
-            <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
-          </motion.h1>
+            <img src="/Logo.png" alt="ApplyBuddy logo" className="h-36 w-36 object-contain sm:h-44 sm:w-44" style={{ mixBlendMode: "multiply" }} />
+            <h1 className="text-[4rem] font-black leading-none tracking-tight sm:text-7xl lg:text-8xl">
+              <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+            </h1>
+          </motion.div>
 
           <motion.p
             className="mt-5 text-xl font-semibold text-slate-500 sm:text-2xl"
@@ -857,12 +858,17 @@ export default function ApplicationTrackerWebsite() {
           {/* ── Left hero ── */}
           <motion.div className="space-y-8" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
 
-            {/* Giant brand wordmark */}
+            {/* Brand wordmark */}
             <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.45 }}>
-              <h1 className="text-[4rem] font-black leading-none tracking-tight sm:text-7xl lg:text-[5rem]">
-                <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
-              </h1>
-              <p className="mt-3 text-base font-semibold text-slate-500 sm:text-lg">Your buddy for every application.</p>
+              <div className="flex items-center gap-4">
+                <img src="/Logo.png" alt="ApplyBuddy logo" className="h-20 w-20 object-contain shrink-0 sm:h-24 sm:w-24" style={{ mixBlendMode: "multiply" }} />
+                <div>
+                  <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
+                    <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+                  </h1>
+                  <p className="mt-2 text-base font-semibold text-slate-500">Your buddy for every application.</p>
+                </div>
+              </div>
             </motion.div>
 
             <div className="space-y-4">
@@ -1614,10 +1620,8 @@ function FeedbackModal({ session, onClose }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 text-white shadow-sm">
-        <Icon name="dashboard" className="h-4 w-4" />
-      </div>
+    <div className="flex items-center gap-2.5">
+      <img src="/Logo.png" alt="ApplyBuddy" className="h-9 w-9 object-contain shrink-0" style={{ mixBlendMode: "multiply" }} />
       <div>
         <p className="text-sm font-black leading-tight">ApplyBuddy</p>
         <p className="text-[10px] text-slate-400">Your application buddy</p>
