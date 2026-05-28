@@ -23,6 +23,9 @@ const EMPTY_FORM = {
   link: "",
   documents: "",
   notes: "",
+  language: "",        // University: teaching language
+  employmentType: "",  // Job: employment type
+  workMode: "",        // Job: work mode
 };
 
 function makeId() {
@@ -490,6 +493,7 @@ export default function ApplicationTrackerWebsite() {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const exportMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -615,6 +619,7 @@ export default function ApplicationTrackerWebsite() {
   function handleSidebarView(view) {
     setSidebarView(view);
     setQuery("");
+    setSelectedIds(new Set());
   }
 
   const stats = useMemo(() => {
@@ -751,6 +756,51 @@ export default function ApplicationTrackerWebsite() {
     }
     setApplications((old) => old.filter((entry) => entry.id !== id));
     notify("Application deleted.");
+  }
+
+  async function updateStatus(id, newStatus) {
+    const today = todayIso();
+    setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: newStatus, lastUpdated: today } : a));
+    const { error } = await supabase.from("applications").update({ status: newStatus, lastUpdated: today }).eq("id", id).eq("user_id", session.user.id);
+    if (error) notify(error.message, "error");
+  }
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  }
+
+  function selectAll(ids) {
+    setSelectedIds((prev) => ids.length > 0 && ids.every((id) => prev.has(id)) ? new Set() : new Set(ids));
+  }
+
+  async function handleBulkStatusChange(newStatus) {
+    const ids = [...selectedIds];
+    const today = todayIso();
+    setApplications((prev) => prev.map((a) => selectedIds.has(a.id) ? { ...a, status: newStatus, lastUpdated: today } : a));
+    setSelectedIds(new Set());
+    const { error } = await supabase.from("applications").update({ status: newStatus, lastUpdated: today }).in("id", ids).eq("user_id", session.user.id);
+    if (error) notify(error.message, "error");
+    else notify(`${ids.length} application${ids.length > 1 ? "s" : ""} updated.`);
+  }
+
+  async function handleBulkPriorityChange(newPriority) {
+    const ids = [...selectedIds];
+    const today = todayIso();
+    setApplications((prev) => prev.map((a) => selectedIds.has(a.id) ? { ...a, priority: newPriority, lastUpdated: today } : a));
+    setSelectedIds(new Set());
+    const { error } = await supabase.from("applications").update({ priority: newPriority, lastUpdated: today }).in("id", ids).eq("user_id", session.user.id);
+    if (error) notify(error.message, "error");
+    else notify(`${ids.length} application${ids.length > 1 ? "s" : ""} updated.`);
+  }
+
+  async function handleBulkDelete() {
+    const ids = [...selectedIds];
+    setApplications((prev) => prev.filter((a) => !selectedIds.has(a.id)));
+    if (editingId && selectedIds.has(editingId)) { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }
+    setSelectedIds(new Set());
+    const { error } = await supabase.from("applications").delete().in("id", ids).eq("user_id", session.user.id);
+    if (error) notify(error.message, "error");
+    else notify(`${ids.length} application${ids.length > 1 ? "s" : ""} deleted.`);
   }
 
   async function duplicateApplication(app) {
@@ -1309,9 +1359,9 @@ export default function ApplicationTrackerWebsite() {
                       showing={filtered.length} total={applications.length}
                     />
                     {viewMode === "table" ? (
-                      <ApplicationTable apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
+                      <ApplicationTable apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} onStatusChange={updateStatus} selectedIds={selectedIds} onToggleSelect={toggleSelect} onSelectAll={selectAll} />
                     ) : (
-                      <ApplicationGrid apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} />
+                      <ApplicationGrid apps={filtered} onEdit={openEdit} onDelete={deleteApplication} onDuplicate={duplicateApplication} onStatusChange={updateStatus} selectedIds={selectedIds} onToggleSelect={toggleSelect} />
                     )}
                   </>
                 )}
@@ -1323,6 +1373,14 @@ export default function ApplicationTrackerWebsite() {
           <LandingFooter />
         </main>
       </div>
+
+      <BulkActionBar
+        count={selectedIds.size}
+        onStatusChange={handleBulkStatusChange}
+        onPriorityChange={handleBulkPriorityChange}
+        onDelete={handleBulkDelete}
+        onClear={() => setSelectedIds(new Set())}
+      />
 
       {/* Mobile floating feedback button */}
       <button
@@ -1339,6 +1397,7 @@ export default function ApplicationTrackerWebsite() {
           <ApplicationDrawer
             form={form}
             editingId={editingId}
+            applications={applications}
             onChange={(field, value) => setForm((old) => ({ ...old, [field]: value }))}
             onSave={saveApplication}
             onClose={() => { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }}
@@ -1693,6 +1752,91 @@ function FeedbackModal({ session, onClose }) {
   );
 }
 
+function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelete, onClear }) {
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [priorityOpen, setPriorityOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!statusOpen && !priorityOpen) return;
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) { setStatusOpen(false); setPriorityOpen(false); }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [statusOpen, priorityOpen]);
+
+  return (
+    <AnimatePresence>
+      {count > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 32 }}
+          transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          className="fixed inset-x-0 bottom-[4.5rem] z-30 flex justify-center px-4 md:bottom-5"
+        >
+          <div ref={ref} className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 shadow-2xl shadow-slate-900/50">
+            <span className="text-sm font-bold text-white">{count} selected</span>
+            <div className="h-4 w-px bg-white/20" />
+
+            {/* Set status */}
+            <div className="relative">
+              <button type="button" onClick={() => { setStatusOpen((v) => !v); setPriorityOpen(false); }}
+                className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20">
+                Set status
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+              <AnimatePresence>
+                {statusOpen && (
+                  <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }} transition={{ duration: 0.12 }}
+                    className="absolute bottom-full left-0 mb-2 max-h-64 w-48 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1 shadow-xl">
+                    {STATUSES.map((s) => (
+                      <button key={s} type="button" onClick={() => { onStatusChange(s); setStatusOpen(false); }}
+                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50">
+                        <Badge tone={statusTone(s)}>{s}</Badge>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Set priority */}
+            <div className="relative">
+              <button type="button" onClick={() => { setPriorityOpen((v) => !v); setStatusOpen(false); }}
+                className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20">
+                Set priority
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+              <AnimatePresence>
+                {priorityOpen && (
+                  <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.97 }} transition={{ duration: 0.12 }}
+                    className="absolute bottom-full left-0 mb-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl">
+                    {PRIORITIES.map((p) => (
+                      <button key={p} type="button" onClick={() => { onPriorityChange(p); setPriorityOpen(false); }}
+                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50">
+                        <Priority priority={p} />
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="h-4 w-px bg-white/20" />
+            <button type="button" onClick={onDelete}
+              className="flex items-center gap-1.5 rounded-xl bg-rose-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-rose-600">
+              <Icon name="trash" className="h-3 w-3" /> Delete
+            </button>
+            <button type="button" onClick={onClear} className="grid h-7 w-7 place-items-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-white">
+              <Icon name="close" className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function Brand() {
   return (
     <div className="flex items-center gap-2.5">
@@ -1927,15 +2071,74 @@ function Toolbar(props) {
   );
 }
 
-function ApplicationTable({ apps, onEdit, onDelete, onDuplicate }) {
+function InlineStatusPicker({ status, onStatusChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        className="group flex items-center gap-1 rounded-full transition"
+        title="Change status"
+      >
+        <Badge tone={statusTone(status)}>{status}</Badge>
+        <Icon name="edit" className="h-2.5 w-2.5 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.12 }}
+            className="absolute left-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80"
+          >
+            {STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => { onStatusChange(s); setOpen(false); }}
+                className="flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-slate-50"
+              >
+                <Badge tone={statusTone(s)}>{s}</Badge>
+                {s === status && <Icon name="check" className="h-3 w-3 text-emerald-500" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatusChange, selectedIds, onToggleSelect, onSelectAll }) {
   if (!apps.length) return <EmptyState />;
+  const allSelected = apps.length > 0 && apps.every((a) => selectedIds.has(a.id));
   return (
     <Card className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1060px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-4">Application</th><th className="px-4 py-4">Status</th><th className="px-4 py-4">Deadline</th><th className="px-4 py-4">Priority</th><th className="px-4 py-4">Documents</th><th className="px-4 py-4">Updated</th><th className="px-5 py-4 text-right">Actions</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">{apps.map((app) => <ApplicationRow key={app.id} app={app} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />)}</tbody>
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-4">
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer rounded accent-emerald-600" checked={allSelected} onChange={() => onSelectAll(apps.map((a) => a.id))} />
+                </th>
+                <th className="px-5 py-4">Application</th><th className="px-4 py-4">Status</th><th className="px-4 py-4">Deadline</th><th className="px-4 py-4">Priority</th><th className="px-4 py-4">Documents</th><th className="px-4 py-4">Updated</th><th className="px-5 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {apps.map((app) => <ApplicationRow key={app.id} app={app} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} onStatusChange={onStatusChange} selected={selectedIds.has(app.id)} onToggleSelect={onToggleSelect} />)}
+            </tbody>
           </table>
         </div>
       </CardContent>
@@ -1943,12 +2146,15 @@ function ApplicationTable({ apps, onEdit, onDelete, onDuplicate }) {
   );
 }
 
-function ApplicationRow({ app, onEdit, onDelete, onDuplicate }) {
+function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
   const info = deadlineInfo(app.deadline);
   return (
-    <tr className="hover:bg-slate-50">
-      <td className="px-5 py-4 align-top"><div className="flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100"><Icon name={app.type === "University" ? "university" : "job"} /></div><div><p className="font-black">{app.name}</p><p className="mt-0.5 text-slate-600">{app.programRole}</p><p className="mt-1 text-xs text-slate-400">{app.city || "No city"} · {app.applicationType || "No channel"}</p>{app.link && <a href={app.link} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950"><Icon name="link" className="h-3 w-3" /> Open link</a>}</div></div></td>
-      <td className="px-4 py-4 align-top"><Badge tone={statusTone(app.status)}>{app.status}</Badge></td>
+    <tr className={`transition-colors hover:bg-slate-50 ${selected ? "bg-emerald-50/60" : ""}`}>
+      <td className="px-4 py-4 align-top">
+        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded accent-emerald-600" checked={selected} onChange={() => onToggleSelect(app.id)} />
+      </td>
+      <td className="px-5 py-4 align-top"><div className="flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100"><Icon name={app.type === "University" ? "university" : "job"} /></div><div><p className="font-black">{app.name}</p><p className="mt-0.5 text-slate-600">{app.programRole}</p><p className="mt-1 text-xs text-slate-400">{app.city || "No city"} · {app.applicationType || "No channel"}{(app.employmentType || app.workMode || app.language) ? ` · ${[app.employmentType, app.workMode, app.language].filter(Boolean).join(" · ")}` : ""}</p>{app.link && <a href={app.link} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950"><Icon name="link" className="h-3 w-3" /> Open link</a>}</div></div></td>
+      <td className="px-4 py-4 align-top"><InlineStatusPicker status={app.status} onStatusChange={(s) => onStatusChange(app.id, s)} /></td>
       <td className="px-4 py-4 align-top"><Badge tone={info.tone}>{info.label}</Badge><p className="mt-1 text-xs text-slate-400">{formatDate(app.deadline)}</p></td>
       <td className="px-4 py-4 align-top"><Priority priority={app.priority} /></td>
       <td className="max-w-[240px] px-4 py-4 align-top text-slate-600"><span className="line-clamp-2">{app.documents || "—"}</span></td>
@@ -1958,20 +2164,29 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate }) {
   );
 }
 
-function ApplicationGrid({ apps, onEdit, onDelete, onDuplicate }) {
+function ApplicationGrid({ apps, onEdit, onDelete, onDuplicate, onStatusChange, selectedIds, onToggleSelect }) {
   if (!apps.length) return <EmptyState />;
-  return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{apps.map((app) => <ApplicationCard key={app.id} app={app} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} />)}</div>;
+  return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{apps.map((app) => <ApplicationCard key={app.id} app={app} onEdit={onEdit} onDelete={onDelete} onDuplicate={onDuplicate} onStatusChange={onStatusChange} selected={selectedIds.has(app.id)} onToggleSelect={onToggleSelect} />)}</div>;
 }
 
-function ApplicationCard({ app, onEdit, onDelete, onDuplicate }) {
+function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
   const info = deadlineInfo(app.deadline);
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="h-full rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <Card className={`h-full rounded-[2rem] border bg-white shadow-sm transition-colors ${selected ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200"}`}>
         <CardContent className="flex h-full flex-col p-5">
-          <div className="mb-4 flex items-start justify-between"><div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100"><Icon name={app.type === "University" ? "university" : "job"} /></div><Badge tone={info.tone}>{info.label}</Badge></div>
+          <div className="mb-4 flex items-start justify-between">
+            <div className="flex items-start gap-2.5">
+              <input type="checkbox" className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-emerald-600" checked={selected} onChange={() => onToggleSelect(app.id)} />
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100"><Icon name={app.type === "University" ? "university" : "job"} /></div>
+            </div>
+            <Badge tone={info.tone}>{info.label}</Badge>
+          </div>
           <p className="text-lg font-black leading-tight">{app.name}</p><p className="mt-1 text-sm font-semibold text-slate-600">{app.programRole}</p>
-          <div className="mt-4 flex flex-wrap gap-2"><Badge tone={statusTone(app.status)}>{app.status}</Badge><Priority priority={app.priority} /></div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <InlineStatusPicker status={app.status} onStatusChange={(s) => onStatusChange(app.id, s)} />
+            <Priority priority={app.priority} />
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-2"><Info label="City" value={app.city || "—"} /><Info label="Deadline" value={formatDate(app.deadline)} /></div>
           {app.notes && <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600">{app.notes}</p>}
           <div className="mt-auto flex gap-2 pt-5">{app.link && <a className="flex-1" href={app.link} target="_blank" rel="noreferrer"><Button variant="outline" className="w-full rounded-2xl bg-white"><Icon name="link" className="mr-2" /> Link</Button></a>}<Button variant="outline" className="rounded-2xl bg-white" onClick={() => onDuplicate(app)}><Icon name="copy" /></Button><Button className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800" onClick={() => onEdit(app)}><Icon name="edit" /></Button><Button variant="outline" className="rounded-2xl bg-white text-rose-600" onClick={() => onDelete(app.id)}><Icon name="trash" /></Button></div>
@@ -1993,8 +2208,16 @@ function DrawerSection({ label, children }) {
   );
 }
 
-function ApplicationDrawer({ form, editingId, onChange, onSave, onClose }) {
+function ApplicationDrawer({ form, editingId, onChange, onSave, onClose, applications }) {
   const isUni = form.type === "University";
+
+  const duplicate = useMemo(() => {
+    if (editingId || !form.name.trim()) return null;
+    return applications.find(
+      (a) => a.type === form.type && a.name.trim().toLowerCase() === form.name.trim().toLowerCase()
+    ) ?? null;
+  }, [form.name, form.type, editingId, applications]);
+
   return (
     <motion.div className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 250 }} className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl">
@@ -2027,6 +2250,24 @@ function ApplicationDrawer({ form, editingId, onChange, onSave, onClose }) {
             ))}
           </div>
 
+          {/* Duplicate warning */}
+          <AnimatePresence>
+            {duplicate && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <p className="text-xs font-black text-amber-800">Possible duplicate</p>
+                  <p className="mt-0.5 text-xs leading-5 text-amber-700">
+                    You already have <span className="font-bold">{duplicate.name}</span> tracked as a {duplicate.type} — currently <span className="font-semibold">{duplicate.status}</span>. You can still save this as a separate entry.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Section: Institution / Company */}
           <DrawerSection label={isUni ? "Institution" : "Company"}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -2042,6 +2283,20 @@ function ApplicationDrawer({ form, editingId, onChange, onSave, onClose }) {
               <Field label={isUni ? "Application portal URL" : "Job listing URL"}>
                 <Input value={form.link} onChange={(e) => onChange("link", e.target.value)} placeholder={isUni ? "https://portal.university.de/..." : "https://careers.company.com/..."} />
               </Field>
+              {isUni ? (
+                <Field label="Teaching language">
+                  <Select value={form.language} onChange={(e) => onChange("language", e.target.value)} options={[{ label: "Not specified", value: "" }, { label: "English", value: "English" }, { label: "German", value: "German" }, { label: "English & German", value: "English & German" }]} />
+                </Field>
+              ) : (
+                <>
+                  <Field label="Employment type">
+                    <Select value={form.employmentType} onChange={(e) => onChange("employmentType", e.target.value)} options={[{ label: "Not specified", value: "" }, { label: "Full-time", value: "Full-time" }, { label: "Part-time", value: "Part-time" }, { label: "Internship", value: "Internship" }, { label: "Working Student", value: "Working Student" }, { label: "Freelance / Contract", value: "Freelance / Contract" }]} />
+                  </Field>
+                  <Field label="Work mode">
+                    <Select value={form.workMode} onChange={(e) => onChange("workMode", e.target.value)} options={[{ label: "Not specified", value: "" }, { label: "Onsite", value: "Onsite" }, { label: "Hybrid", value: "Hybrid" }, { label: "Remote", value: "Remote" }]} />
+                  </Field>
+                </>
+              )}
             </div>
           </DrawerSection>
 
