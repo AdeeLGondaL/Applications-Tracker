@@ -1298,7 +1298,9 @@ export default function ApplicationTrackerWebsite() {
 function AdminPanel() {
   const [items, setItems] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("open");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1309,30 +1311,61 @@ function AdminPanel() {
     if (data) setItems(data);
   }
 
-  const shown = filter === "all" ? items : items.filter((f) => f.type === filter);
-  const bugs = items.filter((f) => f.type === "bug").length;
+  async function toggleResolved(id, current) {
+    setItems((prev) => prev.map((f) => f.id === id ? { ...f, resolved: !current } : f));
+    await supabase.from("feedback").update({ resolved: !current }).eq("id", id);
+  }
+
+  async function deleteItem(id) {
+    if (pendingDelete !== id) {
+      setPendingDelete(id);
+      setTimeout(() => setPendingDelete((p) => p === id ? null : p), 3000);
+      return;
+    }
+    setPendingDelete(null);
+    setItems((prev) => prev.filter((f) => f.id !== id));
+    await supabase.from("feedback").delete().eq("id", id);
+  }
+
+  const open     = items.filter((f) => !f.resolved).length;
+  const resolved = items.filter((f) => f.resolved).length;
+  const bugs     = items.filter((f) => f.type === "bug").length;
   const features = items.filter((f) => f.type === "feature").length;
+
+  const shown = items
+    .filter((f) => statusFilter === "all" ? true : statusFilter === "open" ? !f.resolved : f.resolved)
+    .filter((f) => typeFilter === "all" || f.type === typeFilter);
 
   return (
     <div className="space-y-6">
 
       {/* Summary metrics */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Metric icon="messageSquare" label="Total"            value={items.length}  hint="All submissions"    accent="slate"   delay={0}    />
-        <Metric icon="close"         label="Bug reports"      value={bugs}           hint="Issues reported"    accent="violet"  delay={0.05} />
-        <Metric icon="check"         label="Feature requests" value={features}       hint="Ideas submitted"    accent="emerald" delay={0.1}  />
+      <div className="grid gap-3 sm:grid-cols-4">
+        <Metric icon="messageSquare" label="Open"             value={open}     hint={`${resolved} resolved`}  danger={open > 0} delay={0}    />
+        <Metric icon="check"         label="Resolved"         value={resolved} hint="Marked as done"          accent="emerald"  delay={0.05} />
+        <Metric icon="close"         label="Bug reports"      value={bugs}     hint="Issues reported"         accent="violet"   delay={0.1}  />
+        <Metric icon="check"         label="Feature requests" value={features} hint="Ideas submitted"         accent="slate"    delay={0.15} />
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Status filter */}
         <div className="flex gap-1 rounded-2xl bg-slate-100 p-1">
-          {[["all", "All"], ["bug", "Bugs"], ["feature", "Features"]].map(([v, l]) => (
-            <button key={v} type="button" onClick={() => setFilter(v)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${filter === v ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+          {[["open", "Open"], ["resolved", "Resolved"], ["all", "All"]].map(([v, l]) => (
+            <button key={v} type="button" onClick={() => setStatusFilter(v)}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${statusFilter === v ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
             >{l}</button>
           ))}
         </div>
-        <button type="button" onClick={load} className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
+        {/* Type filter */}
+        <div className="flex gap-1 rounded-2xl bg-slate-100 p-1">
+          {[["all", "All types"], ["bug", "Bugs"], ["feature", "Features"]].map(([v, l]) => (
+            <button key={v} type="button" onClick={() => setTypeFilter(v)}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${typeFilter === v ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+            >{l}</button>
+          ))}
+        </div>
+        <button type="button" onClick={load} className="ml-auto flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
           <Icon name="reset" className="h-3 w-3" /> Refresh
         </button>
       </div>
@@ -1349,39 +1382,85 @@ function AdminPanel() {
             <div className="grid h-14 w-14 place-items-center rounded-3xl bg-slate-100">
               <Icon name="messageSquare" className="h-6 w-6 text-slate-400" />
             </div>
-            <p className="mt-4 text-base font-black text-slate-700">No feedback yet</p>
-            <p className="mt-1 text-sm text-slate-400">Submissions from users will appear here.</p>
+            <p className="mt-4 text-base font-black text-slate-700">
+              {statusFilter === "resolved" ? "Nothing resolved yet" : statusFilter === "open" ? "All caught up" : "No feedback yet"}
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              {statusFilter === "open" ? "No open items — great work." : "Submissions will appear here."}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {shown.map((item, i) => (
-            <motion.div
-              key={item.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5"
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
-            >
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold ${item.type === "bug" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
-                  {item.type === "bug" ? "Bug report" : "Feature request"}
-                </span>
-                <span className="text-xs text-slate-400">
-                  {new Date(item.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                </span>
-                {item.email && (
-                  <span className="ml-auto text-xs font-semibold text-slate-400">{item.email}</span>
-                )}
-              </div>
-              <p className="text-base font-black text-slate-950">{item.title}</p>
-              <p className="mt-1.5 text-sm leading-6 text-slate-600">{item.description}</p>
-              {item.steps && (
-                <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3">
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Steps to reproduce</p>
-                  <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{item.steps}</p>
+          <AnimatePresence initial={false}>
+            {shown.map((item, i) => (
+              <motion.div
+                key={item.id}
+                layout
+                className={`rounded-2xl border p-5 transition-colors ${item.resolved ? "border-emerald-100 bg-emerald-50/40" : "border-slate-200 bg-white"}`}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 24, transition: { duration: 0.2 } }}
+                transition={{ delay: i * 0.04, duration: 0.25 }}
+              >
+                {/* Row 1: meta + actions */}
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold ${item.type === "bug" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-blue-200 bg-blue-50 text-blue-700"}`}>
+                    {item.type === "bug" ? "Bug report" : "Feature request"}
+                  </span>
+                  {item.resolved && (
+                    <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                      Resolved
+                    </span>
+                  )}
+                  <span className="text-xs text-slate-400">
+                    {new Date(item.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                  {item.email && <span className="text-xs font-semibold text-slate-400">{item.email}</span>}
+
+                  {/* Actions */}
+                  <div className="ml-auto flex items-center gap-1.5">
+                    {/* Resolve / Reopen */}
+                    <button
+                      type="button"
+                      title={item.resolved ? "Reopen" : "Mark as resolved"}
+                      onClick={() => toggleResolved(item.id, item.resolved)}
+                      className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-bold transition ${
+                        item.resolved
+                          ? "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                          : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      }`}
+                    >
+                      <Icon name="check" className="h-3 w-3" />
+                      {item.resolved ? "Reopen" : "Resolve"}
+                    </button>
+                    {/* Delete — two-click confirm */}
+                    <button
+                      type="button"
+                      title={pendingDelete === item.id ? "Click again to confirm delete" : "Delete"}
+                      onClick={() => deleteItem(item.id)}
+                      className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-bold transition ${
+                        pendingDelete === item.id
+                          ? "border-rose-300 bg-rose-500 text-white hover:bg-rose-600"
+                          : "border-slate-200 bg-white text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                      }`}
+                    >
+                      <Icon name="trash" className="h-3 w-3" />
+                      {pendingDelete === item.id ? "Confirm" : "Delete"}
+                    </button>
+                  </div>
                 </div>
-              )}
-            </motion.div>
-          ))}
+
+                {/* Row 2: content */}
+                <p className={`text-base font-black ${item.resolved ? "text-slate-500 line-through decoration-slate-300" : "text-slate-950"}`}>{item.title}</p>
+                <p className="mt-1.5 text-sm leading-6 text-slate-600">{item.description}</p>
+                {item.steps && (
+                  <div className="mt-3 rounded-xl bg-white/80 px-4 py-3 ring-1 ring-slate-200">
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Steps to reproduce</p>
+                    <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{item.steps}</p>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
