@@ -120,12 +120,28 @@ function Icon({ name, className = "" }) {
     filter: "M4 6h16M7 12h10M10 18h4",
     calendar: "M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16",
     check: "M20 6 9 17l-5-5",
+    eye: "M2 12s3.3-7 10-7 10 7 10 7-3.3 7-10 7-10-7-10-7M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z",
+    eyeOff: "M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-5.9M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2m-6.7-1a3 3 0 1 1-4.2-4.2M2 2l20 20",
+    mail: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 0 8 9 8-9",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={icons[name] || icons.dashboard} />
     </svg>
   );
+}
+
+function mapAuthError(error) {
+  const msg = (error?.message || "").toLowerCase();
+  if (msg.includes("invalid login credentials") || msg.includes("invalid credentials")) return "Incorrect email or password. Please try again.";
+  if (msg.includes("email not confirmed")) return "Please confirm your email first — check your inbox for the confirmation link.";
+  if (msg.includes("already registered") || msg.includes("user already registered")) return "An account with this email already exists.";
+  if (msg.includes("password") && (msg.includes("6") || msg.includes("characters") || msg.includes("weak") || msg.includes("short"))) return "Password must be at least 6 characters long.";
+  if (msg.includes("invalid email") || msg.includes("unable to validate")) return "Enter a valid email address.";
+  if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("over_email_send_rate_limit")) return "Too many attempts — please wait a minute and try again.";
+  if (msg.includes("network") || msg.includes("failed to fetch") || msg.includes("load failed")) return "Connection error — check your internet and try again.";
+  if (msg.includes("signup is disabled") || msg.includes("signups not allowed")) return "New sign-ups are currently disabled. Contact the administrator.";
+  return error?.message || "Something went wrong. Please try again.";
 }
 
 export default function ApplicationTrackerWebsite() {
@@ -135,6 +151,10 @@ export default function ApplicationTrackerWebsite() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -192,26 +212,54 @@ export default function ApplicationTrackerWebsite() {
     setLoading(false);
   }
 
+  function validateAuth() {
+    const errors = { email: "", password: "" };
+    if (!authEmail.trim()) errors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) errors.email = "Enter a valid email address.";
+    if (!authPassword) errors.password = "Password is required.";
+    else if (authMode === "signup" && authPassword.length < 6) errors.password = "Password must be at least 6 characters.";
+    setFieldErrors(errors);
+    return !errors.email && !errors.password;
+  }
+
+  function switchAuthMode(mode) {
+    setAuthMode(mode);
+    setAuthError("");
+    setFieldErrors({ email: "", password: "" });
+    setSignupSent(false);
+  }
+
+  function handleAuthSubmit() {
+    if (authLoading) return;
+    if (authMode === "signin") signIn();
+    else signUp();
+  }
+
   async function signIn() {
+    if (!validateAuth()) return;
+    setAuthError("");
     setAuthLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
     setAuthLoading(false);
     if (error) {
-      setToast(error.message);
+      setAuthError(mapAuthError(error));
       return;
     }
     setToast("Signed in successfully.");
   }
 
   async function signUp() {
+    if (!validateAuth()) return;
+    setAuthError("");
     setAuthLoading(true);
     const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
     setAuthLoading(false);
     if (error) {
-      setToast(error.message);
+      const mapped = mapAuthError(error);
+      setAuthError(mapped);
       return;
     }
-    setToast("Check your inbox to confirm your account.");
+    setSignupSent(true);
   }
 
   async function signOut() {
@@ -494,76 +542,164 @@ export default function ApplicationTrackerWebsite() {
           {/* ── Right form card ── */}
           <motion.div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}>
 
-            {/* Sliding tab switcher */}
-            <div className="mb-8 flex rounded-2xl bg-slate-100 p-1">
-              {[{ id: "signin", label: "Sign in" }, { id: "signup", label: "Sign up" }].map(({ id, label }) => (
-                <button key={id} type="button" onClick={() => setAuthMode(id)} className="relative flex-1 rounded-xl py-2.5 text-sm font-bold">
-                  {authMode === id && (
-                    <motion.span layoutId="auth-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
-                  )}
-                  <span className={`relative z-10 transition-colors ${authMode === id ? "text-slate-950" : "text-slate-400"}`}>{label}</span>
-                </button>
-              ))}
-            </div>
-
             <AnimatePresence mode="wait">
-              <motion.div key={authMode} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                <div className="mb-6">
-                  <h2 className="text-2xl font-black text-slate-950">{authMode === "signin" ? "Welcome back" : "Create your account"}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{authMode === "signin" ? "Sign in to access your applications." : "Start tracking for free — takes 30 seconds."}</p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid gap-1.5">
-                    <label className="text-sm font-bold text-slate-700">Email address</label>
-                    <input
-                      value={authEmail}
-                      onChange={(e) => setAuthEmail(e.target.value)}
-                      type="email"
-                      placeholder="you@example.com"
-                      className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
-                    />
+              {signupSent ? (
+                /* ── Email confirmation success screen ── */
+                <motion.div key="signup-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.25 }} className="py-2 text-center">
+                  <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
+                    <Icon name="mail" className="h-7 w-7 text-emerald-600" />
+                  </motion.div>
+                  <h2 className="text-2xl font-black text-slate-950">Check your inbox</h2>
+                  <p className="mt-2 text-sm text-slate-500">We sent a confirmation link to</p>
+                  <p className="mt-1 break-all font-bold text-slate-800">{authEmail}</p>
+                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-500">
+                    Click the link in your email to activate your account, then return here to sign in.
+                  </p>
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                    <p className="text-xs font-semibold text-amber-700">Not in your inbox? Check your spam folder. The email may take a minute to arrive.</p>
                   </div>
-                  <div className="grid gap-1.5">
-                    <label className="text-sm font-bold text-slate-700">Password</label>
-                    <input
-                      value={authPassword}
-                      onChange={(e) => setAuthPassword(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter" && authEmail && authPassword && !authLoading) authMode === "signin" ? signIn() : signUp(); }}
-                      type="password"
-                      placeholder={authMode === "signup" ? "Create a strong password" : "Enter your password"}
-                      className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100"
-                    />
-                  </div>
-                  <Button
-                    onClick={authMode === "signin" ? signIn : signUp}
-                    disabled={!authEmail || !authPassword || authLoading}
-                    className="h-12 w-full rounded-2xl bg-slate-950 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  <button
+                    type="button"
+                    onClick={() => switchAuthMode("signin")}
+                    className="mt-6 w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
                   >
-                    {authLoading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
-                        </svg>
-                        Working…
-                      </span>
-                    ) : authMode === "signin" ? "Sign in to account" : "Create free account"}
-                  </Button>
-                </div>
-              </motion.div>
+                    Back to sign in
+                  </button>
+                </motion.div>
+              ) : (
+                /* ── Sign in / Sign up form ── */
+                <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+
+                  {/* Sliding tab switcher */}
+                  <div className="mb-8 flex rounded-2xl bg-slate-100 p-1">
+                    {[{ id: "signin", label: "Sign in" }, { id: "signup", label: "Sign up" }].map(({ id, label }) => (
+                      <button key={id} type="button" onClick={() => switchAuthMode(id)} className="relative flex-1 rounded-xl py-2.5 text-sm font-bold">
+                        {authMode === id && (
+                          <motion.span layoutId="auth-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
+                        )}
+                        <span className={`relative z-10 transition-colors ${authMode === id ? "text-slate-950" : "text-slate-400"}`}>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
+                      <div className="mb-6">
+                        <h2 className="text-2xl font-black text-slate-950">{authMode === "signin" ? "Welcome back" : "Create your account"}</h2>
+                        <p className="mt-1 text-sm text-slate-500">{authMode === "signin" ? "Sign in to access your applications." : "Start tracking for free — takes 30 seconds."}</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Email field */}
+                        <div className="grid gap-1.5">
+                          <label className="text-sm font-bold text-slate-700">Email address</label>
+                          <input
+                            value={authEmail}
+                            onChange={(e) => { setAuthEmail(e.target.value); setFieldErrors((f) => ({ ...f, email: "" })); setAuthError(""); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
+                            type="email"
+                            placeholder="you@example.com"
+                            autoComplete="email"
+                            className={`h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.email ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-slate-400 focus:ring-slate-100"}`}
+                          />
+                          <AnimatePresence>
+                            {fieldErrors.email && (
+                              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                                <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.email}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        {/* Password field */}
+                        <div className="grid gap-1.5">
+                          <label className="text-sm font-bold text-slate-700">Password</label>
+                          <div className="relative">
+                            <input
+                              value={authPassword}
+                              onChange={(e) => { setAuthPassword(e.target.value); setFieldErrors((f) => ({ ...f, password: "" })); setAuthError(""); }}
+                              onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
+                              type={showPassword ? "text" : "password"}
+                              placeholder={authMode === "signup" ? "Min. 6 characters" : "Enter your password"}
+                              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+                              className={`h-12 w-full rounded-2xl border bg-slate-50 px-4 pr-12 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 ${fieldErrors.password ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-slate-200 focus:border-slate-400 focus:ring-slate-100"}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((s) => !s)}
+                              className="absolute right-3.5 top-3.5 text-slate-400 transition hover:text-slate-600"
+                              tabIndex={-1}
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              <Icon name={showPassword ? "eyeOff" : "eye"} className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <AnimatePresence>
+                            {fieldErrors.password && (
+                              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                                <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.password}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
+                          {authMode === "signup" && authPassword.length > 0 && !fieldErrors.password && (
+                            <PasswordStrength password={authPassword} />
+                          )}
+                        </div>
+
+                        {/* General auth error */}
+                        <AnimatePresence>
+                          {authError && (
+                            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3">
+                              <Icon name="close" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500" />
+                              <div>
+                                <p className="text-sm font-semibold text-rose-700">{authError}</p>
+                                {authError.includes("already exists") && (
+                                  <button type="button" onClick={() => switchAuthMode("signin")} className="mt-1 text-xs font-bold text-rose-600 underline underline-offset-2 hover:no-underline">
+                                    Sign in instead →
+                                  </button>
+                                )}
+                                {authError.includes("confirm your email") && (
+                                  <p className="mt-1 text-xs text-rose-500">Check your spam folder if you can't find it.</p>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Submit button */}
+                        <Button
+                          onClick={handleAuthSubmit}
+                          disabled={authLoading}
+                          className="h-12 w-full rounded-2xl bg-slate-950 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                        >
+                          {authLoading ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
+                              </svg>
+                              {authMode === "signin" ? "Signing in…" : "Creating account…"}
+                            </span>
+                          ) : authMode === "signin" ? "Sign in to account" : "Create free account"}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  <div className="mt-6 rounded-2xl bg-slate-950 px-5 py-4 text-white">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/10">
+                        <Icon name="check" className="h-3.5 w-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black">Your data stays private</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-300">Each account is isolated in Supabase. Your applications are only visible to you.</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
 
-            <motion.div className="mt-6 rounded-2xl bg-slate-950 px-5 py-4 text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.4 }}>
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-white/10">
-                  <Icon name="check" className="h-3.5 w-3.5" />
-                </div>
-                <div>
-                  <p className="text-sm font-black">Your data stays private</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-300">Each account is isolated in Supabase. Your applications are only visible to you.</p>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
 
         </div>
@@ -912,4 +1048,34 @@ function Info({ label, value }) {
 
 function DarkInfo({ label, value }) {
   return <div className="rounded-2xl bg-white/10 p-3"><p className="text-xs text-slate-100">{label}</p><p className="mt-1 font-bold text-slate-100">{value}</p></div>;
+}
+
+function PasswordStrength({ password }) {
+  if (!password) return null;
+  if (password.length < 6) {
+    return (
+      <div className="space-y-1">
+        <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full w-[15%] rounded-full bg-rose-400" />
+        </div>
+        <p className="text-xs font-semibold text-rose-500">Too short — minimum 6 characters</p>
+      </div>
+    );
+  }
+  const extras = [/[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password), password.length >= 12].filter(Boolean).length;
+  const levels = [
+    { label: "Weak", color: "bg-orange-400", text: "text-orange-500", pct: "30%" },
+    { label: "Fair", color: "bg-yellow-400", text: "text-yellow-600", pct: "55%" },
+    { label: "Good", color: "bg-blue-400", text: "text-blue-500", pct: "75%" },
+    { label: "Strong", color: "bg-emerald-400", text: "text-emerald-500", pct: "100%" },
+  ];
+  const lvl = levels[Math.min(extras, 3)];
+  return (
+    <div className="space-y-1">
+      <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+        <motion.div className={`h-full rounded-full ${lvl.color}`} initial={{ width: 0 }} animate={{ width: lvl.pct }} transition={{ duration: 0.35, ease: "easeOut" }} />
+      </div>
+      <p className={`text-xs font-semibold ${lvl.text}`}>{lvl.label}</p>
+    </div>
+  );
 }
