@@ -496,7 +496,9 @@ export default function ApplicationTrackerWebsite() {
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const exportMenuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -529,9 +531,14 @@ export default function ApplicationTrackerWebsite() {
   useEffect(() => {
     function handleClick(e) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportMenuOpen(false);
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
+    if (window.innerWidth < 768) setViewMode("cards");
   }, []);
 
   async function fetchApplications() {
@@ -1144,8 +1151,51 @@ export default function ApplicationTrackerWebsite() {
           </div>
         </aside>
 
+        {/* ── Mobile bottom nav ── */}
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden">
+          <div className="flex items-stretch">
+            {[
+              { view: "dashboard",    icon: "dashboard",  label: "Home" },
+              { view: "universities", icon: "university", label: "Uni" },
+              { view: "jobs",         icon: "job",        label: "Jobs" },
+              { view: "urgent",       icon: "calendar",   label: "Urgent" },
+            ].map(({ view, icon, label }) => {
+              const isActive = sidebarView === view;
+              const badge = view === "urgent" ? stats.urgent + stats.overdue : 0;
+              return (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => handleSidebarView(view)}
+                  className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${isActive ? "text-emerald-600" : "text-slate-400"}`}
+                >
+                  <div className="relative">
+                    <Icon name={icon} className="h-5 w-5" />
+                    {badge > 0 && (
+                      <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white">
+                        {badge > 9 ? "9+" : badge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-bold">{label}</span>
+                </button>
+              );
+            })}
+            {session?.user?.email === ADMIN_EMAIL && (
+              <button
+                type="button"
+                onClick={() => handleSidebarView("admin")}
+                className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-emerald-600" : "text-slate-400"}`}
+              >
+                <Icon name="shield" className="h-5 w-5" />
+                <span className="text-[10px] font-bold">Admin</span>
+              </button>
+            )}
+          </div>
+        </nav>
+
         {/* ── Main ── */}
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 pb-20 md:pb-0">
 
           {/* Header */}
           <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -1194,6 +1244,47 @@ export default function ApplicationTrackerWebsite() {
                     )}
                   </AnimatePresence>
                 </div>
+
+                {/* Mobile user menu */}
+                <div ref={mobileMenuRef} className="relative md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen((v) => !v)}
+                    className="grid h-9 w-9 place-items-center rounded-full bg-slate-950 text-xs font-black text-white"
+                  >
+                    {session?.user?.email?.[0]?.toUpperCase() || "?"}
+                  </button>
+                  <AnimatePresence>
+                    {mobileMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80"
+                      >
+                        <div className="border-b border-slate-100 px-4 py-3">
+                          <p className="truncate text-xs font-semibold text-slate-700">{session?.user?.email}</p>
+                          <p className="text-[10px] text-slate-400">Signed in</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setFeedbackOpen(true); setMobileMenuOpen(false); }}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <Icon name="messageSquare" className="h-3.5 w-3.5 text-slate-400" /> Share feedback
+                        </button>
+                        <div className="mx-3 my-1 border-t border-slate-100" />
+                        <button
+                          type="button"
+                          onClick={signOut}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                        >
+                          <Icon name="reset" className="h-3.5 w-3.5" /> Sign out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
               </div>
             </div>
           </header>
@@ -1214,7 +1305,7 @@ export default function ApplicationTrackerWebsite() {
                       <EmptyDashboard onAdd={() => openNew()} />
                     ) : (
                       <>
-                        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        <div className="mb-5 grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
                           <Metric icon="dashboard" label="Total"            value={stats.total}                       hint="All tracked entries"             accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"    value={stats.universities}                hint="Master's applications"           accent="blue"    delay={0.05} />
                           <Metric icon="job"        label="Jobs"            value={stats.jobs}                        hint="Work applications"               accent="violet"  delay={0.1}  />
@@ -1840,13 +1931,13 @@ function Toolbar(props) {
   return (
     <Card className="mb-4 rounded-[2rem] border border-slate-200 bg-white shadow-sm">
       <CardContent className="p-4">
-        <div className="grid gap-3 lg:grid-cols-[1.5fr_0.8fr_0.9fr_0.8fr_0.8fr_auto]">
-          <div className="relative"><Icon name="search" className="pointer-events-none absolute left-3 top-3.5 text-slate-400" /><Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search university, company, role, city, notes..." /></div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_0.9fr_0.8fr_0.8fr_auto]">
+          <div className="relative sm:col-span-2 lg:col-span-1"><Icon name="search" className="pointer-events-none absolute left-3 top-3.5 text-slate-400" /><Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search university, company, role, city, notes..." /></div>
           <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} options={["All", ...TYPES]} />
           <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} options={["All", ...STATUSES]} />
           <Select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} options={["All", ...PRIORITIES]} />
           <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} options={[{ label: "Deadline", value: "deadline" }, { label: "Priority", value: "priority" }, { label: "Updated", value: "updated" }, { label: "Status", value: "status" }, { label: "Name", value: "name" }]} />
-          <div className="flex rounded-2xl border border-slate-200 bg-slate-50 p-1"><Toggle active={viewMode === "table"} onClick={() => setViewMode("table")}>Table</Toggle><Toggle active={viewMode === "cards"} onClick={() => setViewMode("cards")}>Cards</Toggle></div>
+          <div className="flex justify-self-start rounded-2xl border border-slate-200 bg-slate-50 p-1 sm:col-span-2 lg:col-span-1"><Toggle active={viewMode === "table"} onClick={() => setViewMode("table")}>Table</Toggle><Toggle active={viewMode === "cards"} onClick={() => setViewMode("cards")}>Cards</Toggle></div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1"><Icon name="filter" className="h-3 w-3" /> Showing {showing} of {total}</span>
