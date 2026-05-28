@@ -8,6 +8,7 @@ const TYPES = ["University", "Job"];
 const STATUSES = ["Not Open Yet", "Open", "Applying", "Submitted", "Awaiting Response", "Interview", "Accepted", "Rejected", "Deferred"];
 const PRIORITIES = ["High", "Medium", "Low"];
 const ACTIONABLE_STATUSES = ["Not Open Yet", "Open", "Applying"];
+const ADMIN_EMAIL = "ahmedadeel783@gmail.com";
 
 const EMPTY_FORM = {
   type: "University",
@@ -126,6 +127,7 @@ function Icon({ name, className = "" }) {
     mail: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 0 8 9 8-9",
     share: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13",
     messageSquare: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+    shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1074,10 +1076,11 @@ export default function ApplicationTrackerWebsite() {
   );
 
   const VIEW_META = {
-    dashboard:    { title: "Dashboard",    sub: "Overview" },
-    universities: { title: "Universities", sub: "Applications" },
-    jobs:         { title: "Jobs",         sub: "Applications" },
-    urgent:       { title: "Urgent",       sub: "Action needed" },
+    dashboard:    { title: "Dashboard",      sub: "Overview" },
+    universities: { title: "Universities",   sub: "Applications" },
+    jobs:         { title: "Jobs",           sub: "Applications" },
+    urgent:       { title: "Urgent",         sub: "Action needed" },
+    admin:        { title: "Feedback inbox", sub: "Admin" },
   };
 
   return (
@@ -1097,6 +1100,9 @@ export default function ApplicationTrackerWebsite() {
               <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities" count={stats.universities} />
               <NavItem active={sidebarView === "jobs"} onClick={() => handleSidebarView("jobs")} icon="job" label="Jobs" count={stats.jobs} />
               <NavItem active={sidebarView === "urgent"} onClick={() => handleSidebarView("urgent")} icon="calendar" label="Urgent" count={stats.urgent + stats.overdue} alert={stats.urgent + stats.overdue > 0} />
+              {session?.user?.email === ADMIN_EMAIL && (
+                <NavItem active={sidebarView === "admin"} onClick={() => handleSidebarView("admin")} icon="shield" label="Feedback inbox" />
+              )}
             </nav>
 
             <div className="mt-6 px-1">
@@ -1218,7 +1224,9 @@ export default function ApplicationTrackerWebsite() {
                   </>
                 )}
 
-                {sidebarView !== "dashboard" && (
+                {sidebarView === "admin" && <AdminPanel />}
+
+                {sidebarView !== "dashboard" && sidebarView !== "admin" && (
                   <>
                     <Toolbar
                       query={query} setQuery={setQuery}
@@ -1287,6 +1295,99 @@ export default function ApplicationTrackerWebsite() {
   );
 }
 
+function AdminPanel() {
+  const [items, setItems] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [filter, setFilter] = useState("all");
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function load() {
+    setLoadingData(true);
+    const { data } = await supabase.from("feedback").select("*").order("created_at", { ascending: false });
+    setLoadingData(false);
+    if (data) setItems(data);
+  }
+
+  const shown = filter === "all" ? items : items.filter((f) => f.type === filter);
+  const bugs = items.filter((f) => f.type === "bug").length;
+  const features = items.filter((f) => f.type === "feature").length;
+
+  return (
+    <div className="space-y-6">
+
+      {/* Summary metrics */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Metric icon="messageSquare" label="Total"            value={items.length}  hint="All submissions"    accent="slate"   delay={0}    />
+        <Metric icon="close"         label="Bug reports"      value={bugs}           hint="Issues reported"    accent="violet"  delay={0.05} />
+        <Metric icon="check"         label="Feature requests" value={features}       hint="Ideas submitted"    accent="emerald" delay={0.1}  />
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 rounded-2xl bg-slate-100 p-1">
+          {[["all", "All"], ["bug", "Bugs"], ["feature", "Features"]].map(([v, l]) => (
+            <button key={v} type="button" onClick={() => setFilter(v)}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${filter === v ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}
+            >{l}</button>
+          ))}
+        </div>
+        <button type="button" onClick={load} className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
+          <Icon name="reset" className="h-3 w-3" /> Refresh
+        </button>
+      </div>
+
+      {/* Content */}
+      {loadingData ? (
+        <div className="flex items-center justify-center py-20">
+          <svg className="h-5 w-5 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
+          <span className="ml-3 text-sm text-slate-400">Loading feedback…</span>
+        </div>
+      ) : shown.length === 0 ? (
+        <Card className="border border-dashed border-slate-300 bg-white">
+          <CardContent className="grid place-items-center p-14 text-center">
+            <div className="grid h-14 w-14 place-items-center rounded-3xl bg-slate-100">
+              <Icon name="messageSquare" className="h-6 w-6 text-slate-400" />
+            </div>
+            <p className="mt-4 text-base font-black text-slate-700">No feedback yet</p>
+            <p className="mt-1 text-sm text-slate-400">Submissions from users will appear here.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {shown.map((item, i) => (
+            <motion.div
+              key={item.id}
+              className="rounded-2xl border border-slate-200 bg-white p-5"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.25 }}
+            >
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold ${item.type === "bug" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+                  {item.type === "bug" ? "Bug report" : "Feature request"}
+                </span>
+                <span className="text-xs text-slate-400">
+                  {new Date(item.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </span>
+                {item.email && (
+                  <span className="ml-auto text-xs font-semibold text-slate-400">{item.email}</span>
+                )}
+              </div>
+              <p className="text-base font-black text-slate-950">{item.title}</p>
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">{item.description}</p>
+              {item.steps && (
+                <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3">
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Steps to reproduce</p>
+                  <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{item.steps}</p>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
   const [title, setTitle] = useState("");
@@ -1302,6 +1403,7 @@ function FeedbackModal({ session, onClose }) {
     setError("");
     const { error: sbError } = await supabase.from("feedback").insert({
       user_id: session.user.id,
+      email: session.user.email,
       type,
       title: title.trim(),
       description: desc.trim(),
