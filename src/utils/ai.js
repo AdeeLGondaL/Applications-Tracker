@@ -85,17 +85,19 @@ export async function callGeminiExtract(input) {
   let content = input.trim();
 
   if (isUrl) {
-    const proxies = [
-      (u) => fetch(`https://corsproxy.io/?url=${encodeURIComponent(u)}`).then(async (r) => { if (!r.ok) throw new Error(r.status); return r.text(); }),
-      (u) => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`).then(async (r) => { if (!r.ok) throw new Error(r.status); const d = await r.json(); if (!d.contents) throw new Error("empty"); return d.contents; }),
-    ];
-    let html = null;
-    for (const proxy of proxies) {
-      try { html = await Promise.race([proxy(input.trim()), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 12000))]); break; } catch {}
+    try {
+      const proxyUrl = `/proxy?url=${encodeURIComponent(input.trim())}`;
+      const res = await Promise.race([
+        fetch(proxyUrl),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000)),
+      ]);
+      if (!res.ok) throw new Error(`${res.status}`);
+      const html = await res.text();
+      const text = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      content = `Source URL: ${input.trim()}\n\n${text}`;
+    } catch (err) {
+      throw new Error(err.message === "timeout" ? "Request timed out. Try pasting the text instead." : "Could not fetch the page. Try pasting the text instead.");
     }
-    if (!html) throw new Error("This page blocked automated access. Copy the text from the page and paste it here instead.");
-    const text = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-    content = `Source URL: ${input.trim()}\n\n${text}`;
   }
 
   const prompt = `Extract application details from the content below. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
