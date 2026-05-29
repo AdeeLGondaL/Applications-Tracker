@@ -8,7 +8,7 @@ import { callGeminiExtract } from "@/utils/ai";
 
 export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, onClose, applications }) {
   const isUni = form.type === "University";
-  const hasAiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
+  const hasAiKey = !!import.meta.env.VITE_GROQ_API_KEY;
 
   const [afOpen, setAfOpen] = useState(false);
   const [afInput, setAfInput] = useState("");
@@ -161,7 +161,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                     />
                     {!hasAiKey && (
                       <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-                        Add <code className="font-mono font-bold">VITE_GEMINI_API_KEY</code> to your{" "}
+                        Add <code className="font-mono font-bold">VITE_GROQ_API_KEY</code> to your{" "}
                         <code className="font-mono font-bold">.env</code> to enable AI extraction.
                       </p>
                     )}

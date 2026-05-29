@@ -78,8 +78,8 @@ export function parsePageMeta(html, sourceUrl) {
 }
 
 export async function callGeminiExtract(input) {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Add VITE_GEMINI_API_KEY to your .env to enable AI extraction.");
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  if (!apiKey) throw new Error("Add VITE_GROQ_API_KEY to your .env to enable AI extraction.");
 
   const isUrl = /^https?:\/\//i.test(input.trim());
   let content = input.trim();
@@ -122,13 +122,18 @@ export async function callGeminiExtract(input) {
 Content:
 ${content.slice(0, 8000)}`;
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
-  );
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "content-type": "application/json", "authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1024,
+    }),
+  });
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${res.status}`); }
   const data = await res.json();
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const raw = data.choices?.[0]?.message?.content || "";
   const match = raw.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("Could not parse AI response.");
   return JSON.parse(match[0]);
