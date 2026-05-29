@@ -2292,8 +2292,28 @@ function parsePageMeta(html, sourceUrl) {
 async function callGeminiExtract(input) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) throw new Error("Add VITE_GEMINI_API_KEY to your .env to enable AI extraction.");
+
   const isUrl = /^https?:\/\//i.test(input.trim());
-  const prompt = `Extract application details from ${isUrl ? "the webpage at this URL" : "the text below"}. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
+  let content = input.trim();
+
+  if (isUrl) {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(input.trim())}`, { signal: controller.signal });
+      clearTimeout(tid);
+      const data = await res.json();
+      if (data.contents) {
+        const text = data.contents.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+        content = `Source URL: ${input.trim()}\n\n${text}`;
+      }
+    } catch {
+      clearTimeout(tid);
+      throw new Error("Could not fetch the page. Try pasting the text instead.");
+    }
+  }
+
+  const prompt = `Extract application details from the content below. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
 
 {
   "type": "University" or "Job",
@@ -2311,14 +2331,12 @@ async function callGeminiExtract(input) {
   "notes": "key requirements, max 200 characters"
 }
 
-${isUrl ? input.trim() : `Text:\n${input.slice(0, 5000)}`}`;
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    ...(isUrl ? { tools: [{ urlContext: {} }] } : {}),
-  };
+Content:
+${content.slice(0, 8000)}`;
+
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
   );
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${res.status}`); }
   const data = await res.json();
