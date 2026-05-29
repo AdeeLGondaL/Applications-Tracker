@@ -124,6 +124,7 @@ function Icon({ name, className = "" }) {
     share: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13",
     messageSquare: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
     shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+    sparkles: "M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1399,6 +1400,7 @@ export default function ApplicationTrackerWebsite() {
             editingId={editingId}
             applications={applications}
             onChange={(field, value) => setForm((old) => ({ ...old, [field]: value }))}
+            onBatchChange={(updates) => setForm((old) => ({ ...old, ...updates }))}
             onSave={saveApplication}
             onClose={() => { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }}
           />
@@ -2208,8 +2210,116 @@ function DrawerSection({ label, children }) {
   );
 }
 
-function ApplicationDrawer({ form, editingId, onChange, onSave, onClose, applications }) {
+function parsePageMeta(html, sourceUrl) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const getMeta = (p) =>
+    doc.querySelector(`meta[property="${p}"]`)?.getAttribute("content") ||
+    doc.querySelector(`meta[name="${p}"]`)?.getAttribute("content") || "";
+  const result = {};
+
+  for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    try {
+      const raw = JSON.parse(script.textContent);
+      const items = Array.isArray(raw) ? raw : raw["@graph"] ? raw["@graph"] : [raw];
+      const job = items.find((i) => i["@type"] === "JobPosting");
+      const course = items.find((i) => ["Course", "EducationalOccupationalProgram"].includes(i["@type"]));
+
+      if (job) {
+        result.type = "Job";
+        result.name = job.hiringOrganization?.name || getMeta("og:site_name") || "";
+        result.programRole = job.title || job.name || "";
+        const loc = Array.isArray(job.jobLocation) ? job.jobLocation[0] : job.jobLocation;
+        if (loc?.address) result.city = loc.address.addressLocality || "";
+        if (job.validThrough) result.deadline = job.validThrough.slice(0, 10);
+        if (job.datePosted) result.openingDate = job.datePosted.slice(0, 10);
+        if (job.employmentType) {
+          const et = String(job.employmentType).toUpperCase();
+          if (et.includes("FULL")) result.employmentType = "Full-time";
+          else if (et.includes("PART")) result.employmentType = "Part-time";
+          else if (et.includes("INTERN")) result.employmentType = "Internship";
+          else if (et.includes("TEMP") || et.includes("CONTRACT")) result.employmentType = "Freelance / Contract";
+        }
+        if (job.jobLocationType === "TELECOMMUTE") result.workMode = "Remote";
+        if (job.description) result.notes = job.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+        break;
+      }
+      if (course) {
+        result.type = "University";
+        result.programRole = course.name || "";
+        const provider = Array.isArray(course.provider) ? course.provider[0] : course.provider;
+        result.name = provider?.name || getMeta("og:site_name") || "";
+        const lang = Array.isArray(course.inLanguage) ? course.inLanguage[0] : course.inLanguage;
+        if (lang) result.language = String(lang).startsWith("en") ? "English" : String(lang).startsWith("de") ? "German" : "";
+        break;
+      }
+    } catch {}
+  }
+
+  if (!result.name) {
+    const ogTitle = getMeta("og:title") || doc.title || "";
+    const siteName = getMeta("og:site_name") || "";
+    const atMatch = ogTitle.match(/^(.+?)\s+(?:at|@|bei)\s+(.+)$/i);
+    const pipeMatch = ogTitle.match(/^(.+?)\s*[|–\-]\s*(.+)$/);
+    if (atMatch) { result.programRole = atMatch[1].trim(); result.name = atMatch[2].trim(); }
+    else if (pipeMatch && siteName) { result.programRole = pipeMatch[1].trim(); result.name = siteName; }
+    else if (siteName) { result.name = siteName; if (ogTitle && ogTitle !== siteName) result.programRole = ogTitle; }
+    else result.name = ogTitle;
+  }
+  if (!result.notes) { const d = getMeta("og:description") || getMeta("description"); if (d) result.notes = d.slice(0, 300); }
+  if (!result.link) result.link = getMeta("og:url") || sourceUrl || "";
+  return result;
+}
+
+async function callClaudeExtract(text) {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Add VITE_GEMINI_API_KEY to your .env to enable AI extraction.");
+  const prompt = `Extract application details from the text below. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
+
+{
+  "type": "University" or "Job",
+  "name": "university or company name",
+  "programRole": "degree program or job title",
+  "city": "city or location",
+  "deadline": "YYYY-MM-DD or empty string",
+  "openingDate": "YYYY-MM-DD or empty string",
+  "applicationType": "application platform or method",
+  "employmentType": "Full-time" | "Part-time" | "Internship" | "Working Student" | "Freelance / Contract" | "",
+  "workMode": "Remote" | "Hybrid" | "Onsite" | "",
+  "language": "English" | "German" | "English & German" | "",
+  "documents": "comma-separated required documents",
+  "link": "direct application URL if present",
+  "notes": "key requirements, max 200 characters"
+}
+
+Text:
+${text.slice(0, 5000)}`;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    }
+  );
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${res.status}`); }
+  const data = await res.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("Could not parse AI response.");
+  return JSON.parse(match[0]);
+}
+
+function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, onClose, applications }) {
   const isUni = form.type === "University";
+  const hasAiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
+
+  const [afOpen, setAfOpen] = useState(false);
+  const [afTab, setAfTab] = useState("url");
+  const [afUrl, setAfUrl] = useState("");
+  const [afText, setAfText] = useState("");
+  const [afLoading, setAfLoading] = useState(false);
+  const [afError, setAfError] = useState("");
+  const [afDone, setAfDone] = useState(false);
 
   const duplicate = useMemo(() => {
     if (editingId || !form.name.trim()) return null;
@@ -2217,6 +2327,49 @@ function ApplicationDrawer({ form, editingId, onChange, onSave, onClose, applica
       (a) => a.type === form.type && a.name.trim().toLowerCase() === form.name.trim().toLowerCase()
     ) ?? null;
   }, [form.name, form.type, editingId, applications]);
+
+  function applyExtracted(fields) {
+    const allowed = ["type","name","programRole","city","deadline","openingDate","applicationType","employmentType","workMode","language","documents","link","notes"];
+    const updates = {};
+    allowed.forEach((k) => { if (fields[k] !== undefined && fields[k] !== "") updates[k] = fields[k]; });
+    onBatchChange(updates);
+    setAfDone(true);
+    setAfError("");
+    setTimeout(() => setAfOpen(false), 1200);
+  }
+
+  async function handleFetchUrl() {
+    if (!afUrl.trim()) return;
+    setAfLoading(true); setAfError(""); setAfDone(false);
+    try {
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(afUrl.trim())}`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(proxyUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await res.json();
+      if (!data.contents) throw new Error("Page returned no content. Try pasting the text instead.");
+      const extracted = parsePageMeta(data.contents, afUrl.trim());
+      const filled = Object.values(extracted).filter(Boolean).length;
+      if (filled < 2) throw new Error("Couldn't find structured data on this page. Try the AI text tab instead.");
+      applyExtracted(extracted);
+    } catch (err) {
+      setAfError(err.name === "AbortError" ? "Request timed out. Try pasting the text instead." : (err.message || "Failed to fetch URL."));
+    }
+    setAfLoading(false);
+  }
+
+  async function handleExtractAI() {
+    if (!afText.trim()) return;
+    setAfLoading(true); setAfError(""); setAfDone(false);
+    try {
+      const extracted = await callClaudeExtract(afText.trim());
+      applyExtracted(extracted);
+    } catch (err) {
+      setAfError(err.message || "AI extraction failed.");
+    }
+    setAfLoading(false);
+  }
 
   return (
     <motion.div className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -2248,6 +2401,103 @@ function ApplicationDrawer({ form, editingId, onChange, onSave, onClose, applica
                 </span>
               </button>
             ))}
+          </div>
+
+          {/* ── Auto-fill panel ── */}
+          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50">
+            <button
+              type="button"
+              onClick={() => { setAfOpen((v) => !v); setAfError(""); setAfDone(false); }}
+              className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-emerald-100"
+            >
+              <span className="flex items-center gap-2 text-sm font-black text-emerald-800">
+                <Icon name="sparkles" className="h-4 w-4 text-emerald-600" />
+                Auto-fill from URL or description
+              </span>
+              <svg className={`h-4 w-4 text-emerald-500 transition-transform ${afOpen ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+
+            <AnimatePresence>
+              {afOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden border-t border-emerald-100"
+                >
+                  <div className="p-4 space-y-3">
+                    {/* Tab switcher */}
+                    <div className="flex gap-1 rounded-xl bg-emerald-100 p-1">
+                      {[["url", "Paste URL", "link"], ["text", "Paste text (AI)", "sparkles"]].map(([t, label, icon]) => (
+                        <button key={t} type="button" onClick={() => { setAfTab(t); setAfError(""); setAfDone(false); }}
+                          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition ${afTab === t ? "bg-white text-emerald-800 shadow-sm" : "text-emerald-600 hover:text-emerald-800"}`}>
+                          <Icon name={icon} className="h-3 w-3" />{label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* URL tab */}
+                    {afTab === "url" && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-emerald-700">Paste the job listing or university program URL. Works best with LinkedIn, Indeed, and sites with structured data.</p>
+                        <div className="flex gap-2">
+                          <input
+                            value={afUrl}
+                            onChange={(e) => setAfUrl(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleFetchUrl(); }}
+                            placeholder="https://www.linkedin.com/jobs/view/..."
+                            className="h-10 flex-1 rounded-xl border border-emerald-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                          />
+                          <button type="button" onClick={handleFetchUrl} disabled={afLoading || !afUrl.trim()}
+                            className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
+                            {afLoading ? <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg> : <Icon name="link" className="h-3.5 w-3.5" />}
+                            {afLoading ? "Fetching…" : "Fetch"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI text tab */}
+                    {afTab === "text" && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-emerald-700">Paste any text — a job description, program page, email, or WhatsApp message. AI will extract and fill the fields.</p>
+                        <textarea
+                          value={afText}
+                          onChange={(e) => setAfText(e.target.value)}
+                          placeholder="Paste the full job posting or program description here…"
+                          rows={5}
+                          className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                        />
+                        {!hasAiKey && (
+                          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+                            Add <code className="font-mono font-bold">VITE_GEMINI_API_KEY</code> to your <code className="font-mono font-bold">.env</code> to enable AI extraction.
+                          </p>
+                        )}
+                        <button type="button" onClick={handleExtractAI} disabled={afLoading || !afText.trim() || !hasAiKey}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
+                          {afLoading ? <><svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>Extracting…</> : <><Icon name="sparkles" className="h-3.5 w-3.5" />Extract with AI</>}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Feedback */}
+                    <AnimatePresence>
+                      {afError && (
+                        <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+                          className="flex items-start gap-1.5 text-xs font-semibold text-rose-600">
+                          <Icon name="close" className="mt-0.5 h-3 w-3 shrink-0" />{afError}
+                        </motion.p>
+                      )}
+                      {afDone && (
+                        <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
+                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                          <Icon name="check" className="h-3 w-3" />Fields populated — review and save.
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Duplicate warning */}
