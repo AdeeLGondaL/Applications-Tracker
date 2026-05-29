@@ -88,16 +88,15 @@ export async function callGeminiExtract(input) {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 15000);
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(input.trim())}`, { signal: controller.signal });
+      const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(input.trim())}`, { signal: controller.signal });
       clearTimeout(tid);
-      const data = await res.json();
-      if (data.contents) {
-        const text = data.contents.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-        content = `Source URL: ${input.trim()}\n\n${text}`;
-      }
-    } catch {
+      if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+      const html = await res.text();
+      const text = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      content = `Source URL: ${input.trim()}\n\n${text}`;
+    } catch (err) {
       clearTimeout(tid);
-      throw new Error("Could not fetch the page. Try pasting the text instead.");
+      throw new Error(err.name === "AbortError" ? "Request timed out. Try pasting the text instead." : "Could not fetch the page. Try pasting the text instead.");
     }
   }
 
