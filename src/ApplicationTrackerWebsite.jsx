@@ -2217,6 +2217,11 @@ function parsePageMeta(html, sourceUrl) {
     doc.querySelector(`meta[name="${p}"]`)?.getAttribute("content") || "";
   const result = {};
 
+  const urlLower = (sourceUrl || "").toLowerCase();
+  const looksLikeUni = /\buni\b|universit|hochschul|college|\.edu\b|ac\.(uk|at|de|nz|au)/.test(urlLower);
+  const getDomain = () => { try { return new URL(sourceUrl).hostname.replace(/^www\./, ""); } catch { return ""; } };
+  const isInstitution = (s) => /uni|universit|hochschul|college|gmbh|ag\b|inc\b|ltd\b|corp\b/i.test(s);
+
   for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
     try {
       const raw = JSON.parse(script.textContent);
@@ -2260,20 +2265,35 @@ function parsePageMeta(html, sourceUrl) {
     const siteName = getMeta("og:site_name") || "";
     const atMatch = ogTitle.match(/^(.+?)\s+(?:at|@|bei)\s+(.+)$/i);
     const pipeMatch = ogTitle.match(/^(.+?)\s*[|–\-]\s*(.+)$/);
-    if (atMatch) { result.programRole = atMatch[1].trim(); result.name = atMatch[2].trim(); }
-    else if (pipeMatch && siteName) { result.programRole = pipeMatch[1].trim(); result.name = siteName; }
-    else if (siteName) { result.name = siteName; if (ogTitle && ogTitle !== siteName) result.programRole = ogTitle; }
-    else result.name = ogTitle;
+    if (atMatch) {
+      result.programRole = atMatch[1].trim();
+      result.name = atMatch[2].trim();
+    } else if (pipeMatch) {
+      const [left, right] = [pipeMatch[1].trim(), pipeMatch[2].trim()];
+      if (isInstitution(right) && !isInstitution(left)) { result.programRole = left; result.name = right; }
+      else if (isInstitution(left) && !isInstitution(right)) { result.programRole = right; result.name = left; }
+      else if (siteName) { result.programRole = left; result.name = siteName; }
+      else { result.programRole = left; result.name = right; }
+    } else if (siteName) {
+      result.name = siteName;
+      if (ogTitle && ogTitle !== siteName) result.programRole = ogTitle;
+    } else {
+      result.name = getDomain();
+      result.programRole = ogTitle;
+    }
   }
+
+  if (!result.type) result.type = looksLikeUni ? "University" : "Job";
   if (!result.notes) { const d = getMeta("og:description") || getMeta("description"); if (d) result.notes = d.slice(0, 300); }
   if (!result.link) result.link = getMeta("og:url") || sourceUrl || "";
   return result;
 }
 
-async function callClaudeExtract(text) {
+async function callGeminiExtract(input) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) throw new Error("Add VITE_GEMINI_API_KEY to your .env to enable AI extraction.");
-  const prompt = `Extract application details from the text below. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
+  const isUrl = /^https?:\/\//i.test(input.trim());
+  const prompt = `Extract application details from ${isUrl ? "the webpage at this URL" : "the text below"}. Return ONLY a valid JSON object with exactly these fields (use "" for any not found):
 
 {
   "type": "University" or "Job",
@@ -2291,15 +2311,14 @@ async function callClaudeExtract(text) {
   "notes": "key requirements, max 200 characters"
 }
 
-Text:
-${text.slice(0, 5000)}`;
+${isUrl ? input.trim() : `Text:\n${input.slice(0, 5000)}`}`;
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    ...(isUrl ? { tools: [{ urlContext: {} }] } : {}),
+  };
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-    }
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }
   );
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || `API error ${res.status}`); }
   const data = await res.json();
@@ -2314,12 +2333,11 @@ function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, o
   const hasAiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
   const [afOpen, setAfOpen] = useState(false);
-  const [afTab, setAfTab] = useState("url");
-  const [afUrl, setAfUrl] = useState("");
-  const [afText, setAfText] = useState("");
+  const [afInput, setAfInput] = useState("");
   const [afLoading, setAfLoading] = useState(false);
   const [afError, setAfError] = useState("");
   const [afDone, setAfDone] = useState(false);
+  const afIsUrl = /^https?:\/\//i.test(afInput.trim());
 
   const duplicate = useMemo(() => {
     if (editingId || !form.name.trim()) return null;
@@ -2338,32 +2356,11 @@ function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, o
     setTimeout(() => setAfOpen(false), 1200);
   }
 
-  async function handleFetchUrl() {
-    if (!afUrl.trim()) return;
+  async function handleExtract() {
+    if (!afInput.trim()) return;
     setAfLoading(true); setAfError(""); setAfDone(false);
     try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(afUrl.trim())}`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
-      const res = await fetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(timeout);
-      const data = await res.json();
-      if (!data.contents) throw new Error("Page returned no content. Try pasting the text instead.");
-      const extracted = parsePageMeta(data.contents, afUrl.trim());
-      const filled = Object.values(extracted).filter(Boolean).length;
-      if (filled < 2) throw new Error("Couldn't find structured data on this page. Try the AI text tab instead.");
-      applyExtracted(extracted);
-    } catch (err) {
-      setAfError(err.name === "AbortError" ? "Request timed out. Try pasting the text instead." : (err.message || "Failed to fetch URL."));
-    }
-    setAfLoading(false);
-  }
-
-  async function handleExtractAI() {
-    if (!afText.trim()) return;
-    setAfLoading(true); setAfError(""); setAfDone(false);
-    try {
-      const extracted = await callClaudeExtract(afText.trim());
+      const extracted = await callGeminiExtract(afInput.trim());
       applyExtracted(extracted);
     } catch (err) {
       setAfError(err.message || "AI extraction failed.");
@@ -2425,59 +2422,29 @@ function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, o
                   className="overflow-hidden border-t border-emerald-100"
                 >
                   <div className="p-4 space-y-3">
-                    {/* Tab switcher */}
-                    <div className="flex gap-1 rounded-xl bg-emerald-100 p-1">
-                      {[["url", "Paste URL", "link"], ["text", "Paste text (AI)", "sparkles"]].map(([t, label, icon]) => (
-                        <button key={t} type="button" onClick={() => { setAfTab(t); setAfError(""); setAfDone(false); }}
-                          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition ${afTab === t ? "bg-white text-emerald-800 shadow-sm" : "text-emerald-600 hover:text-emerald-800"}`}>
-                          <Icon name={icon} className="h-3 w-3" />{label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* URL tab */}
-                    {afTab === "url" && (
-                      <div className="space-y-2">
-                        <p className="text-[11px] text-emerald-700">Paste the job listing or university program URL. Works best with LinkedIn, Indeed, and sites with structured data.</p>
-                        <div className="flex gap-2">
-                          <input
-                            value={afUrl}
-                            onChange={(e) => setAfUrl(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") handleFetchUrl(); }}
-                            placeholder="https://www.linkedin.com/jobs/view/..."
-                            className="h-10 flex-1 rounded-xl border border-emerald-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-                          />
-                          <button type="button" onClick={handleFetchUrl} disabled={afLoading || !afUrl.trim()}
-                            className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
-                            {afLoading ? <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg> : <Icon name="link" className="h-3.5 w-3.5" />}
-                            {afLoading ? "Fetching…" : "Fetch"}
-                          </button>
-                        </div>
-                      </div>
+                    <p className="text-[11px] text-emerald-700">
+                      {afIsUrl ? "AI will fetch and read the page for you." : "Paste a job posting, program description, email, or any text — AI extracts the details."}
+                    </p>
+                    <textarea
+                      value={afInput}
+                      onChange={(e) => setAfInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
+                      placeholder="Paste a URL or description here…"
+                      rows={afIsUrl ? 2 : 5}
+                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    />
+                    {!hasAiKey && (
+                      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+                        Add <code className="font-mono font-bold">VITE_GEMINI_API_KEY</code> to your <code className="font-mono font-bold">.env</code> to enable AI extraction.
+                      </p>
                     )}
-
-                    {/* AI text tab */}
-                    {afTab === "text" && (
-                      <div className="space-y-2">
-                        <p className="text-[11px] text-emerald-700">Paste any text — a job description, program page, email, or WhatsApp message. AI will extract and fill the fields.</p>
-                        <textarea
-                          value={afText}
-                          onChange={(e) => setAfText(e.target.value)}
-                          placeholder="Paste the full job posting or program description here…"
-                          rows={5}
-                          className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-                        />
-                        {!hasAiKey && (
-                          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
-                            Add <code className="font-mono font-bold">VITE_GEMINI_API_KEY</code> to your <code className="font-mono font-bold">.env</code> to enable AI extraction.
-                          </p>
-                        )}
-                        <button type="button" onClick={handleExtractAI} disabled={afLoading || !afText.trim() || !hasAiKey}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
-                          {afLoading ? <><svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>Extracting…</> : <><Icon name="sparkles" className="h-3.5 w-3.5" />Extract with AI</>}
-                        </button>
-                      </div>
-                    )}
+                    <button type="button" onClick={handleExtract} disabled={afLoading || !afInput.trim() || !hasAiKey}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
+                      {afLoading
+                        ? <><svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>{afIsUrl ? "Reading page…" : "Extracting…"}</>
+                        : <><Icon name="sparkles" className="h-3.5 w-3.5" />{afIsUrl ? "Read & fill with AI" : "Extract with AI"}</>
+                      }
+                    </button>
 
                     {/* Feedback */}
                     <AnimatePresence>
