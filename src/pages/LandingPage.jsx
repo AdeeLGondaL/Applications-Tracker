@@ -25,9 +25,9 @@ function LandingFooter() {
   ];
 
   return (
-    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center">
-      <p className="text-sm font-black text-slate-800">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500">Share ApplyBuddy — free forever, no credit card, no ads.</p>
+    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
+      <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share ApplyBuddy — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button
@@ -45,7 +45,7 @@ function LandingFooter() {
           className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition ${
             copied
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           }`}
         >
           <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
@@ -57,13 +57,13 @@ function LandingFooter() {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition ${hover}`}
+            className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 ${hover}`}
           >
             {label}
           </a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-slate-400">
+      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
         © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
       </p>
     </footer>
@@ -72,26 +72,26 @@ function LandingFooter() {
 
 export default function LandingPage({ onGetStarted }) {
   return (
-    <div className="min-h-screen bg-white text-slate-950">
+    <div className="min-h-screen bg-white text-slate-950 dark:bg-slate-950 dark:text-slate-50">
 
       {/* Sticky nav */}
-      <nav className="sticky top-0 z-50 border-b border-slate-100 bg-white/90 backdrop-blur">
+      <nav className="sticky top-0 z-50 border-b border-slate-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <img src="/Logo.png" alt="ApplyBuddy" className="h-9 w-9 object-contain" style={{ mixBlendMode: "multiply" }} />
+            <img src="/Logo.png" alt="ApplyBuddy" className="h-9 w-9 object-contain dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
-              <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+              <span className="text-slate-950 dark:text-slate-50">Apply</span><span className="text-emerald-600">Buddy</span>
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onGetStarted} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Sign in</button>
+            <button type="button" onClick={onGetStarted} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">Sign in</button>
             <button type="button" onClick={onGetStarted} className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500 shadow-sm shadow-emerald-600/25">Get started free</button>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-[size:24px_24px] py-24 sm:py-32">
+      <section className="relative overflow-hidden bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-[size:24px_24px] py-24 sm:py-32 dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)]">
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700">
@@ -103,21 +103,21 @@ export default function LandingPage({ onGetStarted }) {
             className="mt-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
           >
-            <img src="/Logo.png" alt="ApplyBuddy logo" className="h-36 w-36 object-contain sm:h-44 sm:w-44" style={{ mixBlendMode: "multiply" }} />
+            <img src="/Logo.png" alt="ApplyBuddy logo" className="h-36 w-36 object-contain sm:h-44 sm:w-44 dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
             <h1 className="text-[4rem] font-black leading-none tracking-tight sm:text-7xl lg:text-8xl">
-              <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+              <span className="text-slate-950 dark:text-slate-50">Apply</span><span className="text-emerald-600">Buddy</span>
             </h1>
           </motion.div>
 
           <motion.p
-            className="mt-5 text-xl font-semibold text-slate-500 sm:text-2xl"
+            className="mt-5 text-xl font-semibold text-slate-500 dark:text-slate-400 sm:text-2xl"
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.45 }}
           >
             Your buddy for every application.
           </motion.p>
 
           <motion.p
-            className="mx-auto mt-4 max-w-lg text-base leading-7 text-slate-400"
+            className="mx-auto mt-4 max-w-lg text-base leading-7 text-slate-400 dark:text-slate-500"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.4 }}
           >
             Track university admissions and job applications in one place. Deadlines, statuses, documents — never scattered again.
@@ -130,34 +130,34 @@ export default function LandingPage({ onGetStarted }) {
             <button type="button" onClick={onGetStarted} className="rounded-2xl bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-500">
               Start tracking for free
             </button>
-            <button type="button" onClick={onGetStarted} className="rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+            <button type="button" onClick={onGetStarted} className="rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
               Already have an account →
             </button>
           </motion.div>
 
           {/* Dashboard mockup */}
           <motion.div
-            className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
+            className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900"
             initial={{ opacity: 0, y: 48 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Fake browser chrome */}
-            <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800">
               <div className="h-3 w-3 rounded-full bg-rose-300" />
               <div className="h-3 w-3 rounded-full bg-amber-300" />
               <div className="h-3 w-3 rounded-full bg-emerald-300" />
-              <div className="mx-auto h-5 w-48 rounded-lg bg-slate-200/80 text-center text-[10px] font-semibold leading-5 text-slate-400">applybuddy.netlify.app</div>
+              <div className="mx-auto h-5 w-48 rounded-lg bg-slate-200/80 text-center text-[10px] font-semibold leading-5 text-slate-400 dark:bg-slate-700 dark:text-slate-500">applybuddy.netlify.app</div>
             </div>
             <div className="flex">
               {/* Fake sidebar */}
-              <div className="hidden w-40 shrink-0 border-r border-slate-100 bg-white p-3 sm:block">
+              <div className="hidden w-40 shrink-0 border-r border-slate-100 bg-white p-3 sm:block dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-3 flex items-center gap-2 px-2 py-1.5">
                   <div className="h-5 w-5 rounded-lg bg-emerald-600" />
-                  <div className="h-2.5 w-16 rounded bg-slate-950" />
+                  <div className="h-2.5 w-16 rounded bg-slate-950 dark:bg-slate-300" />
                 </div>
                 {["Dashboard", "Universities", "Jobs", "Urgent"].map((item, i) => (
-                  <div key={item} className={`mb-0.5 flex items-center gap-2 rounded-xl px-2 py-1.5 ${i === 0 ? "bg-slate-100" : ""}`}>
-                    <div className={`h-3 w-3 rounded-md ${i === 0 ? "bg-slate-400" : "bg-slate-200"}`} />
-                    <span className="text-[10px] font-semibold text-slate-500">{item}</span>
+                  <div key={item} className={`mb-0.5 flex items-center gap-2 rounded-xl px-2 py-1.5 ${i === 0 ? "bg-slate-100 dark:bg-slate-700" : ""}`}>
+                    <div className={`h-3 w-3 rounded-md ${i === 0 ? "bg-slate-400" : "bg-slate-200 dark:bg-slate-700"}`} />
+                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{item}</span>
                   </div>
                 ))}
               </div>
@@ -165,18 +165,18 @@ export default function LandingPage({ onGetStarted }) {
               <div className="flex-1 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <div className="h-2 w-12 rounded bg-slate-200" />
-                    <div className="mt-1 h-4 w-24 rounded bg-slate-950" />
+                    <div className="h-2 w-12 rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="mt-1 h-4 w-24 rounded bg-slate-950 dark:bg-slate-300" />
                   </div>
                   <div className="flex gap-1.5">
-                    <div className="h-7 w-20 rounded-xl bg-slate-950" />
-                    <div className="h-7 w-16 rounded-xl border border-slate-200" />
+                    <div className="h-7 w-20 rounded-xl bg-slate-950 dark:bg-slate-300" />
+                    <div className="h-7 w-16 rounded-xl border border-slate-200 dark:border-slate-700" />
                   </div>
                 </div>
                 <div className="mb-3 grid grid-cols-5 gap-2">
                   {[["12", "slate"], ["8", "blue"], ["4", "violet"], ["3", "rose"], ["5", "emerald"]].map(([v, c], i) => (
-                    <div key={i} className={`rounded-xl bg-${c}-50 p-2`}>
-                      <div className="mb-1 h-1.5 w-8 rounded bg-slate-200" />
+                    <div key={i} className={`rounded-xl bg-${c}-50 dark:bg-${c}-900/30 p-2`}>
+                      <div className="mb-1 h-1.5 w-8 rounded bg-slate-200 dark:bg-slate-700" />
                       <span className={`text-sm font-black text-${c}-${c === "slate" ? "800" : "600"}`}>{v}</span>
                     </div>
                   ))}
@@ -188,12 +188,12 @@ export default function LandingPage({ onGetStarted }) {
                     ["BMW Group",     "Working Student",    "Applying", "blue"],
                     ["TU Berlin",     "M.Sc. Data Sci",    "32d left", "emerald"],
                   ].map(([name, role, tag, c]) => (
-                    <div key={name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5">
+                    <div key={name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-800">
                       <div>
                         <p className="text-[11px] font-bold">{name}</p>
                         <p className="text-[9px] text-slate-400">{role}</p>
                       </div>
-                      <span className={`rounded-full bg-${c}-50 px-2 py-0.5 text-[9px] font-bold text-${c}-700`}>{tag}</span>
+                      <span className={`rounded-full bg-${c}-50 px-2 py-0.5 text-[9px] font-bold text-${c}-700 dark:bg-${c}-900/40 dark:text-${c}-400`}>{tag}</span>
                     </div>
                   ))}
                 </div>
@@ -204,7 +204,7 @@ export default function LandingPage({ onGetStarted }) {
           {/* Scroll cue */}
           <motion.div className="mt-12 flex justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
             <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}>
-              <svg className="h-5 w-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-5 w-5 text-slate-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </motion.div>
@@ -240,7 +240,7 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Features */}
-      <section className="py-24">
+      <section className="py-24 bg-white dark:bg-slate-950">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div className="text-center" initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5 }}>
             <p className="text-xs font-black uppercase tracking-widest text-emerald-600">What you get</p>
@@ -250,17 +250,17 @@ export default function LandingPage({ onGetStarted }) {
           </motion.div>
           <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: "dashboard",  color: "bg-slate-50",   title: "One dashboard",    desc: "All your university and job applications in a single, clean view — no tabs, no switching." },
-              { icon: "calendar",   color: "bg-emerald-50", title: "Smart deadlines",  desc: "Only apps still open count as urgent. Submitted or accepted? They drop off the clock." },
-              { icon: "university", color: "bg-blue-50",    title: "Full pipeline",    desc: "From Not Open Yet to Accepted — every stage tracked, every status visible at a glance." },
-              { icon: "check",      color: "bg-slate-50",   title: "Private by design",desc: "Row-level security via Supabase. Your applications are only ever visible to you." },
+              { icon: "dashboard",  color: "bg-slate-50 dark:bg-slate-800",   title: "One dashboard",    desc: "All your university and job applications in a single, clean view — no tabs, no switching." },
+              { icon: "calendar",   color: "bg-emerald-50 dark:bg-emerald-900/30", title: "Smart deadlines",  desc: "Only apps still open count as urgent. Submitted or accepted? They drop off the clock." },
+              { icon: "university", color: "bg-blue-50 dark:bg-blue-900/30",    title: "Full pipeline",    desc: "From Not Open Yet to Accepted — every stage tracked, every status visible at a glance." },
+              { icon: "check",      color: "bg-slate-50 dark:bg-slate-800",   title: "Private by design",desc: "Row-level security via Supabase. Your applications are only ever visible to you." },
             ].map((item, i) => (
               <motion.div key={item.title} className={`rounded-3xl ${item.color} p-6`} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ delay: i * 0.08, duration: 0.45 }}>
-                <div className="mb-4 grid h-10 w-10 place-items-center rounded-2xl bg-white shadow-sm">
-                  <Icon name={item.icon} className="h-4 w-4 text-slate-700" />
+                <div className="mb-4 grid h-10 w-10 place-items-center rounded-2xl bg-white shadow-sm dark:bg-slate-700">
+                  <Icon name={item.icon} className="h-4 w-4 text-slate-700 dark:text-slate-300" />
                 </div>
                 <h3 className="text-base font-black">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{item.desc}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -268,7 +268,7 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* How it works */}
-      <section className="bg-slate-50 py-24">
+      <section className="bg-slate-50 py-24 dark:bg-slate-900">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div className="text-center" initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5 }}>
             <p className="text-xs font-black uppercase tracking-widest text-emerald-600">Three steps</p>
@@ -282,15 +282,15 @@ export default function LandingPage({ onGetStarted }) {
               { step: "02", icon: "calendar",  title: "Track every deadline",       desc: "Upcoming deadlines sort themselves by urgency. Overdue ones surface immediately." },
               { step: "03", icon: "dashboard", title: "Stay ahead of the pipeline", desc: "Update statuses as you progress. See the full picture — what's open, applied, submitted, done." },
             ].map((item, i) => (
-              <motion.div key={item.step} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ delay: i * 0.12, duration: 0.45 }}>
+              <motion.div key={item.step} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800" initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ delay: i * 0.12, duration: 0.45 }}>
                 <div className="mb-4 flex items-start gap-3">
-                  <span className="text-5xl font-black leading-none text-slate-100">{item.step}</span>
-                  <div className="mt-1 grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-emerald-50">
+                  <span className="text-5xl font-black leading-none text-slate-100 dark:text-slate-700">{item.step}</span>
+                  <div className="mt-1 grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/40">
                     <Icon name={item.icon} className="h-4 w-4 text-emerald-600" />
                   </div>
                 </div>
                 <h3 className="text-base font-black">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{item.desc}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -298,10 +298,10 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24">
+      <section className="py-24 bg-white dark:bg-slate-950">
         <div className="mx-auto max-w-6xl px-6">
           <motion.div
-            className="rounded-[2.5rem] bg-slate-950 px-8 py-16 text-center text-white sm:px-16"
+            className="rounded-[2.5rem] bg-slate-950 px-8 py-16 text-center text-white sm:px-16 dark:bg-slate-800"
             initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.5 }}
           >
             <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-300">

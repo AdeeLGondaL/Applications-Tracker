@@ -16,7 +16,7 @@ export function Toolbar(props) {
   } = props;
 
   return (
-    <Card className="mb-4 rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+    <Card className="mb-4 rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <CardContent className="p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_0.9fr_0.8fr_0.8fr_auto]">
           <div className="relative sm:col-span-2 lg:col-span-1">
@@ -42,17 +42,17 @@ export function Toolbar(props) {
               { label: "Name",      value: "name"      },
             ]}
           />
-          <div className="flex justify-self-start rounded-2xl border border-slate-200 bg-slate-50 p-1 sm:col-span-2 lg:col-span-1">
+          <div className="flex justify-self-start rounded-2xl border border-slate-200 bg-slate-50 p-1 sm:col-span-2 lg:col-span-1 dark:border-slate-700 dark:bg-slate-700">
             <Toggle active={viewMode === "table"} onClick={() => setViewMode("table")}>Table</Toggle>
             <Toggle active={viewMode === "cards"} onClick={() => setViewMode("cards")}>Cards</Toggle>
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span className="inline-flex items-center gap-1">
             <Icon name="filter" className="h-3 w-3" /> Showing {showing} of {total}
           </span>
           <button
-            className="font-bold text-slate-700 hover:text-slate-950"
+            className="font-bold text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-slate-100"
             onClick={() => {
               setQuery("");
               setTypeFilter("All");

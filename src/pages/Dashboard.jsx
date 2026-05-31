@@ -19,6 +19,7 @@ import { ApplicationDrawer } from "@/components/applications/ApplicationDrawer";
 import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyState, EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
+import { useTheme } from "@/hooks/useTheme";
 import { STATUSES, PRIORITIES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
@@ -47,24 +48,24 @@ function LandingFooter() {
   ];
 
   return (
-    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center">
-      <p className="text-sm font-black text-slate-800">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500">Share ApplyBuddy — free forever, no credit card, no ads.</p>
+    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
+      <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share ApplyBuddy — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
             <Icon name="share" className="h-3.5 w-3.5" /> Share
           </button>
         )}
-        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>
+        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"}`}>
           <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
           {copied ? "Copied!" : "Copy link"}
         </button>
         {socials.map(({ label, href, hover }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition ${hover}`}>{label}</a>
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 ${hover}`}>{label}</a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-slate-400">© {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required</p>
+      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">© {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required</p>
     </footer>
   );
 }
@@ -102,7 +103,7 @@ function FeedbackModal({ session, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <motion.div
-        className="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl shadow-slate-900/20"
+        className="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl shadow-slate-900/20 dark:bg-slate-800"
         initial={{ opacity: 0, scale: 0.95, y: 24 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 24 }}
         transition={{ type: "spring", stiffness: 380, damping: 30 }}
       >
@@ -110,17 +111,17 @@ function FeedbackModal({ session, onClose }) {
           {sent ? (
             <motion.div key="sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="py-6 text-center">
               <motion.div
-                className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50"
+                className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40"
                 initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.05 }}
               >
                 <Icon name="check" className="h-7 w-7 text-emerald-600" />
               </motion.div>
-              <h3 className="text-xl font-black text-slate-950">Feedback received</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
+              <h3 className="text-xl font-black text-slate-950 dark:text-slate-50">Feedback received</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
                 {type === "bug" ? "Thanks for reporting — we'll investigate and fix it." : "Great idea — we'll consider it for a future update."}
               </p>
-              <button type="button" onClick={onClose} className="mt-6 rounded-2xl bg-slate-950 px-8 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">
+              <button type="button" onClick={onClose} className="mt-6 rounded-2xl bg-slate-950 px-8 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
                 Done
               </button>
             </motion.div>
@@ -130,22 +131,22 @@ function FeedbackModal({ session, onClose }) {
               {/* Header */}
               <div className="mb-5 flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-black text-slate-950">Share feedback</h2>
-                  <p className="mt-0.5 text-sm text-slate-500">Help make ApplyBuddy better for everyone.</p>
+                  <h2 className="text-xl font-black text-slate-950 dark:text-slate-50">Share feedback</h2>
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Help make ApplyBuddy better for everyone.</p>
                 </div>
-                <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50">
+                <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700">
                   <Icon name="close" />
                 </button>
               </div>
 
               {/* Type pill switcher */}
-              <div className="mb-5 flex rounded-2xl bg-slate-100 p-1">
+              <div className="mb-5 flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-700">
                 {[{ id: "bug", label: "Bug report" }, { id: "feature", label: "Feature request" }].map(({ id, label }) => (
                   <button key={id} type="button" onClick={() => setType(id)} className="relative flex-1 rounded-xl py-2 text-sm font-bold">
                     {type === id && (
-                      <motion.span layoutId="feedback-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
+                      <motion.span layoutId="feedback-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-slate-600" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
                     )}
-                    <span className={`relative z-10 transition-colors ${type === id ? "text-slate-950" : "text-slate-400"}`}>{label}</span>
+                    <span className={`relative z-10 transition-colors ${type === id ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>{label}</span>
                   </button>
                 ))}
               </div>
@@ -195,7 +196,7 @@ function FeedbackModal({ session, onClose }) {
                 <Button
                   onClick={submit}
                   disabled={loading || !title.trim() || !desc.trim()}
-                  className="h-11 w-full rounded-2xl bg-slate-950 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  className="h-11 w-full rounded-2xl text-sm font-bold transition disabled:opacity-50"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -225,6 +226,7 @@ const VIEW_META = {
 };
 
 export default function Dashboard({ session }) {
+  const { dark, toggle: toggleTheme } = useTheme();
   const [applications, setApplications] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -525,17 +527,17 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <div className="flex min-h-screen">
 
         {/* Sidebar */}
-        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-          <div className="border-b border-slate-100 px-4 py-4">
+        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-b border-slate-100 px-4 py-4 dark:border-slate-800">
             <Brand />
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-4">
-            <p className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Menu</p>
+            <p className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-600">Menu</p>
             <nav className="space-y-0.5">
               <NavItem active={sidebarView === "dashboard"}    onClick={() => handleSidebarView("dashboard")}    icon="dashboard"  label="Dashboard"      />
               <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities"    count={stats.universities} />
@@ -547,24 +549,34 @@ export default function Dashboard({ session }) {
             </nav>
 
             <div className="mt-6 px-1">
-              <p className="mb-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">Progress</p>
+              <p className="mb-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-600">Progress</p>
               <ProgressCard progress={stats.progress} submitted={stats.submitted} total={stats.total} />
             </div>
           </div>
 
+          {/* Theme toggle in sidebar */}
           <div className="px-4 pb-2">
             <button
               type="button"
+              onClick={toggleTheme}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              <Icon name={dark ? "sun" : "moon"} className="h-3.5 w-3.5 shrink-0" />
+              {dark ? "Light mode" : "Dark mode"}
+            </button>
+            <button
+              type="button"
               onClick={() => setFeedbackOpen(true)}
-              className="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-3.5 py-3 text-left transition hover:bg-emerald-100"
+              className="w-full rounded-2xl border border-emerald-100 bg-emerald-50 px-3.5 py-3 text-left transition hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
             >
               <div className="flex items-center gap-2.5">
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-800/50 dark:text-emerald-400">
                   <Icon name="messageSquare" className="h-3.5 w-3.5" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-emerald-900">Share feedback</p>
-                  <p className="text-[10px] leading-4 text-emerald-700/70">Bug report or feature idea</p>
+                  <p className="text-xs font-black text-emerald-900 dark:text-emerald-300">Share feedback</p>
+                  <p className="text-[10px] leading-4 text-emerald-700/70 dark:text-emerald-400/70">Bug report or feature idea</p>
                 </div>
               </div>
             </button>
@@ -572,14 +584,14 @@ export default function Dashboard({ session }) {
 
           <div className="px-4 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-slate-300 dark:text-slate-900">
                 {session?.user?.email?.[0]?.toUpperCase() || "?"}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-slate-700">{session?.user?.email}</p>
-                <p className="text-[10px] text-slate-400">Signed in</p>
+                <p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">{session?.user?.email}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500">Signed in</p>
               </div>
-              <button onClick={signOut} className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-50">
+              <button onClick={signOut} className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">
                 Out
               </button>
             </div>
@@ -587,7 +599,7 @@ export default function Dashboard({ session }) {
         </aside>
 
         {/* Mobile bottom nav */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-slate-800 dark:bg-slate-900/95">
           <div className="flex items-stretch">
             {[
               { view: "dashboard",    icon: "dashboard",  label: "Home"  },
@@ -602,7 +614,7 @@ export default function Dashboard({ session }) {
                   key={view}
                   type="button"
                   onClick={() => handleSidebarView(view)}
-                  className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${isActive ? "text-emerald-600" : "text-slate-400"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${isActive ? "text-emerald-600" : "text-slate-400 dark:text-slate-500"}`}
                 >
                   <div className="relative">
                     <Icon name={icon} className="h-5 w-5" />
@@ -620,7 +632,7 @@ export default function Dashboard({ session }) {
               <button
                 type="button"
                 onClick={() => handleSidebarView("admin")}
-                className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-emerald-600" : "text-slate-400"}`}
+                className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-emerald-600" : "text-slate-400 dark:text-slate-500"}`}
               >
                 <Icon name="shield" className="h-5 w-5" />
                 <span className="text-[10px] font-bold">Admin</span>
@@ -633,11 +645,11 @@ export default function Dashboard({ session }) {
         <main className="min-w-0 flex-1 pb-20 md:pb-0">
 
           {/* Header */}
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
             <div className="flex items-center justify-between px-4 py-3 sm:px-6">
               <AnimatePresence mode="wait">
                 <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }}>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{VIEW_META[sidebarView]?.sub}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{VIEW_META[sidebarView]?.sub}</p>
                   <h1 className="text-xl font-black leading-tight">{VIEW_META[sidebarView]?.title}</h1>
                 </motion.div>
               </AnimatePresence>
@@ -645,7 +657,7 @@ export default function Dashboard({ session }) {
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => openNew(sidebarView === "jobs" ? "Job" : "University")}
-                  className="rounded-xl bg-slate-950 text-white hover:bg-slate-800 h-9 px-3.5 text-sm"
+                  className="rounded-xl h-9 px-3.5 text-sm"
                 >
                   <Icon name="plus" className="mr-1.5" />
                   <span className="hidden sm:inline">Add application</span>
@@ -655,7 +667,7 @@ export default function Dashboard({ session }) {
                 <div ref={exportMenuRef} className="relative">
                   <button
                     onClick={() => setExportMenuOpen((v) => !v)}
-                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     <Icon name="download" className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Export</span>
@@ -668,16 +680,16 @@ export default function Dashboard({ session }) {
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80"
+                        className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
                       >
-                        <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                        <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Export CSV
                         </button>
-                        <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                        <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Download backup
                         </button>
-                        <div className="mx-3 my-1 border-t border-slate-100" />
-                        <label className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-slate-700" />
+                        <label className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
                           <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import backup
                           <input type="file" accept="application/json" className="hidden" onChange={(e) => { importJson(e); setExportMenuOpen(false); }} />
                         </label>
@@ -686,12 +698,21 @@ export default function Dashboard({ session }) {
                   </AnimatePresence>
                 </div>
 
-                {/* Mobile user menu */}
+                {/* Mobile: theme toggle + user menu */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  title={dark ? "Switch to light mode" : "Switch to dark mode"}
+                  className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 md:hidden dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                >
+                  <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
+                </button>
+
                 <div ref={mobileMenuRef} className="relative md:hidden">
                   <button
                     type="button"
                     onClick={() => setMobileMenuOpen((v) => !v)}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-slate-950 text-xs font-black text-white"
+                    className="grid h-9 w-9 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-slate-300 dark:text-slate-900"
                   >
                     {session?.user?.email?.[0]?.toUpperCase() || "?"}
                   </button>
@@ -700,17 +721,17 @@ export default function Dashboard({ session }) {
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80"
+                        className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
                       >
-                        <div className="border-b border-slate-100 px-4 py-3">
-                          <p className="truncate text-xs font-semibold text-slate-700">{session?.user?.email}</p>
-                          <p className="text-[10px] text-slate-400">Signed in</p>
+                        <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-700">
+                          <p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">{session?.user?.email}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500">Signed in</p>
                         </div>
-                        <button type="button" onClick={() => { setFeedbackOpen(true); setMobileMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                        <button type="button" onClick={() => { setFeedbackOpen(true); setMobileMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700">
                           <Icon name="messageSquare" className="h-3.5 w-3.5 text-slate-400" /> Share feedback
                         </button>
-                        <div className="mx-3 my-1 border-t border-slate-100" />
-                        <button type="button" onClick={signOut} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50">
+                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-slate-700" />
+                        <button type="button" onClick={signOut} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-900/20">
                           <Icon name="reset" className="h-3.5 w-3.5" /> Sign out
                         </button>
                       </motion.div>
@@ -731,10 +752,10 @@ export default function Dashboard({ session }) {
                   <>
                     {loading && applications.length === 0 ? (
                       <div className="flex items-center justify-center py-20">
-                        <svg className="h-6 w-6 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="h-6 w-6 animate-spin text-slate-300 dark:text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                         </svg>
-                        <span className="ml-3 text-sm text-slate-400">Loading your applications…</span>
+                        <span className="ml-3 text-sm text-slate-400 dark:text-slate-500">Loading your applications…</span>
                       </div>
                     ) : applications.length === 0 ? (
                       <EmptyDashboard onAdd={() => openNew()} />
@@ -814,7 +835,7 @@ export default function Dashboard({ session }) {
       <button
         type="button"
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-[4.5rem] right-4 z-30 flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 md:hidden"
+        className="fixed bottom-[4.5rem] right-4 z-30 flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 md:hidden dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
       >
         <Icon name="messageSquare" className="h-4 w-4" />
         Feedback
@@ -848,15 +869,15 @@ export default function Dashboard({ session }) {
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className={`fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl ${
-              toastKind === "error"   ? "border-rose-200 bg-rose-50 text-rose-800" :
-              toastKind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" :
-              "border-slate-200 bg-white text-slate-700"
+              toastKind === "error"   ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-900/60 dark:text-rose-300" :
+              toastKind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300" :
+              "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
             }`}
           >
             <div className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-              toastKind === "error"   ? "bg-rose-200 text-rose-700"    :
-              toastKind === "success" ? "bg-emerald-200 text-emerald-700" :
-              "bg-slate-200 text-slate-600"
+              toastKind === "error"   ? "bg-rose-200 text-rose-700 dark:bg-rose-800 dark:text-rose-300"    :
+              toastKind === "success" ? "bg-emerald-200 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300" :
+              "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400"
             }`}>
               <Icon name={toastKind === "error" ? "close" : "check"} className="h-3 w-3" />
             </div>

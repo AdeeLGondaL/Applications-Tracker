@@ -4,12 +4,12 @@ export function Brand() {
       <img
         src="/Logo.png"
         alt="ApplyBuddy"
-        className="h-9 w-9 object-contain shrink-0"
+        className="h-9 w-9 object-contain shrink-0 dark:brightness-150"
         style={{ mixBlendMode: "multiply" }}
       />
       <div>
         <p className="text-sm font-black leading-tight">ApplyBuddy</p>
-        <p className="text-[10px] text-slate-400">Your application buddy</p>
+        <p className="text-[10px] text-slate-400 dark:text-slate-500">Your application buddy</p>
       </div>
     </div>
   );

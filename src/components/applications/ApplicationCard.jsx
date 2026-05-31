@@ -13,8 +13,10 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Card
-        className={`h-full rounded-[2rem] border bg-white shadow-sm transition-colors ${
-          selected ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200"
+        className={`h-full rounded-[2rem] border bg-white shadow-sm transition-colors dark:bg-slate-800 ${
+          selected
+            ? "border-emerald-300 bg-emerald-50/30 dark:border-emerald-700 dark:bg-emerald-900/10"
+            : "border-slate-200 dark:border-slate-700"
         }`}
       >
         <CardContent className="flex h-full flex-col p-5">
@@ -26,14 +28,14 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
                 checked={selected}
                 onChange={() => onToggleSelect(app.id)}
               />
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 dark:bg-slate-700">
                 <Icon name={app.type === "University" ? "university" : "job"} />
               </div>
             </div>
             <Badge tone={info.tone}>{info.label}</Badge>
           </div>
           <p className="text-lg font-black leading-tight">{app.name}</p>
-          <p className="mt-1 text-sm font-semibold text-slate-600">{app.programRole}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">{app.programRole}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <InlineStatusPicker status={app.status} onStatusChange={(s) => onStatusChange(app.id, s)} />
             <Priority priority={app.priority} />
@@ -43,25 +45,25 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
             <Info label="Deadline" value={formatDate(app.deadline)} />
           </div>
           {app.notes && (
-            <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+            <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
               {app.notes}
             </p>
           )}
           <div className="mt-auto flex gap-2 pt-5">
             {app.link && (
               <a className="flex-1" href={app.link} target="_blank" rel="noreferrer">
-                <Button variant="outline" className="w-full rounded-2xl bg-white">
+                <Button variant="outline" className="w-full rounded-2xl">
                   <Icon name="link" className="mr-2" /> Link
                 </Button>
               </a>
             )}
-            <Button variant="outline" className="rounded-2xl bg-white" onClick={() => onDuplicate(app)}>
+            <Button variant="outline" className="rounded-2xl" onClick={() => onDuplicate(app)}>
               <Icon name="copy" />
             </Button>
-            <Button className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800" onClick={() => onEdit(app)}>
+            <Button className="rounded-2xl" onClick={() => onEdit(app)}>
               <Icon name="edit" />
             </Button>
-            <Button variant="outline" className="rounded-2xl bg-white text-rose-600" onClick={() => onDelete(app.id)}>
+            <Button variant="outline" className="rounded-2xl text-rose-600 dark:text-rose-400" onClick={() => onDelete(app.id)}>
               <Icon name="trash" />
             </Button>
           </div>

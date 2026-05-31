@@ -1,7 +1,7 @@
 
 const variants = {
-  default: "bg-slate-950 text-white hover:bg-slate-800",
-  outline: "border border-slate-200 bg-white text-slate-950 hover:bg-slate-50",
+  default: "bg-slate-950 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white",
+  outline: "border border-slate-200 bg-white text-slate-950 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
 };
 
 export function Button({ variant = "default", className = "", children, type = "button", ...props }) {

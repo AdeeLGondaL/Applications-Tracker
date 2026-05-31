@@ -6,7 +6,7 @@ import { deadlineInfo, formatDate } from "@/utils/date";
 
 export function UpcomingDeadlinesCard({ apps }) {
   return (
-    <Card className="rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm">
+    <Card className="rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm dark:border-slate-700">
       <CardContent className="p-5">
         <div className="mb-4 flex items-center gap-2.5">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/10">

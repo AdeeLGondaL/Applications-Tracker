@@ -5,7 +5,7 @@ export function PasswordStrength({ password }) {
   if (password.length < 6) {
     return (
       <div className="space-y-1">
-        <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
           <div className="h-full w-[15%] rounded-full bg-rose-400" />
         </div>
         <p className="text-xs font-semibold text-rose-500">Too short — minimum 6 characters</p>
@@ -27,7 +27,7 @@ export function PasswordStrength({ password }) {
   const lvl = levels[Math.min(extras, 3)];
   return (
     <div className="space-y-1">
-      <div className="h-1 overflow-hidden rounded-full bg-slate-100">
+      <div className="h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
         <motion.div
           className={`h-full rounded-full ${lvl.color}`}
           initial={{ width: 0 }}
@@ -42,9 +42,9 @@ export function PasswordStrength({ password }) {
 
 export function Info({ label, value }) {
   return (
-    <div className="rounded-2xl bg-slate-50 p-3">
-      <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 truncate text-sm font-bold text-slate-700">{value}</p>
+    <div className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-700">
+      <p className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-sm font-bold text-slate-700 dark:text-slate-200">{value}</p>
     </div>
   );
 }

@@ -52,7 +52,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
 
   return (
     <motion.div
-      className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm"
+      className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm dark:bg-slate-950/60"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -62,25 +62,25 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 250 }}
-        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl"
+        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-slate-900"
       >
 
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 p-6">
+        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-slate-700">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
               {editingId ? "Edit record" : "New record"}
             </p>
             <h2 className="mt-1 text-2xl font-black">
               {editingId ? "Update application" : "Add application"}
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Fill only what you know now — you can update anything later.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50"
+            className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             <Icon name="close" />
           </button>
@@ -90,7 +90,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         <div className="flex-1 space-y-7 overflow-y-auto p-6">
 
           {/* Type pill switcher */}
-          <div className="flex rounded-2xl bg-slate-100 p-1">
+          <div className="flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-800">
             {TYPES.map((t) => (
               <button
                 key={t}
@@ -101,13 +101,13 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 {form.type === t && (
                   <motion.span
                     layoutId="drawer-type-pill"
-                    className="absolute inset-0 rounded-xl bg-white shadow-sm"
+                    className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-slate-700"
                     transition={{ type: "spring", stiffness: 400, damping: 35 }}
                   />
                 )}
                 <span
                   className={`relative z-10 flex items-center justify-center gap-2 transition-colors ${
-                    form.type === t ? "text-slate-950" : "text-slate-400"
+                    form.type === t ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"
                   }`}
                 >
                   <Icon name={t === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
@@ -118,14 +118,14 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
           </div>
 
           {/* Auto-fill panel */}
-          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50">
+          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20">
             <button
               type="button"
               onClick={() => { setAfOpen((v) => !v); setAfError(""); setAfDone(false); }}
-              className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-emerald-100"
+              className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
             >
-              <span className="flex items-center gap-2 text-sm font-black text-emerald-800">
-                <Icon name="sparkles" className="h-4 w-4 text-emerald-600" />
+              <span className="flex items-center gap-2 text-sm font-black text-emerald-800 dark:text-emerald-300">
+                <Icon name="sparkles" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Auto-fill from URL or description
               </span>
               <svg
@@ -143,10 +143,10 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden border-t border-emerald-100"
+                  className="overflow-hidden border-t border-emerald-100 dark:border-emerald-900/50"
                 >
                   <div className="p-4 space-y-3">
-                    <p className="text-[11px] text-emerald-700">
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
                       {afIsUrl
                         ? "AI will fetch and read the page for you."
                         : "Paste a job posting, program description, email, or any text — AI extracts the details."}
@@ -157,10 +157,10 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
                       placeholder="Paste a URL or description here…"
                       rows={afIsUrl ? 2 : 5}
-                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                     />
                     {!hasAiKey && (
-                      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+                      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                         Add <code className="font-mono font-bold">VITE_GROQ_API_KEY</code> to your{" "}
                         <code className="font-mono font-bold">.env</code> to enable AI extraction.
                       </p>
@@ -200,7 +200,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                         <motion.p
                           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
-                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-700"
+                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400"
                         >
                           <Icon name="check" className="h-3 w-3" />Fields populated — review and save.
                         </motion.p>
@@ -222,9 +222,9 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-                  <p className="text-xs font-black text-amber-800">Possible duplicate</p>
-                  <p className="mt-0.5 text-xs leading-5 text-amber-700">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
+                  <p className="text-xs font-black text-amber-800 dark:text-amber-300">Possible duplicate</p>
+                  <p className="mt-0.5 text-xs leading-5 text-amber-700 dark:text-amber-400">
                     You already have <span className="font-bold">{duplicate.name}</span> tracked as a{" "}
                     {duplicate.type} — currently <span className="font-semibold">{duplicate.status}</span>.
                     You can still save this as a separate entry.
@@ -387,11 +387,11 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5">
-          <Button variant="outline" onClick={onClose} className="rounded-2xl bg-white">
+        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800">
+          <Button variant="outline" onClick={onClose} className="rounded-2xl">
             Cancel
           </Button>
-          <Button onClick={onSave} className="rounded-2xl bg-slate-950 text-white hover:bg-slate-800">
+          <Button onClick={onSave} className="rounded-2xl">
             <Icon name={editingId ? "edit" : "plus"} className="mr-2" />
             {editingId ? "Save changes" : "Create application"}
           </Button>

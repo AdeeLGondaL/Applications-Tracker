@@ -3,8 +3,10 @@ import { supabase } from "@/lib/supabaseClient";
 import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import Dashboard from "@/pages/Dashboard";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function App() {
+  useTheme(); // applies dark class to <html> for all pages
   const [session, setSession] = useState(undefined); // undefined = loading
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState("signin");

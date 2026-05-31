@@ -57,14 +57,14 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.97 }}
                     transition={{ duration: 0.12 }}
-                    className="absolute bottom-full left-0 mb-2 max-h-64 w-48 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1 shadow-xl"
+                    className="absolute bottom-full left-0 mb-2 max-h-64 w-48 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-800"
                   >
                     {STATUSES.map((s) => (
                       <button
                         key={s}
                         type="button"
                         onClick={() => { onStatusChange(s); setStatusOpen(false); }}
-                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50"
+                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         <Badge tone={statusTone(s)}>{s}</Badge>
                       </button>
@@ -93,14 +93,14 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.97 }}
                     transition={{ duration: 0.12 }}
-                    className="absolute bottom-full left-0 mb-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl"
+                    className="absolute bottom-full left-0 mb-2 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-800"
                   >
                     {PRIORITIES.map((p) => (
                       <button
                         key={p}
                         type="button"
                         onClick={() => { onPriorityChange(p); setPriorityOpen(false); }}
-                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50"
+                        className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         <Priority priority={p} />
                       </button>
