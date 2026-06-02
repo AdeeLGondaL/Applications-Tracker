@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             <p className="text-slate-700 leading-7">
               ApplyBuddy is a free personal application tracker for university and job applications. It is a
               personal project provided free of charge, with no advertising, no subscriptions, and no monetisation
-              of user data. The service is accessible at <span className="font-semibold">applybuddy.netlify.app</span>.
+              of user data. The service is accessible at <span className="font-semibold">applybuddy-a3m.pages.dev</span>.
             </p>
           </section>
 
