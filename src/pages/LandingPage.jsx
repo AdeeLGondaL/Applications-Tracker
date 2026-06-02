@@ -65,6 +65,8 @@ function LandingFooter() {
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
         © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        {" · "}
+        <a href="/privacy" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Privacy Policy</a>
       </p>
     </footer>
   );

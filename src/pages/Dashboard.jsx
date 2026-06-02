@@ -67,7 +67,11 @@ function LandingFooter() {
           <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] ${hover}`}>{label}</a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-slate-400 dark:text-[#71717a]">© {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required</p>
+      <p className="mt-8 text-xs text-slate-400 dark:text-[#71717a]">
+        © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        {" · "}
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-600 dark:text-[#71717a] dark:hover:text-[#a1a1aa] transition-colors">Privacy Policy</a>
+      </p>
     </footer>
   );
 }
@@ -302,6 +306,22 @@ export default function Dashboard({ session }) {
     await supabase.auth.signOut();
     setApplications([]);
     notify("Signed out.", "info");
+  }
+
+  async function handleDeleteAccount() {
+    if (!window.confirm("Permanently delete your account and all data? This cannot be undone.")) return;
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${currentSession.access_token}` },
+      });
+      if (!res.ok) throw new Error("Failed");
+      await supabase.auth.signOut();
+      notify("Your account has been deleted.", "success");
+    } catch {
+      notify("Failed to delete account. Please try again.", "error");
+    }
   }
 
   function handleSidebarView(view) {
@@ -556,6 +576,47 @@ export default function Dashboard({ session }) {
             </div>
           </div>
 
+          {/* Share & Sync section */}
+          <div className="px-3 pb-1">
+            <div className="border-t border-slate-100 dark:border-[#1f1f23] pt-3 pb-1">
+              <p className="mb-1 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-[#52525b]">Share & Sync</p>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
+                  navigator.clipboard.writeText(url);
+                  notify("Calendar URL copied! Paste it in Google Calendar → Other calendars → From URL", "success");
+                }}
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                  <Icon name="calendar" className="h-4 w-4" />
+                </span>
+                <span className="text-left leading-tight">
+                  <span className="block text-xs font-black text-slate-800 dark:text-[#f0f0f0]">Calendar sync</span>
+                  <span className="block text-[10px] text-slate-400 dark:text-[#71717a]">Copy subscription URL</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `https://${window.location.host}/share/${session.user.id}`;
+                  navigator.clipboard.writeText(url);
+                  notify("Share link copied! Anyone with this link can view your tracker.", "success");
+                }}
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  <Icon name="share" className="h-4 w-4" />
+                </span>
+                <span className="text-left leading-tight">
+                  <span className="block text-xs font-black text-slate-800 dark:text-[#f0f0f0]">Share tracker</span>
+                  <span className="block text-[10px] text-slate-400 dark:text-[#71717a]">Read-only public link</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
           {/* Theme toggle in sidebar */}
           <div className="px-4 pb-2">
             <button
@@ -597,6 +658,13 @@ export default function Dashboard({ session }) {
                 Out
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              className="mt-2 w-full text-left text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors px-0.5"
+            >
+              Delete account
+            </button>
           </div>
         </aside>
 
@@ -733,8 +801,40 @@ export default function Dashboard({ session }) {
                           <Icon name="messageSquare" className="h-3.5 w-3.5 text-slate-400" /> Share feedback
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
+                            navigator.clipboard.writeText(url);
+                            notify("Calendar URL copied! Paste it in Google Calendar → Other calendars → From URL", "success");
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
+                        >
+                          <Icon name="calendar" className="h-3.5 w-3.5 text-blue-500" /> Calendar sync
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = `https://${window.location.host}/share/${session.user.id}`;
+                            navigator.clipboard.writeText(url);
+                            notify("Share link copied! Anyone with this link can view your tracker.", "success");
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
+                        >
+                          <Icon name="share" className="h-3.5 w-3.5 text-emerald-500" /> Share tracker
+                        </button>
+                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
                         <button type="button" onClick={signOut} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-900/20">
                           <Icon name="reset" className="h-3.5 w-3.5" /> Sign out
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setMobileMenuOpen(false); handleDeleteAccount(); }}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition hover:bg-rose-50/60 dark:hover:bg-rose-900/10"
+                        >
+                          Delete account
                         </button>
                       </motion.div>
                     )}

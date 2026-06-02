@@ -45,7 +45,11 @@ function LandingFooter() {
           <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 ${hover}`}>{label}</a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">© {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required</p>
+      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
+        © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        {" · "}
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
+      </p>
     </footer>
   );
 }
@@ -72,6 +76,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
 
   function switchAuthMode(mode) {
     setAuthMode(mode);
@@ -79,6 +84,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     setAuthError("");
     setFieldErrors({ email: "", password: "" });
     setSignupSent(false);
+    setAgreedToPrivacy(false);
   }
 
   function validateAuth() {
@@ -318,10 +324,30 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           )}
                         </AnimatePresence>
 
+                        {/* Privacy consent checkbox — signup only */}
+                        {authMode === "signup" && (
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              required
+                              checked={agreedToPrivacy}
+                              onChange={(e) => setAgreedToPrivacy(e.target.checked)}
+                              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-emerald-600"
+                            />
+                            <span className="text-sm text-slate-600">
+                              I agree to the{" "}
+                              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-600 hover:underline">
+                                Privacy Policy
+                              </a>
+                              . I understand my data is stored securely and I can delete it at any time.
+                            </span>
+                          </label>
+                        )}
+
                         {/* Submit button */}
                         <Button
                           onClick={handleAuthSubmit}
-                          disabled={authLoading}
+                          disabled={authLoading || (authMode === "signup" && !agreedToPrivacy)}
                           className="h-12 w-full rounded-2xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
                         >
                           {authLoading ? (
