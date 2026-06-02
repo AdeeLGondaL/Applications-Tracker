@@ -62,25 +62,25 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 250 }}
-        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-slate-900"
+        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-[#111113]"
       >
 
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-slate-700">
+        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-[#2a2a2e]">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-[#71717a]">
               {editingId ? "Edit record" : "New record"}
             </p>
             <h2 className="mt-1 text-2xl font-black">
               {editingId ? "Update application" : "Add application"}
             </h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-slate-500 dark:text-[#a1a1aa]">
               Fill only what you know now — you can update anything later.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-[#3a3a3e] dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
           >
             <Icon name="close" />
           </button>
@@ -90,7 +90,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         <div className="flex-1 space-y-7 overflow-y-auto p-6">
 
           {/* Type pill switcher */}
-          <div className="flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-800">
+          <div className="flex rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
             {TYPES.map((t) => (
               <button
                 key={t}
@@ -101,13 +101,13 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 {form.type === t && (
                   <motion.span
                     layoutId="drawer-type-pill"
-                    className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-slate-700"
+                    className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-[#2a2a2e]"
                     transition={{ type: "spring", stiffness: 400, damping: 35 }}
                   />
                 )}
                 <span
                   className={`relative z-10 flex items-center justify-center gap-2 transition-colors ${
-                    form.type === t ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"
+                    form.type === t ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"
                   }`}
                 >
                   <Icon name={t === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
@@ -157,7 +157,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
                       placeholder="Paste a URL or description here…"
                       rows={afIsUrl ? 2 : 5}
-                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b]"
                     />
                     {!hasAiKey && (
                       <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
@@ -387,7 +387,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5 dark:border-[#2a2a2e] dark:bg-[#0d0d0f]">
           <Button variant="outline" onClick={onClose} className="rounded-2xl">
             Cancel
           </Button>

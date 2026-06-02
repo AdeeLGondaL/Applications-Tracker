@@ -13,8 +13,8 @@
 
   .dark {
     color-scheme: dark;
-    background-color: #0f172a;
-    color: #f1f5f9;
+    background-color: #09090b;
+    color: #f0f0f0;
   }
 
   * { box-sizing: border-box; }

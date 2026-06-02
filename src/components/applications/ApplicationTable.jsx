@@ -8,7 +8,7 @@ import { deadlineInfo, formatDate } from "@/utils/date";
 function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
   const info = deadlineInfo(app.deadline);
   return (
-    <tr className={`transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${selected ? "bg-emerald-50/60 dark:bg-emerald-900/20" : ""}`}>
+    <tr className={`transition-colors hover:bg-slate-50 dark:hover:bg-[#1c1c1f] ${selected ? "bg-emerald-50/60 dark:bg-emerald-900/20" : ""}`}>
       <td className="px-4 py-4 align-top">
         <input
           type="checkbox"
@@ -19,13 +19,13 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
       </td>
       <td className="px-5 py-4 align-top">
         <div className="flex gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 dark:bg-slate-700">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 dark:bg-[#2a2a2e]">
             <Icon name={app.type === "University" ? "university" : "job"} />
           </div>
           <div>
             <p className="font-black">{app.name}</p>
-            <p className="mt-0.5 text-slate-600 dark:text-slate-300">{app.programRole}</p>
-            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mt-0.5 text-slate-600 dark:text-[#a1a1aa]">{app.programRole}</p>
+            <p className="mt-1 text-xs text-slate-400 dark:text-[#71717a]">
               {app.city || "No city"} · {app.applicationType || "No channel"}
               {(app.employmentType || app.workMode || app.language)
                 ? ` · ${[app.employmentType, app.workMode, app.language].filter(Boolean).join(" · ")}`
@@ -36,7 +36,7 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
                 href={app.link}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-slate-100"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 dark:text-[#a1a1aa] dark:hover:text-white"
               >
                 <Icon name="link" className="h-3 w-3" /> Open link
               </a>
@@ -49,15 +49,15 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
       </td>
       <td className="px-4 py-4 align-top">
         <Badge tone={info.tone}>{info.label}</Badge>
-        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{formatDate(app.deadline)}</p>
+        <p className="mt-1 text-xs text-slate-400 dark:text-[#71717a]">{formatDate(app.deadline)}</p>
       </td>
       <td className="px-4 py-4 align-top">
         <Priority priority={app.priority} />
       </td>
-      <td className="max-w-[240px] px-4 py-4 align-top text-slate-600 dark:text-slate-300">
+      <td className="max-w-[240px] px-4 py-4 align-top text-slate-600 dark:text-[#a1a1aa]">
         <span className="line-clamp-2">{app.documents || "—"}</span>
       </td>
-      <td className="px-4 py-4 align-top text-slate-500 dark:text-slate-400">{formatDate(app.lastUpdated)}</td>
+      <td className="px-4 py-4 align-top text-slate-500 dark:text-[#71717a]">{formatDate(app.lastUpdated)}</td>
       <td className="px-5 py-4 align-top">
         <div className="flex justify-end gap-2">
           <IconButton label="Duplicate" icon="copy" onClick={() => onDuplicate(app)} />
@@ -73,11 +73,11 @@ export function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatus
   if (!apps.length) return <EmptyState />;
   const allSelected = apps.length > 0 && apps.every((a) => selectedIds.has(a.id));
   return (
-    <Card className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <Card className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#111113] dark:shadow-none dark:ring-1 dark:ring-white/5">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1060px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#71717a]">
               <tr>
                 <th className="px-4 py-4">
                   <input
@@ -96,7 +96,7 @@ export function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatus
                 <th className="px-5 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#1c1c1f]">
               {apps.map((app) => (
                 <ApplicationRow
                   key={app.id}

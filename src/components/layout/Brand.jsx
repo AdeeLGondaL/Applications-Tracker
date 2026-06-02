@@ -9,7 +9,7 @@ export function Brand() {
       />
       <div>
         <p className="text-sm font-black leading-tight">ApplyBuddy</p>
-        <p className="text-[10px] text-slate-400 dark:text-slate-500">Your application buddy</p>
+        <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Your application buddy</p>
       </div>
     </div>
   );

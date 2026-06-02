@@ -13,10 +13,10 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Card
-        className={`h-full rounded-[2rem] border bg-white shadow-sm transition-colors dark:bg-slate-800 ${
+        className={`h-full rounded-[2rem] border bg-white shadow-sm transition-colors dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 ${
           selected
             ? "border-emerald-300 bg-emerald-50/30 dark:border-emerald-700 dark:bg-emerald-900/10"
-            : "border-slate-200 dark:border-slate-700"
+            : "border-slate-200 dark:border-[#2a2a2e]"
         }`}
       >
         <CardContent className="flex h-full flex-col p-5">
@@ -28,14 +28,14 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
                 checked={selected}
                 onChange={() => onToggleSelect(app.id)}
               />
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 dark:bg-slate-700">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-100 dark:bg-[#2a2a2e]">
                 <Icon name={app.type === "University" ? "university" : "job"} />
               </div>
             </div>
             <Badge tone={info.tone}>{info.label}</Badge>
           </div>
           <p className="text-lg font-black leading-tight">{app.name}</p>
-          <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">{app.programRole}</p>
+          <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-[#a1a1aa]">{app.programRole}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <InlineStatusPicker status={app.status} onStatusChange={(s) => onStatusChange(app.id, s)} />
             <Priority priority={app.priority} />
@@ -45,7 +45,7 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
             <Info label="Deadline" value={formatDate(app.deadline)} />
           </div>
           {app.notes && (
-            <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+            <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600 dark:bg-[#2a2a2e] dark:text-[#a1a1aa]">
               {app.notes}
             </p>
           )}

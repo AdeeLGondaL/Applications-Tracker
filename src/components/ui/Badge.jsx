@@ -6,7 +6,7 @@ function badgeClass(tone) {
     danger: "border-rose-200 bg-rose-50 text-rose-700",
     warning: "border-orange-200 bg-orange-50 text-orange-700",
     notice: "border-amber-200 bg-amber-50 text-amber-700",
-    neutral: "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200",
+    neutral: "border-slate-200 bg-slate-50 text-slate-700 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-[#d4d4d8]",
     blue: "border-blue-200 bg-blue-50 text-blue-700",
     violet: "border-violet-200 bg-violet-50 text-violet-700",
     dark: "border-white/10 bg-white/10 text-white",
@@ -30,13 +30,13 @@ export function Priority({ priority }) {
 export function IconButton({ icon, label, onClick, danger = false }) {
   const dangerClass = danger
     ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-    : "text-slate-600 hover:text-slate-950 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700";
+    : "text-slate-600 hover:text-slate-950 hover:bg-slate-50 dark:text-[#a1a1aa] dark:hover:text-white dark:hover:bg-[#2a2a2e]";
   return (
     <button
       type="button"
       title={label}
       onClick={onClick}
-      className={`grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white transition dark:border-slate-700 dark:bg-slate-800 ${dangerClass}`}
+      className={`grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white transition dark:border-[#2a2a2e] dark:bg-[#1c1c1f] ${dangerClass}`}
     >
       <Icon name={icon} />
     </button>
@@ -48,7 +48,7 @@ export function Toggle({ active, children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl px-3 py-1.5 text-xs font-bold ${active ? "bg-white text-slate-950 shadow-sm dark:bg-slate-700 dark:text-slate-100" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"}`}
+      className={`rounded-xl px-3 py-1.5 text-xs font-bold ${active ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
     >
       {children}
     </button>

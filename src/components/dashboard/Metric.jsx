@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 
 const ACCENT = {
-  slate:   { icon: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",     ring: "ring-slate-200 dark:ring-slate-600"   },
+  slate:   { icon: "bg-slate-100 text-slate-600 dark:bg-[#2a2a2e] dark:text-[#a1a1aa]",     ring: "ring-slate-200 dark:ring-[#3a3a3e]"   },
   blue:    { icon: "bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",        ring: "ring-blue-100 dark:ring-blue-800"      },
   violet:  { icon: "bg-violet-50 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400", ring: "ring-violet-100 dark:ring-violet-800" },
   emerald: { icon: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400", ring: "ring-emerald-100 dark:ring-emerald-800" },
@@ -14,7 +14,7 @@ export function Metric({ icon, label, value, hint, accent = "slate", danger = fa
   const a = ACCENT[danger ? "rose" : accent] || ACCENT.slate;
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay }}>
-      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 dark:hover:bg-[#242428]">
         <CardContent className="p-5">
           <div className="mb-4 flex items-start justify-between">
             <div className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${a.icon} ${a.ring}`}>
@@ -27,8 +27,8 @@ export function Metric({ icon, label, value, hint, accent = "slate", danger = fa
             )}
           </div>
           <p className="text-3xl font-black tabular-nums leading-none">{value}</p>
-          <p className="mt-1.5 text-sm font-bold text-slate-700 dark:text-slate-200">{label}</p>
-          <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{hint}</p>
+          <p className="mt-1.5 text-sm font-bold text-slate-700 dark:text-[#d4d4d8]">{label}</p>
+          <p className="mt-0.5 text-xs text-slate-400 dark:text-[#71717a]">{hint}</p>
         </CardContent>
       </Card>
     </motion.div>
