@@ -35,7 +35,7 @@ function Reveal({ children, from = "bottom", delay = 0, className = "" }) {
       variants={VARIANTS[from]}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, margin: "-80px" }}
+      viewport={{ once: false, margin: "-110px" }}
       transition={{ delay, duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
@@ -63,7 +63,7 @@ function Stagger({ children, className = "" }) {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, margin: "-70px" }}
+      viewport={{ once: false, margin: "-95px" }}
     >
       {children}
     </motion.div>
@@ -135,13 +135,18 @@ export default function LandingPage({ onGetStarted }) {
   // Scroll-linked transforms for hero parallax
   const { scrollY } = useScroll();
 
-  const heroContentY    = useTransform(scrollY, [0, 500], [0, -55]);
-  const heroOpacity     = useTransform(scrollY, [80, 420], [1, 0]);
-  const orb1Y           = useTransform(scrollY, [0, 600], [0, -130]);
-  const orb2Y           = useTransform(scrollY, [0, 600], [0,  90]);
-  const mockupScrollY   = useSpring(useTransform(scrollY, [0, 700], [0, -75]), { stiffness: 55, damping: 18, restDelta: 0.001 });
-  const mockupScrollS   = useTransform(scrollY, [0, 600], [1, 0.96]);
-  const mockupScrollOp  = useTransform(scrollY, [0, 550], [1, 0.55]);
+  // All Y transforms wrapped in useSpring so scroll jank doesn't map 1:1 to motion
+  const SPRING_FAST   = { stiffness: 90,  damping: 30, restDelta: 0.001 };
+  const SPRING_SLOW   = { stiffness: 45,  damping: 18, restDelta: 0.001 };
+  const SPRING_MOCKUP = { stiffness: 55,  damping: 22, restDelta: 0.001 };
+
+  const heroContentY   = useSpring(useTransform(scrollY, [0, 500],   [0,  -55]), SPRING_FAST);
+  const heroOpacity    = useTransform(scrollY, [80, 420], [1, 0]);   // raw — spring on opacity overshoots
+  const orb1Y          = useSpring(useTransform(scrollY, [0, 600],   [0, -130]), SPRING_SLOW);
+  const orb2Y          = useSpring(useTransform(scrollY, [0, 600],   [0,   90]), SPRING_SLOW);
+  const mockupScrollY  = useSpring(useTransform(scrollY, [0, 700],   [0,  -75]), SPRING_MOCKUP);
+  const mockupScrollS  = useSpring(useTransform(scrollY, [0, 600],   [1, 0.96]), SPRING_FAST);
+  const mockupScrollOp = useTransform(scrollY, [0, 550], [1, 0.55]); // raw — spring on opacity overshoots
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f8f7f4] text-slate-950">
@@ -176,12 +181,12 @@ export default function LandingPage({ onGetStarted }) {
 
         {/* Parallax glow orbs */}
         <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <motion.div style={{ y: orb1Y }} className="absolute left-1/2 top-0 h-[650px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-emerald-400/[0.12] blur-3xl" />
-          <motion.div style={{ y: orb2Y }} className="absolute right-0 top-1/2 h-[380px] w-[480px] translate-x-1/3 rounded-full bg-teal-300/[0.09] blur-3xl" />
+          <motion.div style={{ y: orb1Y, willChange: "transform" }} className="absolute left-1/2 top-0 h-[650px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-emerald-400/[0.12] blur-3xl" />
+          <motion.div style={{ y: orb2Y, willChange: "transform" }} className="absolute right-0 top-1/2 h-[380px] w-[480px] translate-x-1/3 rounded-full bg-teal-300/[0.09] blur-3xl" />
         </div>
 
         {/* Hero text block — drifts up + fades as you scroll */}
-        <motion.div style={{ y: heroContentY, opacity: heroOpacity }}>
+        <motion.div style={{ y: heroContentY, opacity: heroOpacity, willChange: "transform, opacity" }}>
 
           {/* Animated badge */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
@@ -261,7 +266,7 @@ export default function LandingPage({ onGetStarted }) {
           transition={{ delay: 0.55, duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Scroll-driven parallax + scale + fade layer */}
-          <motion.div style={{ y: mockupScrollY, scale: mockupScrollS, opacity: mockupScrollOp }}>
+          <motion.div style={{ y: mockupScrollY, scale: mockupScrollS, opacity: mockupScrollOp, willChange: "transform, opacity" }}>
             {/* Glow halo */}
             <div className="pointer-events-none absolute -inset-3 -z-10 rounded-[2.5rem] bg-gradient-to-b from-emerald-400/20 via-emerald-300/5 to-transparent blur-2xl" />
             {/* Bottom page-colour fade */}
@@ -269,8 +274,8 @@ export default function LandingPage({ onGetStarted }) {
 
             {/* Floating layer */}
             <motion.div
-              animate={{ y: [0, -7, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
             >
               <div className="overflow-hidden rounded-[2rem] border border-stone-200/80 bg-white shadow-2xl shadow-slate-900/10">
                 {/* Chrome bar */}
