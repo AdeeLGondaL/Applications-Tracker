@@ -33,6 +33,7 @@ export function Toolbar(props) {
             <div className="flex shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
               <Toggle active={viewMode === "table"} onClick={() => setViewMode("table")}>Table</Toggle>
               <Toggle active={viewMode === "cards"} onClick={() => setViewMode("cards")}>Cards</Toggle>
+              <Toggle active={viewMode === "kanban"} onClick={() => setViewMode("kanban")}>Kanban</Toggle>
             </div>
           </div>
           {/* Row 2: Filters */}

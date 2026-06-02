@@ -9,12 +9,14 @@ import { Brand } from "@/components/layout/Brand";
 import { NavItem } from "@/components/layout/NavItem";
 import { Metric } from "@/components/dashboard/Metric";
 import { ProgressCard } from "@/components/dashboard/ProgressCard";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
 import { ApplicationCard, ApplicationGrid } from "@/components/applications/ApplicationCard";
+import { KanbanBoard } from "@/components/applications/KanbanBoard";
 import { ApplicationDrawer } from "@/components/applications/ApplicationDrawer";
 import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyState, EmptyDashboard } from "@/components/applications/EmptyState";
@@ -761,6 +763,12 @@ export default function Dashboard({ session }) {
                       <EmptyDashboard onAdd={() => openNew()} />
                     ) : (
                       <>
+                        <OnboardingChecklist
+                          userId={session?.user?.id}
+                          applications={applications}
+                          onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
+                          onOpenFeedback={() => setFeedbackOpen(true)}
+                        />
                         <div className="mb-5 grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
                           <Metric icon="dashboard"  label="Total"            value={stats.total}                   hint="All tracked entries"             accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"     value={stats.universities}            hint="Master's applications"           accent="blue"    delay={0.05} />
@@ -800,6 +808,13 @@ export default function Dashboard({ session }) {
                         selectedIds={selectedIds}
                         onToggleSelect={toggleSelect}
                         onSelectAll={selectAll}
+                      />
+                    ) : viewMode === "kanban" ? (
+                      <KanbanBoard
+                        apps={filtered}
+                        onEdit={openEdit}
+                        onDelete={deleteApplication}
+                        onStatusChange={updateStatus}
                       />
                     ) : (
                       <ApplicationGrid

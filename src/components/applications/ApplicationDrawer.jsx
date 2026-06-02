@@ -44,6 +44,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
     try {
       const extracted = await callGeminiExtract(afInput.trim());
       applyExtracted(extracted);
+      try { localStorage.setItem("onboarding_ai_used", "true"); } catch {}
     } catch (err) {
       setAfError(err.message || "AI extraction failed.");
     }
