@@ -1,11 +1,11 @@
-export function Brand() {
+export function Brand({ dark = false }) {
   return (
     <div className="flex items-center gap-2.5">
       <img
-        src="/Logo.png"
+        src={dark ? "/logo-dark.png" : "/Logo.png"}
         alt="ApplyBuddy"
-        className="h-9 w-9 object-contain shrink-0 dark:brightness-150"
-        style={{ mixBlendMode: "multiply" }}
+        className="h-9 w-9 shrink-0 object-contain"
+        style={dark ? undefined : { mixBlendMode: "multiply" }}
       />
       <div>
         <p className="text-sm font-black leading-tight">ApplyBuddy</p>

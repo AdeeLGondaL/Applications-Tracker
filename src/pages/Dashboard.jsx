@@ -555,7 +555,7 @@ export default function Dashboard({ session }) {
         {/* Sidebar */}
         <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[#1f1f23] dark:bg-[#0d0d0f]">
           <div className="border-b border-slate-100 px-4 py-4 dark:border-[#1f1f23]">
-            <Brand />
+            <Brand dark={dark} />
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-4">
