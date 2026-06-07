@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 
 const applications = [
@@ -15,6 +15,41 @@ const oldSheetRows = [
   ["Berlin", "01 Jul", "todo", "portal"],
   ["Saarland", "?", "notes?", "email"],
 ];
+
+const recordPanels = {
+  deadline: {
+    label: "Deadline radar",
+    tone: "amber",
+    title: "3",
+    detail: "open applications need attention this week",
+    items: ["TUM closes in 7 days", "Berlin needs transcript", "BMW has no deadline"],
+  },
+  dossier: {
+    label: "Dossier checklist",
+    tone: "emerald",
+    title: "4 of 5",
+    detail: "documents ready for the selected application",
+    items: ["CV attached", "Portal link saved", "Module notes added"],
+  },
+  ai: {
+    label: "AI record draft",
+    tone: "violet",
+    title: "12 fields",
+    detail: "prepared from a pasted job post or program page",
+    items: ["Company found", "Role extracted", "Requirements summarized"],
+  },
+};
+
+function ScrollThread() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 170, damping: 35, restDelta: 0.001 });
+  return (
+    <motion.div
+      className="fixed left-0 right-0 top-0 z-[70] h-[3px] origin-left bg-emerald-500"
+      style={{ scaleX }}
+    />
+  );
+}
 
 function Reveal({ children, className = "", delay = 0 }) {
   return (
@@ -81,13 +116,24 @@ function LandingFooter() {
   );
 }
 
-function HeroScene() {
+function HeroScene({ sheetY, recordY, routeScale }) {
+  const arrowX = useTransform(routeScale, [0.2, 1], [-180, 180]);
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-[62rem] bg-[linear-gradient(to_right,rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:72px_48px] opacity-40" />
       <motion.div
+        className="absolute left-[16%] right-[16%] top-[25rem] hidden h-px origin-left bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent sm:block"
+        style={{ scaleX: routeScale }}
+      />
+      <motion.div
+        className="absolute left-[47%] top-[24.1rem] hidden h-5 w-5 rotate-45 border-r-2 border-t-2 border-emerald-500/70 sm:block"
+        style={{ x: arrowX }}
+      />
+      <motion.div
         className="absolute left-[7%] top-36 hidden w-60 rotate-[-8deg] border border-slate-200 bg-white/80 p-3 shadow-xl shadow-slate-900/10 backdrop-blur-sm sm:block"
-        animate={{ y: [0, -8, 0], rotate: [-8, -6, -8] }}
+        style={{ y: sheetY }}
+        animate={{ rotate: [-8, -6, -8] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       >
         <div className="grid grid-cols-3 gap-1 text-[9px] font-bold text-slate-400">
@@ -98,7 +144,8 @@ function HeroScene() {
       </motion.div>
       <motion.div
         className="absolute right-[8%] top-28 hidden w-64 rotate-[7deg] border border-emerald-100 bg-white/85 p-4 shadow-xl shadow-emerald-900/10 backdrop-blur-sm lg:block"
-        animate={{ y: [0, 10, 0], rotate: [7, 5, 7] }}
+        style={{ y: recordY }}
+        animate={{ rotate: [7, 5, 7] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       >
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Application record</p>
@@ -114,9 +161,27 @@ function HeroScene() {
 }
 
 function WorkspacePreview() {
+  const [activePanel, setActivePanel] = useState("deadline");
+  const [selectedRecord, setSelectedRecord] = useState(applications[0].name);
+  const panel = recordPanels[activePanel];
+  const panelTone = {
+    amber: "border-amber-200 bg-amber-50 text-amber-900",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    violet: "border-violet-200 bg-violet-50 text-violet-900",
+  }[panel.tone];
+  const panelAccent = {
+    amber: "text-amber-700",
+    emerald: "text-emerald-700",
+    violet: "text-violet-700",
+  }[panel.tone];
+
   return (
     <Reveal className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
-      <div className="overflow-hidden border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
+      <motion.div
+        className="overflow-hidden border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
+        whileHover={{ y: -4 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      >
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
           <div className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
@@ -135,7 +200,14 @@ function WorkspacePreview() {
             </div>
             <div className="overflow-hidden border border-white/10">
               {oldSheetRows.map((row, rowIndex) => (
-                <div key={row.join("-")} className="grid grid-cols-4 border-b border-white/10 last:border-b-0">
+                <motion.div
+                  key={row.join("-")}
+                  className="grid grid-cols-4 border-b border-white/10 last:border-b-0"
+                  initial={{ opacity: 0, x: -12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: rowIndex * 0.05, duration: 0.35 }}
+                >
                   {row.map((cell, cellIndex) => (
                     <span
                       key={`${cell}-${cellIndex}`}
@@ -144,7 +216,7 @@ function WorkspacePreview() {
                       {cell}
                     </span>
                   ))}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -155,7 +227,9 @@ function WorkspacePreview() {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">After</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">Application records with context</h3>
               </div>
-              <button type="button" className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white">Add record</button>
+              <motion.button type="button" className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                Add record
+              </motion.button>
             </div>
 
             <div className="grid gap-3 md:grid-cols-[1fr_0.75fr]">
@@ -167,7 +241,14 @@ function WorkspacePreview() {
                     emerald: "bg-emerald-100 text-emerald-800",
                   }[tone];
                   return (
-                    <div key={name} className="border border-slate-200 bg-white p-4">
+                    <motion.button
+                      key={name}
+                      type="button"
+                      onClick={() => setSelectedRecord(name)}
+                      className={`w-full border p-4 text-left transition ${selectedRecord === name ? "border-emerald-300 bg-emerald-50/60 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-black text-slate-950">{name}</p>
@@ -180,37 +261,48 @@ function WorkspacePreview() {
                         <span className="bg-slate-50 px-2 py-1.5">Notes</span>
                         <span className="bg-slate-50 px-2 py-1.5">Files</span>
                       </div>
-                    </div>
+                    </motion.button>
                   );
                 })}
               </div>
 
               <div className="space-y-3">
-                <div className="border border-amber-200 bg-amber-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Deadline radar</p>
-                  <p className="mt-3 text-3xl font-black text-slate-950">3</p>
-                  <p className="text-xs font-semibold text-amber-800/70">open applications need attention this week</p>
+                <div className="grid grid-cols-3 gap-1 rounded-xl bg-white p-1">
+                  {Object.entries(recordPanels).map(([key, item]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setActivePanel(key)}
+                      className={`rounded-lg px-2 py-2 text-[10px] font-black transition ${activePanel === key ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100"}`}
+                    >
+                      {item.label.split(" ")[0]}
+                    </button>
+                  ))}
                 </div>
-                <div className="border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Dossier checklist</p>
+                <motion.div
+                  key={activePanel}
+                  className={`border p-4 ${panelTone}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <p className={`text-xs font-black uppercase tracking-[0.18em] ${panelAccent}`}>{panel.label}</p>
+                  <p className="mt-3 text-3xl font-black text-slate-950">{panel.title}</p>
+                  <p className="text-xs font-semibold opacity-75">{panel.detail}</p>
                   <div className="mt-3 space-y-2">
-                    {["CV attached", "Portal link saved", "Module notes added"].map((item) => (
-                      <div key={item} className="flex items-center gap-2 text-xs font-bold text-emerald-900">
-                        <Icon name="check" className="h-3.5 w-3.5 text-emerald-600" />
+                    {panel.items.map((item) => (
+                      <div key={item} className="flex items-center gap-2 text-xs font-bold">
+                        <Icon name="check" className={`h-3.5 w-3.5 ${panelAccent}`} />
                         {item}
                       </div>
                     ))}
                   </div>
-                </div>
-                <div className="border border-violet-200 bg-violet-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700">AI assist</p>
-                  <p className="mt-2 text-xs leading-5 text-violet-900/70">Paste a job post or program page and let Applume draft the record fields.</p>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Reveal>
   );
 }
@@ -226,18 +318,26 @@ function FeatureCard({ icon, title, children, tone = "emerald" }) {
 
   return (
     <Reveal className={`border bg-white p-6 shadow-sm ${toneClass}`}>
+      <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 280, damping: 22 }}>
       <div className="mb-5 grid h-11 w-11 place-items-center bg-white/70">
         <Icon name={icon} className="h-5 w-5" />
       </div>
       <h3 className="text-lg font-black text-slate-950">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{children}</p>
+      </motion.div>
     </Reveal>
   );
 }
 
 export default function LandingPage({ onGetStarted }) {
+  const { scrollY } = useScroll();
+  const sheetY = useSpring(useTransform(scrollY, [0, 700], [0, -90]), { stiffness: 70, damping: 24 });
+  const recordY = useSpring(useTransform(scrollY, [0, 700], [0, 70]), { stiffness: 70, damping: 24 });
+  const routeScale = useSpring(useTransform(scrollY, [0, 520], [0.2, 1]), { stiffness: 90, damping: 26 });
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f5ef] text-slate-950">
+      <ScrollThread />
       <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f7f5ef]/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -251,18 +351,18 @@ export default function LandingPage({ onGetStarted }) {
             <a href="#workflow" className="transition hover:text-slate-950">Workflow</a>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onGetStarted} className="hidden rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block">
+            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
               Sign in
-            </button>
-            <button type="button" onClick={onGetStarted} className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
+            </motion.button>
+            <motion.button type="button" onClick={onGetStarted} className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
               Start tracking
-            </button>
+            </motion.button>
           </div>
         </div>
       </nav>
 
       <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-28">
-        <HeroScene />
+        <HeroScene sheetY={sheetY} recordY={recordY} routeScale={routeScale} />
         <div className="relative z-10 mx-auto max-w-4xl">
           <motion.span
             className="inline-flex items-center gap-2 border border-emerald-200 bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 shadow-sm"
@@ -311,12 +411,12 @@ export default function LandingPage({ onGetStarted }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.48, duration: 0.5 }}
           >
-            <button type="button" onClick={onGetStarted} className="w-full rounded-xl bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 active:scale-[0.98] sm:w-auto">
+            <motion.button type="button" onClick={onGetStarted} className="w-full rounded-xl bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
               Build my tracker
-            </button>
-            <a href="#records" className="w-full rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto">
+            </motion.button>
+            <motion.a href="#records" className="w-full rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
               See the workspace
-            </a>
+            </motion.a>
           </motion.div>
         </div>
 
@@ -440,9 +540,9 @@ export default function LandingPage({ onGetStarted }) {
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400">
             Keep the practical spreadsheet spirit, but give every application the structure it deserves.
           </p>
-          <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-emerald-500 px-9 py-4 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition hover:bg-emerald-400">
+          <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-emerald-500 px-9 py-4 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition hover:bg-emerald-400" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
             Create your tracker
-          </button>
+          </motion.button>
         </Reveal>
       </section>
 
