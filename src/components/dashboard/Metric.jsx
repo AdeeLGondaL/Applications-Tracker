@@ -14,21 +14,21 @@ export function Metric({ icon, label, value, hint, accent = "slate", danger = fa
   const a = ACCENT[danger ? "rose" : accent] || ACCENT.slate;
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay }}>
-      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 dark:hover:bg-[#242428]">
-        <CardContent className="p-5">
-          <div className="mb-4 flex items-start justify-between">
+      <Card className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 dark:hover:bg-[#242428]">
+        <CardContent className="p-4 sm:p-5">
+          <div className="mb-4 flex min-w-0 items-start justify-between gap-2">
             <div className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${a.icon} ${a.ring}`}>
               <Icon name={icon} />
             </div>
             {danger && value > 0 && (
-              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-rose-600 dark:bg-rose-900/50 dark:text-rose-400">
+              <span className="shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-rose-600 dark:bg-rose-900/50 dark:text-rose-400">
                 Urgent
               </span>
             )}
           </div>
-          <p className="text-3xl font-black tabular-nums leading-none">{value}</p>
-          <p className="mt-1.5 text-sm font-bold text-slate-700 dark:text-[#d4d4d8]">{label}</p>
-          <p className="mt-0.5 text-xs text-slate-400 dark:text-[#71717a]">{hint}</p>
+          <p className="text-2xl font-black tabular-nums leading-none sm:text-3xl">{value}</p>
+          <p className="mt-1.5 break-words text-sm font-bold text-slate-700 dark:text-[#d4d4d8]">{label}</p>
+          <p className="mt-0.5 break-words text-xs text-slate-400 dark:text-[#71717a]">{hint}</p>
         </CardContent>
       </Card>
     </motion.div>

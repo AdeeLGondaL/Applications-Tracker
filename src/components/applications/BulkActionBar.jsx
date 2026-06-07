@@ -29,11 +29,11 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 32 }}
           transition={{ type: "spring", stiffness: 420, damping: 32 }}
-          className="fixed inset-x-0 bottom-[4.5rem] z-30 flex justify-center px-4 md:bottom-5"
+          className="fixed inset-x-0 bottom-[4.5rem] z-30 flex justify-center px-3 md:bottom-5 md:px-4"
         >
           <div
             ref={ref}
-            className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 shadow-2xl shadow-slate-900/50"
+            className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-slate-950 px-3 py-3 shadow-2xl shadow-slate-900/50 sm:px-4"
           >
             <span className="text-sm font-bold text-white">{count} selected</span>
             <div className="h-4 w-px bg-white/20" />

@@ -26,7 +26,7 @@ export function Input({ className = "", ...props }) {
   return (
     <input
       {...props}
-      className={`h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
+      className={`h-11 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
     />
   );
 }
@@ -48,7 +48,7 @@ export function Select({ options, ...props }) {
   return (
     <select
       {...props}
-      className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20"
+      className="h-11 min-w-0 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20"
     >
       {normalized.map((option) => (
         <option key={option.value} value={option.value}>

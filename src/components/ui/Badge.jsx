@@ -48,7 +48,7 @@ export function Toggle({ active, children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl px-3 py-1.5 text-xs font-bold ${active ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
+      className={`min-w-0 rounded-xl px-2.5 py-1.5 text-xs font-bold sm:px-3 ${active ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
     >
       {children}
     </button>

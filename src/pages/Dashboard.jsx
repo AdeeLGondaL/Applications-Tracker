@@ -549,8 +549,8 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className={`${dark ? "dark" : ""} min-h-screen bg-slate-50 text-slate-950 dark:bg-[#09090b] dark:text-white`}>
-      <div className="flex min-h-screen">
+    <div className={`${dark ? "dark" : ""} min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 dark:bg-[#09090b] dark:text-white`}>
+      <div className="flex min-h-screen min-w-0">
 
         {/* Sidebar */}
         <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[#1f1f23] dark:bg-[#0d0d0f]">
@@ -712,36 +712,36 @@ export default function Dashboard({ session }) {
         </nav>
 
         {/* Main */}
-        <main className="min-w-0 flex-1 pb-20 md:pb-0">
+        <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
 
           {/* Header */}
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[#1f1f23] dark:bg-[#111113]/90">
-            <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[#1f1f23] dark:bg-[#111113]/90">
+            <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
               <AnimatePresence mode="wait">
-                <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }}>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-[#71717a]">{VIEW_META[sidebarView]?.sub}</p>
-                  <h1 className="text-xl font-black leading-tight">{VIEW_META[sidebarView]?.title}</h1>
+                <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
+                  <p className="truncate text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-[#71717a]">{VIEW_META[sidebarView]?.sub}</p>
+                  <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{VIEW_META[sidebarView]?.title}</h1>
                 </motion.div>
               </AnimatePresence>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                 <Button
                   onClick={() => openNew(sidebarView === "jobs" ? "Job" : "University")}
-                  className="rounded-xl h-9 px-3.5 text-sm"
+                  className="h-9 rounded-xl px-2.5 text-sm sm:px-3.5"
                 >
-                  <Icon name="plus" className="mr-1.5" />
+                  <Icon name="plus" className="sm:mr-1.5" />
                   <span className="hidden sm:inline">Add application</span>
-                  <span className="sm:hidden">Add</span>
+                  <span className="hidden min-[380px]:inline sm:hidden">Add</span>
                 </Button>
 
                 <div ref={exportMenuRef} className="relative">
                   <button
                     onClick={() => setExportMenuOpen((v) => !v)}
-                    className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
+                    className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32] sm:px-3"
                   >
                     <Icon name="download" className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">Export</span>
-                    <svg className="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="hidden h-3 w-3 text-slate-400 min-[380px]:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
@@ -773,7 +773,7 @@ export default function Dashboard({ session }) {
                   type="button"
                   onClick={toggleTheme}
                   title={dark ? "Switch to light mode" : "Switch to dark mode"}
-                  className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 md:hidden dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 md:hidden dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
                 >
                   <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
                 </button>
@@ -782,7 +782,7 @@ export default function Dashboard({ session }) {
                   <button
                     type="button"
                     onClick={() => setMobileMenuOpen((v) => !v)}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900"
                   >
                     {session?.user?.email?.[0]?.toUpperCase() || "?"}
                   </button>
@@ -846,7 +846,7 @@ export default function Dashboard({ session }) {
           </header>
 
           {/* Content */}
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
             <AnimatePresence mode="wait">
               <motion.div key={sidebarView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
 
@@ -869,7 +869,7 @@ export default function Dashboard({ session }) {
                           onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
                           onOpenFeedback={() => setFeedbackOpen(true)}
                         />
-                        <div className="mb-5 grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+                        <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
                           <Metric icon="dashboard"  label="Total"            value={stats.total}                   hint="All tracked entries"             accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"     value={stats.universities}            hint="Master's applications"           accent="blue"    delay={0.05} />
                           <Metric icon="job"        label="Jobs"             value={stats.jobs}                    hint="Work applications"               accent="violet"  delay={0.1}  />
@@ -950,10 +950,10 @@ export default function Dashboard({ session }) {
       <button
         type="button"
         onClick={() => setFeedbackOpen(true)}
-        className="fixed bottom-[4.5rem] right-4 z-30 flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 md:hidden dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white"
+        className="fixed bottom-[4.5rem] right-3 z-30 flex h-11 items-center gap-2 rounded-2xl bg-slate-950 px-3 text-sm font-bold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-800 min-[380px]:right-4 min-[380px]:px-4 md:hidden dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white"
       >
         <Icon name="messageSquare" className="h-4 w-4" />
-        Feedback
+        <span className="hidden min-[380px]:inline">Feedback</span>
       </button>
 
       <AnimatePresence>
@@ -983,7 +983,7 @@ export default function Dashboard({ session }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className={`fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl ${
+            className={`fixed bottom-5 left-1/2 z-50 flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl ${
               toastKind === "error"   ? "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-900/60 dark:text-rose-300" :
               toastKind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300" :
               "border-slate-200 bg-white text-slate-700 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#d4d4d8]"
