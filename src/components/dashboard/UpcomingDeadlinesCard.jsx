@@ -7,7 +7,7 @@ import { deadlineInfo, formatDate } from "@/utils/date";
 export function UpcomingDeadlinesCard({ apps }) {
   return (
     <Card className="rounded-2xl border border-slate-200 bg-[#111113] text-white shadow-sm dark:border-[#2a2a2e] dark:shadow-none dark:ring-1 dark:ring-white/5">
-      <CardContent className="p-5">
+      <CardContent className="p-4 sm:p-5">
         <div className="mb-4 flex items-center gap-2.5">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/10">
             <Icon name="calendar" className="h-4 w-4" />
@@ -34,11 +34,13 @@ export function UpcomingDeadlinesCard({ apps }) {
                   transition={{ delay: 0.1 + i * 0.07, duration: 0.25 }}
                   className="rounded-xl bg-white/10 p-3"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="min-w-0 truncate text-sm font-bold leading-tight">{app.name}</p>
-                    <Badge tone="dark">{info.label}</Badge>
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="min-w-0 break-words text-sm font-bold leading-tight">{app.name}</p>
+                    <span className="shrink-0 self-start">
+                      <Badge tone="dark">{info.label}</Badge>
+                    </span>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-slate-400">{app.programRole}</p>
+                  <p className="mt-1 break-words text-xs text-slate-400">{app.programRole}</p>
                   <p className="mt-1.5 text-[10px] text-slate-500">{formatDate(app.deadline)}</p>
                 </motion.div>
               );
