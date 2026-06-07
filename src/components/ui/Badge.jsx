@@ -2,13 +2,13 @@ import { Icon } from "@/components/ui/Icon";
 
 function badgeClass(tone) {
   const map = {
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    danger: "border-rose-200 bg-rose-50 text-rose-700",
-    warning: "border-orange-200 bg-orange-50 text-orange-700",
-    notice: "border-amber-200 bg-amber-50 text-amber-700",
+    success: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-300",
+    danger: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-900/20 dark:text-rose-300",
+    warning: "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-900/20 dark:text-orange-300",
+    notice: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-300",
     neutral: "border-slate-200 bg-slate-50 text-slate-700 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-[#d4d4d8]",
-    blue: "border-blue-200 bg-blue-50 text-blue-700",
-    violet: "border-violet-200 bg-violet-50 text-violet-700",
+    blue: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-300",
+    violet: "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-900/20 dark:text-violet-300",
     dark: "border-white/10 bg-white/10 text-white",
   };
   return map[tone] || map.neutral;

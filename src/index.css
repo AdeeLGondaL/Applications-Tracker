@@ -6,8 +6,8 @@
     color-scheme: light;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     line-height: 1.5;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #f9fafb;
+    color: #111827;
     min-height: 100vh;
   }
 
@@ -21,4 +21,41 @@
   html { scroll-behavior: smooth; }
   body { margin: 0; min-height: 100vh; }
   #root { min-height: 100vh; }
+
+  /* Typography refinements */
+  h1 { @apply font-black tracking-tight; }
+  h2 { @apply font-bold tracking-tight; }
+  h3 { @apply font-bold; }
+  
+  /* Subtle transitions */
+  button, a {
+    @apply transition-all duration-300;
+  }
+
+  /* Focus states for accessibility */
+  button:focus-visible, a:focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-gray-900;
+  }
+}
+
+@layer components {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 150ms ease-in-out;
+  }
+
+  /* Smooth drag states for Kanban */
+  [draggable="true"] {
+    @apply transition-all duration-200;
+  }
 }

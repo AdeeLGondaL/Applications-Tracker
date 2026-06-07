@@ -4,7 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 
 export function EmptyState() {
   return (
-    <Card className="rounded-[2rem] border border-dashed border-slate-300 bg-white dark:border-[#2a2a2e] dark:bg-[#111113]">
+    <Card className="rounded-[2rem] border border-dashed border-slate-300 bg-white dark:border-[#2a2a2e] dark:bg-[#1c1c1f]">
       <CardContent className="grid place-items-center p-12 text-center">
         <div className="grid h-14 w-14 place-items-center rounded-3xl bg-slate-100 text-slate-500 dark:bg-[#1c1c1f] dark:text-[#71717a]">
           <Icon name="search" className="h-6 w-6" />

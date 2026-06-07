@@ -12,8 +12,8 @@ export function DrawerSection({ label, children }) {
 
 export function Field({ label, children, required = false, wide = false }) {
   return (
-    <label className={`grid gap-1.5 text-sm font-bold text-slate-700 dark:text-[#d4d4d8] ${wide ? "sm:col-span-2" : ""}`}>
-      <span>
+    <label className={`grid gap-2 ${wide ? "sm:col-span-2" : ""}`}>
+      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
         {label}
         {required && <span className="text-rose-500"> *</span>}
       </span>
@@ -22,33 +22,53 @@ export function Field({ label, children, required = false, wide = false }) {
   );
 }
 
-export function Input({ className = "", ...props }) {
+export function Input({ className = "", disabled = false, ...props }) {
   return (
     <input
       {...props}
-      className={`h-11 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
+      disabled={disabled}
+      className={`h-10 min-w-0 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium outline-none placeholder:text-slate-400 transition-all duration-200 
+        focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-0
+        disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed
+        dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500
+        dark:focus:border-emerald-500 dark:focus:ring-emerald-600/50 dark:focus:ring-offset-slate-900
+        dark:disabled:border-slate-700 dark:disabled:bg-slate-950 dark:disabled:text-slate-600 
+        ${className}`}
     />
   );
 }
 
-export function Textarea({ className = "", ...props }) {
+export function Textarea({ className = "", disabled = false, rows = 4, ...props }) {
   return (
     <textarea
       {...props}
-      rows={4}
-      className={`resize-none rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
+      disabled={disabled}
+      rows={rows}
+      className={`w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium outline-none placeholder:text-slate-400 transition-all duration-200 resize-y
+        focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-0
+        disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed disabled:resize-none
+        dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500
+        dark:focus:border-emerald-500 dark:focus:ring-emerald-600/50 dark:focus:ring-offset-slate-900
+        dark:disabled:border-slate-700 dark:disabled:bg-slate-950 dark:disabled:text-slate-600
+        ${className}`}
     />
   );
 }
 
-export function Select({ options, ...props }) {
+export function Select({ options, disabled = false, ...props }) {
   const normalized = options.map((option) =>
     typeof option === "string" ? { label: option, value: option } : option
   );
   return (
     <select
       {...props}
-      className="h-11 min-w-0 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20"
+      disabled={disabled}
+      className="h-10 min-w-0 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm font-medium outline-none transition-all duration-200
+        focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:ring-offset-0
+        disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed
+        dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100
+        dark:focus:border-emerald-500 dark:focus:ring-emerald-600/50 dark:focus:ring-offset-slate-900
+        dark:disabled:border-slate-700 dark:disabled:bg-slate-950 dark:disabled:text-slate-600"
     >
       {normalized.map((option) => (
         <option key={option.value} value={option.value}>
