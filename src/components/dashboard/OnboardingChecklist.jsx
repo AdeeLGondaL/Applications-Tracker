@@ -100,7 +100,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
                   </div>
                   <div>
                     <p className="text-sm font-black text-slate-900 dark:text-white">
-                      Get started with Applume
+                      Build your Applume tracker
                     </p>
                     <p className="text-xs text-slate-500 dark:text-[#a1a1aa]">
                       {completedCount} of {steps.length} steps complete

@@ -25,7 +25,7 @@ export function PipelineCard({ pipeline, total }) {
     <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
       <CardContent className="p-4 sm:p-5">
         <div className="mb-5">
-          <h2 className="text-base font-black">Application Pipeline</h2>
+          <h2 className="text-base font-black">Status breakdown</h2>
           <p className="mt-0.5 text-xs text-slate-400 dark:text-[#71717a]">{total} total · status breakdown</p>
         </div>
 

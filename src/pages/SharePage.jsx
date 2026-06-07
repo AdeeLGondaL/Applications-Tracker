@@ -193,7 +193,7 @@ export default function SharePage({ token }) {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8 text-center">
         <p className="text-sm font-semibold text-slate-600">Track your own applications for free</p>
-        <p className="mt-1 text-xs text-slate-400">No credit card · No ads · Always free</p>
+        <p className="mt-1 text-xs text-slate-400">Structured tracker · Export anytime · Private by default</p>
         <a
           href={appUrl}
           className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600"

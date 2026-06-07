@@ -9,7 +9,7 @@ export function Brand({ dark = false }) {
       />
       <div>
         <p className="text-sm font-black leading-tight">Applume</p>
-        <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Track every application</p>
+        <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Structured application tracking</p>
       </div>
     </div>
   );

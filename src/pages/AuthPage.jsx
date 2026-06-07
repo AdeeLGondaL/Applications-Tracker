@@ -8,7 +8,7 @@ import { PasswordStrength } from "@/components/ui/PasswordStrength";
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Track all your university and job applications in one place — try Applume, it's free!";
+  const shareText = "Replace your application spreadsheet with Applume.";
 
   function handleNativeShare() {
     navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
@@ -30,7 +30,7 @@ function LandingFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
       <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share Applume — free forever, no credit card, no ads.</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -46,7 +46,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-        © {new Date().getFullYear()} Applume · Free forever · No credit card required
+        © {new Date().getFullYear()} Applume · Structured application tracking
         {" · "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
       </p>
@@ -151,7 +151,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
                     <span className="text-slate-950 dark:text-slate-50">App</span><span className="text-emerald-600">lume</span>
                   </h1>
-                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Track every application with clarity.</p>
+                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Replace your application spreadsheet.</p>
                 </div>
               </div>
             </motion.div>
@@ -161,22 +161,22 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700"
                 initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.3 }}
               >
-                Free · No credit card
+                Spreadsheet replacement
               </motion.span>
               <motion.p
                 className="max-w-md text-base leading-7 text-slate-500 dark:text-slate-400"
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, duration: 0.35 }}
               >
-                One dashboard for all your university and job applications. Deadlines, statuses, documents — always in one place.
+                Move university and job applications out of fragile rows. Keep deadlines, statuses, links, documents, and notes in structured records.
               </motion.p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { title: "Private & secure",   desc: "Your data is isolated per account in Supabase.",         icon: "check"    },
-                { title: "Deadline alerts",    desc: "Spot overdue and urgent applications at a glance.",      icon: "calendar" },
-                { title: "Full pipeline view", desc: "Track every stage from open to accepted.",               icon: "dashboard"},
-                { title: "Export anytime",     desc: "Download your data as CSV or JSON backup.",              icon: "download" },
+                { title: "Private dossiers", desc: "Each application keeps its own notes, links, and files.", icon: "check" },
+                { title: "Deadline radar", desc: "See urgent and overdue applications without sorting columns.", icon: "calendar" },
+                { title: "Workflow views", desc: "Use table, cards, or board view without changing your data.", icon: "dashboard" },
+                { title: "Export anytime", desc: "Download CSV or JSON when you need a backup.", icon: "download" },
               ].map((item, i) => (
                 <motion.div
                   key={item.title}
@@ -244,7 +244,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
                       <div className="mb-6">
                         <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : "Create your account"}</h2>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Sign in to access your applications." : "Start tracking for free — takes 30 seconds."}</p>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Sign in to access your applications." : "Build your tracker from the first record."}</p>
                       </div>
 
                       <div className="space-y-4">

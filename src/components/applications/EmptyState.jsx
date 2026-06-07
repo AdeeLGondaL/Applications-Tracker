@@ -31,7 +31,7 @@ export function EmptyDashboard({ onAdd }) {
       </div>
       <h2 className="text-2xl font-black">Nothing tracked yet</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400 dark:text-[#71717a]">
-        Add your first application to start building your pipeline, tracking deadlines, and measuring progress.
+        Add your first application record to replace scattered spreadsheet rows with deadlines, links, notes, and next steps.
       </p>
       <div className="mt-7">
         <button

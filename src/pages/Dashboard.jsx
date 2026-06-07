@@ -30,7 +30,7 @@ import { toCsv } from "@/utils/csv";
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Track all your university and job applications in one place — try Applume, it's free!";
+  const shareText = "Replace your application spreadsheet with Applume.";
 
   function handleNativeShare() {
     navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
@@ -52,7 +52,7 @@ function LandingFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-[#2a2a2e]">
       <p className="text-sm font-black text-slate-800 dark:text-[#f0f0f0]">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-[#a1a1aa]">Share Applume — free forever, no credit card, no ads.</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-[#a1a1aa]">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -68,7 +68,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-[#71717a]">
-        © {new Date().getFullYear()} Applume · Free forever · No credit card required
+        © {new Date().getFullYear()} Applume · Structured application tracking
         {" · "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-600 dark:text-[#71717a] dark:hover:text-[#a1a1aa] transition-colors">Privacy Policy</a>
       </p>
