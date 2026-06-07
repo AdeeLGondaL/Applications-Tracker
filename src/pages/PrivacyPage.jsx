@@ -8,13 +8,13 @@ export default function PrivacyPage() {
           <div className="flex items-center gap-4 mb-6">
             <img
               src="/Logo.png"
-              alt="ApplyBuddy logo"
+              alt="Applume logo"
               className="h-14 w-14 object-contain shrink-0"
               style={{ mixBlendMode: "multiply" }}
             />
             <div>
               <h1 className="text-3xl font-black leading-tight tracking-tight">
-                <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+                <span className="text-slate-950">App</span><span className="text-emerald-600">lume</span>
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">Privacy Policy</p>
             </div>
@@ -29,9 +29,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-black text-slate-950 mb-3">1. Who we are</h2>
             <p className="text-slate-700 leading-7">
-              ApplyBuddy is a free personal application tracker for university and job applications. It is a
+              Applume is a free personal application tracker for university and job applications. It is a
               personal project provided free of charge, with no advertising, no subscriptions, and no monetisation
-              of user data. The service is accessible at <span className="font-semibold">applybuddy-a3m.pages.dev</span>.
+              of user data. The service is accessible at <span className="font-semibold">applume.app</span>.
             </p>
           </section>
 
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm">
                 <p className="font-bold text-slate-800 mb-1">Cookies</p>
                 <p className="text-slate-600">
-                  ApplyBuddy does not use cookies. Authentication is handled entirely through browser
+                  Applume does not use cookies. Authentication is handled entirely through browser
                   localStorage via Supabase Auth — no cookies are set.
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-black text-slate-950 mb-3">5. Sub-processors</h2>
             <p className="text-slate-700 leading-7 mb-5">
-              We rely on the following third-party services to operate ApplyBuddy. Each processes data only
+              We rely on the following third-party services to operate Applume. Each processes data only
               as necessary to provide their service.
             </p>
             <div className="overflow-x-auto rounded-2xl border border-slate-200">
@@ -236,7 +236,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-black text-slate-950 mb-3">9. Changes to this policy</h2>
             <p className="text-slate-700 leading-7">
               We may update this Privacy Policy from time to time. When we do, we will update the "Last
-              updated" date at the top of this page. Continued use of ApplyBuddy after any changes
+              updated" date at the top of this page. Continued use of Applume after any changes
               constitutes your acceptance of the revised policy. We encourage you to review this page
               periodically.
             </p>
@@ -253,9 +253,9 @@ export default function PrivacyPage() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 18-6-6 6-6" />
             </svg>
-            Back to ApplyBuddy
+            Back to Applume
           </a>
-          <p className="text-xs text-slate-400">© {new Date().getFullYear()} ApplyBuddy</p>
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} Applume</p>
         </footer>
 
       </div>

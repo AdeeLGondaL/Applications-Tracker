@@ -29,11 +29,11 @@ import { toCsv } from "@/utils/csv";
 // LandingFooter — inline here so Dashboard can render it at the bottom
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin : "https://applybuddy.netlify.app";
-  const shareText = "Track all your university and job applications in one place — try ApplyBuddy, it's free!";
+  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
+  const shareText = "Track all your university and job applications in one place — try Applume, it's free!";
 
   function handleNativeShare() {
-    navigator.share({ title: "ApplyBuddy", text: shareText, url }).catch(() => {});
+    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
   }
 
   function handleCopy() {
@@ -52,7 +52,7 @@ function LandingFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-[#2a2a2e]">
       <p className="text-sm font-black text-slate-800 dark:text-[#f0f0f0]">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-[#a1a1aa]">Share ApplyBuddy — free forever, no credit card, no ads.</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-[#a1a1aa]">Share Applume — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -68,7 +68,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-[#71717a]">
-        © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        © {new Date().getFullYear()} Applume · Free forever · No credit card required
         {" · "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-600 dark:text-[#71717a] dark:hover:text-[#a1a1aa] transition-colors">Privacy Policy</a>
       </p>
@@ -138,7 +138,7 @@ function FeedbackModal({ session, onClose }) {
               <div className="mb-5 flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-950 dark:text-white">Share feedback</h2>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-[#a1a1aa]">Help make ApplyBuddy better for everyone.</p>
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-[#a1a1aa]">Help make Applume better for everyone.</p>
                 </div>
                 <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-[#3a3a3e] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]">
                   <Icon name="close" />

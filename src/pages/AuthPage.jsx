@@ -7,11 +7,11 @@ import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin : "https://applybuddy.netlify.app";
-  const shareText = "Track all your university and job applications in one place — try ApplyBuddy, it's free!";
+  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
+  const shareText = "Track all your university and job applications in one place — try Applume, it's free!";
 
   function handleNativeShare() {
-    navigator.share({ title: "ApplyBuddy", text: shareText, url }).catch(() => {});
+    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
   }
 
   function handleCopy() {
@@ -30,7 +30,7 @@ function LandingFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
       <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share ApplyBuddy — free forever, no credit card, no ads.</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share Applume — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -46,7 +46,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-        © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        © {new Date().getFullYear()} Applume · Free forever · No credit card required
         {" · "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
       </p>
@@ -146,7 +146,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
             {/* Brand wordmark */}
             <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.45 }}>
               <div className="flex items-center gap-4">
-                <img src="/Logo.png" alt="ApplyBuddy logo" className="h-20 w-20 object-contain shrink-0 sm:h-24 sm:w-24 dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
+                <img src="/Logo.png" alt="Applume logo" className="h-20 w-20 object-contain shrink-0 sm:h-24 sm:w-24 dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
                 <div>
                   <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
                     <span className="text-slate-950 dark:text-slate-50">Apply</span><span className="text-emerald-600">Buddy</span>

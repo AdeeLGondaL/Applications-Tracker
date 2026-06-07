@@ -12,10 +12,10 @@ function generateIcs(apps, origin) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    `PRODID:-//ApplyBuddy//ApplyBuddy//EN`,
+    `PRODID:-//Applume//Applume//EN`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:ApplyBuddy Deadlines",
+    "X-WR-CALNAME:Applume Deadlines",
     "X-WR-TIMEZONE:UTC",
   ];
 
@@ -34,7 +34,7 @@ function generateIcs(apps, origin) {
 
     lines.push(
       "BEGIN:VEVENT",
-      `UID:applybuddy-${app.id}@applybuddy`,
+      `UID:applume-${app.id}@applume.app`,
       `DTSTART;VALUE=DATE:${dateStr}`,
       `DTEND;VALUE=DATE:${dtEnd}`,
       `SUMMARY:📋 ${summary}`,

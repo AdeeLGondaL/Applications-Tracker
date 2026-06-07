@@ -107,7 +107,7 @@ export default function SharePage({ token }) {
 
   const universities = apps.filter((a) => a.type === "University");
   const jobs = apps.filter((a) => a.type === "Job");
-  const appUrl = typeof window !== "undefined" ? window.location.origin : "https://applybuddy-a3m.pages.dev";
+  const appUrl = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -121,7 +121,7 @@ export default function SharePage({ token }) {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-black text-slate-900">ApplyBuddy</p>
+              <p className="text-sm font-black text-slate-900">Applume</p>
               <p className="text-[10px] text-slate-400">Shared Application Tracker</p>
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function SharePage({ token }) {
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" />
           </svg>
-          Start tracking with ApplyBuddy
+          Start tracking with Applume
         </a>
       </footer>
     </div>

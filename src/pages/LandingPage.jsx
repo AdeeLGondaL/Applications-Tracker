@@ -83,11 +83,11 @@ function SItem({ children, className = "" }) {
 ───────────────────────────────────────── */
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin : "https://applybuddy-a3m.pages.dev";
-  const shareText = "Track all your university and job applications in one place — try ApplyBuddy, it's free!";
+  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
+  const shareText = "Track all your university and job applications in one place — try Applume, it's free!";
 
   function handleNativeShare() {
-    navigator.share({ title: "ApplyBuddy", text: shareText, url }).catch(() => {});
+    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
   }
   function handleCopy() {
     navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200); }).catch(() => {});
@@ -102,7 +102,7 @@ function LandingFooter() {
   return (
     <footer className="border-t border-stone-200 pb-8 pt-12 text-center">
       <p className="text-sm font-black text-slate-800">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500">Share ApplyBuddy — free forever, no credit card, no ads.</p>
+      <p className="mt-1 text-xs text-slate-500">Share Applume — free forever, no credit card, no ads.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -120,7 +120,7 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400">
-        © {new Date().getFullYear()} ApplyBuddy · Free forever · No credit card required
+        © {new Date().getFullYear()} Applume · Free forever · No credit card required
         {" · "}
         <a href="/privacy" className="text-slate-400 transition-colors hover:text-slate-600">Privacy Policy</a>
       </p>
@@ -156,7 +156,7 @@ export default function LandingPage({ onGetStarted }) {
       <nav className="sticky top-0 z-50 border-b border-stone-200/60 bg-[#f8f7f4]/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-2.5">
-            <img src="/Logo.png" alt="ApplyBuddy" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
+            <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
               <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
             </span>
@@ -287,7 +287,7 @@ export default function LandingPage({ onGetStarted }) {
                     <svg className="h-2.5 w-2.5 shrink-0 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0 1 10 0v2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2z" clipRule="evenodd" />
                     </svg>
-                    applybuddy-a3m.pages.dev
+                    applume.app
                   </div>
                 </div>
                 {/* Dashboard layout */}
