@@ -149,9 +149,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 <img src="/Logo.png" alt="Applume logo" className="h-20 w-20 object-contain shrink-0 sm:h-24 sm:w-24 dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
                 <div>
                   <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
-                    <span className="text-slate-950 dark:text-slate-50">Apply</span><span className="text-emerald-600">Buddy</span>
+                    <span className="text-slate-950 dark:text-slate-50">App</span><span className="text-emerald-600">lume</span>
                   </h1>
-                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Your buddy for every application.</p>
+                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Track every application with clarity.</p>
                 </div>
               </div>
             </motion.div>

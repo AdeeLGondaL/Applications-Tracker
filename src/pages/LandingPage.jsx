@@ -158,7 +158,7 @@ export default function LandingPage({ onGetStarted }) {
           <div className="flex items-center gap-2.5">
             <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
-              <span className="text-slate-950">Apply</span><span className="text-emerald-600">Buddy</span>
+              <span className="text-slate-950">App</span><span className="text-emerald-600">lume</span>
             </span>
           </div>
           <div className="hidden items-center gap-7 text-sm font-semibold text-slate-500 sm:flex">
