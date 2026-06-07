@@ -1,465 +1,552 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
 
-const painPoints = [
-  {
-    emoji: "🤔",
-    problem: "Applied where?",
-    detail: "You apply on LinkedIn, receive an interview invite for a different role, and can't remember which company or what you even applied for.",
-  },
-  {
-    emoji: "📬",
-    problem: "Inbox chaos",
-    detail: "Rejection emails, interview invites, and that one company you meant to follow up with are all buried somewhere in your inbox.",
-  },
-  {
-    emoji: "😔",
-    problem: "Missed opportunities",
-    detail: "You applied 3 weeks ago to a role that felt like the perfect fit. But you never followed up, and now someone else got it.",
-  },
-  {
-    emoji: "📊",
-    problem: "Spreadsheet hell",
-    detail: "Tracking everything in Excel feels unprofessional, fragile, and you're constantly losing track of what's been updated.",
-  },
+const applications = [
+  { name: "TU Munich", detail: "M.Sc. Computer Science", status: "Deadline soon", tone: "amber" },
+  { name: "BMW Group", detail: "Working Student QA", status: "Applied", tone: "blue" },
+  { name: "TU Berlin", detail: "M.Sc. Data Science", status: "Documents", tone: "emerald" },
 ];
 
-const features = [
-  {
-    icon: "layout",
-    title: "One central board",
-    description: "See your entire job search at a glance. Drag applications from Applied → Interview → Offer. No messy spreadsheets.",
-  },
-  {
-    icon: "bell",
-    title: "Smart follow-up reminders",
-    description: "Get nudged at the right time (7, 14, 21 days). Most people never follow up. The ones who do are 2-3x more likely to hear back.",
-  },
-  {
-    icon: "trending-up",
-    title: "Insights that matter",
-    description: "See your response rates, which sources work best, and what timing gets results. Make data-driven decisions.",
-  },
-  {
-    icon: "check-circle",
-    title: "Compare offers clearly",
-    description: "Rate what matters to you as you go. When decision time comes, the answer is already there. No 2am anxiety.",
-  },
+const oldSheetRows = [
+  ["Name", "Deadline", "Status", "Link"],
+  ["TUM", "15 Jun", "?", "mail"],
+  ["BMW", "", "applied", "tab 8"],
+  ["Berlin", "01 Jul", "todo", "portal"],
+  ["Saarland", "?", "notes?", "email"],
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
-    },
+const recordPanels = {
+  deadline: {
+    label: "Deadline radar",
+    tone: "amber",
+    title: "3",
+    detail: "open applications need attention this week",
+    items: ["TUM closes in 7 days", "Berlin needs transcript", "BMW has no deadline"],
+  },
+  dossier: {
+    label: "Dossier checklist",
+    tone: "emerald",
+    title: "4 of 5",
+    detail: "documents ready for the selected application",
+    items: ["CV attached", "Portal link saved", "Module notes added"],
+  },
+  ai: {
+    label: "AI record draft",
+    tone: "violet",
+    title: "12 fields",
+    detail: "prepared from a pasted job post or program page",
+    items: ["Company found", "Role extracted", "Requirements summarized"],
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
+function ScrollThread() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 170, damping: 35, restDelta: 0.001 });
+  return (
+    <motion.div
+      className="fixed left-0 right-0 top-0 z-[70] h-[3px] origin-left bg-emerald-500"
+      style={{ scaleX }}
+    />
+  );
+}
 
-export default function LandingPage({ onGetStarted }) {
+function Reveal({ children, className = "", delay = 0 }) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function LandingFooter() {
   const [copied, setCopied] = useState(false);
+  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
+  const shareText = "Replace your application spreadsheet with Applume.";
 
-  function handleCopy() {
-    const url = window.location.origin;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2200);
-      })
-      .catch(() => {});
+  function handleNativeShare() {
+    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-900/10">
-      {/* Scroll Progress */}
-      <div className="fixed inset-x-0 top-0 z-50 h-1 bg-gradient-to-r from-emerald-500 to-emerald-600" />
+  function handleCopy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    }).catch(() => {});
+  }
 
-      {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <img src="/Logo.png" alt="Applume" className="h-8 w-8" />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">Applume</span>
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(shareText + "\n" + url)}` },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}` },
+  ];
+
+  return (
+    <footer className="border-t border-slate-200 bg-white px-6 py-10 text-center">
+      <p className="text-sm font-black text-slate-800">Know someone still managing applications in a spreadsheet?</p>
+      <p className="mt-1 text-xs text-slate-500">Share Applume as their structured tracker.</p>
+      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+        {typeof navigator !== "undefined" && !!navigator.share && (
+          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
+            <Icon name="share" className="h-3.5 w-3.5" /> Share
+          </button>
+        )}
+        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>
+          <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
+          {copied ? "Copied" : "Copy link"}
+        </button>
+        {socials.map(({ label, href }) => (
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50">
+            {label}
+          </a>
+        ))}
+      </div>
+      <p className="mt-8 text-xs text-slate-400">
+        © {new Date().getFullYear()} Applume · Structured application tracking
+        {" · "}
+        <a href="/privacy" className="text-slate-400 transition-colors hover:text-slate-600">Privacy Policy</a>
+      </p>
+    </footer>
+  );
+}
+
+function HeroScene({ sheetY, recordY, routeScale }) {
+  const arrowX = useTransform(routeScale, [0.2, 1], [-180, 180]);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-[62rem] bg-[linear-gradient(to_right,rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:72px_48px] opacity-40" />
+      <motion.div
+        className="absolute left-[16%] right-[16%] top-[25rem] hidden h-px origin-left bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent sm:block"
+        style={{ scaleX: routeScale }}
+      />
+      <motion.div
+        className="absolute left-[47%] top-[24.1rem] hidden h-5 w-5 rotate-45 border-r-2 border-t-2 border-emerald-500/70 sm:block"
+        style={{ x: arrowX }}
+      />
+      <motion.div
+        className="absolute left-[7%] top-36 hidden w-60 rotate-[-8deg] border border-slate-200 bg-white/80 p-3 shadow-xl shadow-slate-900/10 backdrop-blur-sm sm:block"
+        style={{ y: sheetY }}
+        animate={{ rotate: [-8, -6, -8] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="grid grid-cols-3 gap-1 text-[9px] font-bold text-slate-400">
+          {["School", "Due", "State", "TUM", "15/6", "???", "BMW", "-", "sent", "Berlin", "1/7", "todo"].map((cell, index) => (
+            <span key={`${cell}-${index}`} className="truncate border border-slate-100 bg-slate-50 px-1.5 py-1">{cell}</span>
+          ))}
+        </div>
+      </motion.div>
+      <motion.div
+        className="absolute right-[8%] top-28 hidden w-64 rotate-[7deg] border border-emerald-100 bg-white/85 p-4 shadow-xl shadow-emerald-900/10 backdrop-blur-sm lg:block"
+        style={{ y: recordY }}
+        animate={{ rotate: [7, 5, 7] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Application record</p>
+        <p className="mt-2 text-sm font-black text-slate-900">TU Munich</p>
+        <div className="mt-3 space-y-1.5">
+          {["Deadline: 15 Jun", "Documents: 4 of 5", "Portal link saved"].map((line) => (
+            <div key={line} className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-800">{line}</div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function WorkspacePreview() {
+  const [activePanel, setActivePanel] = useState("deadline");
+  const [selectedRecord, setSelectedRecord] = useState(applications[0].name);
+  const panel = recordPanels[activePanel];
+  const panelTone = {
+    amber: "border-amber-200 bg-amber-50 text-amber-900",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    violet: "border-violet-200 bg-violet-50 text-violet-900",
+  }[panel.tone];
+  const panelAccent = {
+    amber: "text-amber-700",
+    emerald: "text-emerald-700",
+    violet: "text-violet-700",
+  }[panel.tone];
+
+  return (
+    <Reveal className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
+      <motion.div
+        className="overflow-hidden border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
+        whileHover={{ y: -4 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
           </div>
-          <Button onClick={onGetStarted} size="md">
-            Get Started Free
-          </Button>
+          <div className="hidden text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400 sm:block">Spreadsheet to structured tracker</div>
+          <div className="text-[10px] font-semibold text-slate-400">applume.app</div>
+        </div>
+
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="border-b border-slate-200 bg-slate-950 p-5 text-white lg:border-b-0 lg:border-r">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Before</p>
+              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-slate-300">spreadsheet drift</span>
+            </div>
+            <div className="overflow-hidden border border-white/10">
+              {oldSheetRows.map((row, rowIndex) => (
+                <motion.div
+                  key={row.join("-")}
+                  className="grid grid-cols-4 border-b border-white/10 last:border-b-0"
+                  initial={{ opacity: 0, x: -12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: rowIndex * 0.05, duration: 0.35 }}
+                >
+                  {row.map((cell, cellIndex) => (
+                    <span
+                      key={`${cell}-${cellIndex}`}
+                      className={`truncate px-2.5 py-2 text-[11px] ${rowIndex === 0 ? "bg-white/10 font-black text-slate-300" : cell === "?" || cell === "-" || cell === "notes?" ? "bg-rose-500/10 font-semibold text-rose-200" : "text-slate-400"}`}
+                    >
+                      {cell}
+                    </span>
+                  ))}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-[#f7f5ef] p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">After</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">Application records with context</h3>
+              </div>
+              <motion.button type="button" className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                Add record
+              </motion.button>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[1fr_0.75fr]">
+              <div className="space-y-3">
+                {applications.map(({ name, detail, status, tone }) => {
+                  const toneClass = {
+                    amber: "bg-amber-100 text-amber-800",
+                    blue: "bg-blue-100 text-blue-800",
+                    emerald: "bg-emerald-100 text-emerald-800",
+                  }[tone];
+                  return (
+                    <motion.button
+                      key={name}
+                      type="button"
+                      onClick={() => setSelectedRecord(name)}
+                      className={`w-full border p-4 text-left transition ${selectedRecord === name ? "border-emerald-300 bg-emerald-50/60 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-slate-950">{name}</p>
+                          <p className="mt-0.5 text-xs font-semibold text-slate-500">{detail}</p>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black ${toneClass}`}>{status}</span>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-500">
+                        <span className="bg-slate-50 px-2 py-1.5">Portal</span>
+                        <span className="bg-slate-50 px-2 py-1.5">Notes</span>
+                        <span className="bg-slate-50 px-2 py-1.5">Files</span>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-1 rounded-xl bg-white p-1">
+                  {Object.entries(recordPanels).map(([key, item]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setActivePanel(key)}
+                      className={`rounded-lg px-2 py-2 text-[10px] font-black transition ${activePanel === key ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100"}`}
+                    >
+                      {item.label.split(" ")[0]}
+                    </button>
+                  ))}
+                </div>
+                <motion.div
+                  key={activePanel}
+                  className={`border p-4 ${panelTone}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <p className={`text-xs font-black uppercase tracking-[0.18em] ${panelAccent}`}>{panel.label}</p>
+                  <p className="mt-3 text-3xl font-black text-slate-950">{panel.title}</p>
+                  <p className="text-xs font-semibold opacity-75">{panel.detail}</p>
+                  <div className="mt-3 space-y-2">
+                    {panel.items.map((item) => (
+                      <div key={item} className="flex items-center gap-2 text-xs font-bold">
+                        <Icon name="check" className={`h-3.5 w-3.5 ${panelAccent}`} />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </Reveal>
+  );
+}
+
+function FeatureCard({ icon, title, children, tone = "emerald" }) {
+  const toneClass = {
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    amber: "bg-amber-50 text-amber-700 border-amber-100",
+    blue: "bg-blue-50 text-blue-700 border-blue-100",
+    violet: "bg-violet-50 text-violet-700 border-violet-100",
+    slate: "bg-slate-100 text-slate-700 border-slate-200",
+  }[tone];
+
+  return (
+    <Reveal className={`border bg-white p-6 shadow-sm ${toneClass}`}>
+      <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 280, damping: 22 }}>
+      <div className="mb-5 grid h-11 w-11 place-items-center bg-white/70">
+        <Icon name={icon} className="h-5 w-5" />
+      </div>
+      <h3 className="text-lg font-black text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{children}</p>
+      </motion.div>
+    </Reveal>
+  );
+}
+
+export default function LandingPage({ onGetStarted }) {
+  const { scrollY } = useScroll();
+  const sheetY = useSpring(useTransform(scrollY, [0, 700], [0, -90]), { stiffness: 70, damping: 24 });
+  const recordY = useSpring(useTransform(scrollY, [0, 700], [0, 70]), { stiffness: 70, damping: 24 });
+  const routeScale = useSpring(useTransform(scrollY, [0, 520], [0.2, 1]), { stiffness: 90, damping: 26 });
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-[#f7f5ef] text-slate-950">
+      <ScrollThread />
+      <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f7f5ef]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
+            <span className="text-sm font-black tracking-tight">
+              <span className="text-slate-950">App</span><span className="text-emerald-600">lume</span>
+            </span>
+          </div>
+          <div className="hidden items-center gap-7 text-sm font-semibold text-slate-500 sm:flex">
+            <a href="#records" className="transition hover:text-slate-950">Records</a>
+            <a href="#workflow" className="transition hover:text-slate-950">Workflow</a>
+          </div>
+          <div className="flex items-center gap-2">
+            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+              Sign in
+            </motion.button>
+            <motion.button type="button" onClick={onGetStarted} className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+              Start tracking
+            </motion.button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-center"
+      <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-28">
+        <HeroScene sheetY={sheetY} recordY={recordY} routeScale={routeScale} />
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <motion.span
+            className="inline-flex items-center gap-2 border border-emerald-200 bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700 shadow-sm"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
           >
-            <motion.div variants={itemVariants}>
-              <span className="inline-block rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                Stop tracking applications in spreadsheets
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Built for spreadsheet escapees
+          </motion.span>
+
+          <motion.h1
+            className="mx-auto mt-8 max-w-4xl text-[2.75rem] font-black leading-[1.02] tracking-tight sm:text-[4.25rem] lg:text-[5rem]"
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Replace your application spreadsheet with Applume.
+          </motion.h1>
+
+          <motion.p
+            className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.5 }}
+          >
+            Track university admissions and job applications in one structured workspace: deadlines, documents, statuses, notes, and next steps.
+          </motion.p>
+
+          <motion.div
+            className="mt-7 flex flex-wrap items-center justify-center gap-2.5 text-xs font-black text-slate-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.38, duration: 0.5 }}
+          >
+            {["No spreadsheet chaos", "No lost deadlines", "No scattered links"].map((item) => (
+              <span key={item} className="border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                {item}
               </span>
-            </motion.div>
-
-            <motion.h1 
-              variants={itemVariants}
-              className="mt-6 text-5xl font-black text-gray-900 dark:text-white sm:text-6xl"
-            >
-              Never miss an opportunity <span className="text-emerald-600">again</span>
-            </motion.h1>
-
-            <motion.p 
-              variants={itemVariants}
-              className="mx-auto mt-6 max-w-2xl text-xl text-gray-600 dark:text-gray-300"
-            >
-              You're applying to dozens of roles, trying to remember who you heard back from, and hoping you don't forget to follow up. <strong>Applume keeps it all in one calm, clear place.</strong>
-            </motion.p>
-
-            <motion.div 
-              variants={itemVariants}
-              className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center"
-            >
-              <Button onClick={onGetStarted} size="lg" className="text-base px-8 py-3.5">
-                Start Tracking Free
-              </Button>
-              <button
-                onClick={handleCopy}
-                className={`flex items-center justify-center gap-2 rounded-lg border px-6 py-3 font-semibold transition ${
-                  copied
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
-                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <Icon name={copied ? "check" : "copy"} className="h-4 w-4" />
-                {copied ? "Copied!" : "Copy link"}
-              </button>
-            </motion.div>
-
-            {/* Stats under hero */}
-            <motion.div 
-              variants={itemVariants}
-              className="mt-16 grid grid-cols-3 gap-4 sm:gap-8"
-            >
-              <div>
-                <p className="text-3xl font-bold text-emerald-600">100%</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Free forever for up to 10 apps</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-emerald-600">2-3x</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">More responses with follow-ups</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-emerald-600">60s</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Setup in one minute</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pain Points Section */}
-      <section className="border-y border-gray-200 bg-white px-4 py-20 dark:border-gray-800 dark:bg-gray-900 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center"
-          >
-            <motion.h2 
-              variants={itemVariants}
-              className="text-4xl font-bold text-gray-900 dark:text-white"
-            >
-              We've all been there
-            </motion.h2>
-            <motion.p 
-              variants={itemVariants}
-              className="mt-4 text-lg text-gray-600 dark:text-gray-300"
-            >
-              Sound familiar? You're not alone. Here's what's broken about the current approach.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid gap-6 md:grid-cols-2"
-          >
-            {painPoints.map((point, idx) => (
-              <motion.div
-                key={idx}
-                variants={itemVariants}
-                className="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="text-3xl">{point.emoji}</div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{point.problem}</h3>
-                    <p className="mt-2 text-gray-600 dark:text-gray-300">{point.detail}</p>
-                  </div>
-                </div>
-              </motion.div>
             ))}
           </motion.div>
+
+          <motion.div
+            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.48, duration: 0.5 }}
+          >
+            <motion.button type="button" onClick={onGetStarted} className="w-full rounded-xl bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+              Build my tracker
+            </motion.button>
+            <motion.a href="#records" className="w-full rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+              See the workspace
+            </motion.a>
+          </motion.div>
+        </div>
+
+        <WorkspacePreview />
+      </section>
+
+      <section className="border-y border-slate-200 bg-white py-8">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 px-6 text-center sm:grid-cols-4">
+          {[
+            { value: "Rows", label: "become records" },
+            { value: "Links", label: "stay attached" },
+            { value: "Dates", label: "become radar" },
+            { value: "CSV", label: "exports anytime" },
+          ].map(({ value, label }) => (
+            <Reveal key={label}>
+              <p className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{value}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
+      <section className="bg-slate-950 px-4 py-24 text-white sm:px-6">
         <div className="mx-auto max-w-6xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center"
-          >
-            <motion.h2 
-              variants={itemVariants}
-              className="text-4xl font-bold text-gray-900 dark:text-white"
-            >
-              Your command center for job search
-            </motion.h2>
-            <motion.p 
-              variants={itemVariants}
-              className="mt-4 text-lg text-gray-600 dark:text-gray-300"
-            >
-              Everything you need to land the job you want.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid gap-8 md:grid-cols-2"
-          >
-            {features.map((feature, idx) => (
-              <motion.div
-                key={idx}
-                variants={itemVariants}
-                className="rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <div className="mb-4 inline-flex rounded-lg bg-emerald-100 p-3 dark:bg-emerald-900/20">
-                  <Icon name={feature.icon} className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{feature.title}</h3>
-                <p className="mt-3 text-gray-600 dark:text-gray-300">{feature.description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="border-y border-gray-200 bg-gray-50 px-4 py-20 dark:border-gray-800 dark:bg-gray-800 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center"
-          >
-            <motion.h2 
-              variants={itemVariants}
-              className="text-4xl font-bold text-gray-900 dark:text-white"
-            >
-              Simple, honest pricing
-            </motion.h2>
-            <motion.p 
-              variants={itemVariants}
-              className="mt-4 text-lg text-gray-600 dark:text-gray-300"
-            >
-              Start free. Upgrade when your search gets serious.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid gap-8 md:grid-cols-3"
-          >
+          <Reveal className="text-center">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Why spreadsheets break down</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+              A row is not enough for a real application.
+            </h2>
+          </Reveal>
+          <div className="mt-14 grid gap-4 sm:grid-cols-3">
             {[
-              {
-                name: "Free",
-                price: "$0",
-                description: "For casual searches",
-                features: ["Up to 10 applications", "Pipeline board view", "Basic stats", "Forever free"],
-                cta: "Get started",
-              },
-              {
-                name: "Pro",
-                price: "$9.99",
-                period: "/mo",
-                description: "For active job seekers",
-                features: ["Unlimited applications", "Smart follow-up reminders", "Advanced analytics", "Email automation", "Priority support"],
-                cta: "Get started",
-                popular: true,
-              },
-              {
-                name: "Lifetime",
-                price: "$59",
-                description: "Pay once, use forever",
-                features: ["Everything in Pro", "Lifetime access", "All future updates", "Early access to features"],
-                cta: "Get lifetime access",
-              },
-            ].map((plan, idx) => (
-              <motion.div
-                key={idx}
-                variants={itemVariants}
-                className={`rounded-xl border p-8 ${
-                  plan.popular
-                    ? "border-emerald-500 bg-white shadow-lg dark:bg-gray-900"
-                    : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
-                }`}
-              >
-                {plan.popular && (
-                  <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    Most Popular
-                  </span>
-                )}
-                <h3 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{plan.description}</p>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
-                  {plan.period && <span className="text-gray-600 dark:text-gray-400">{plan.period}</span>}
+              { icon: "link", title: "Links drift away", desc: "Portal links, email threads, and job posts end up scattered across browser tabs and inboxes." },
+              { icon: "calendar", title: "Deadlines need context", desc: "A date alone does not tell you whether documents, notes, or next steps are ready." },
+              { icon: "copy", title: "Rows get duplicated", desc: "One copied row becomes five versions of the truth. Applume keeps one record per application." },
+            ].map((item, index) => (
+              <Reveal key={item.title} delay={index * 0.08} className="border border-white/10 bg-white/[0.04] p-7">
+                <div className="mb-5 grid h-11 w-11 place-items-center bg-white/10 text-emerald-300">
+                  <Icon name={item.icon} className="h-5 w-5" />
                 </div>
-                <Button 
-                  onClick={onGetStarted}
-                  size="lg"
-                  variant={plan.popular ? "default" : "outline"}
-                  className="mt-8 w-full"
-                >
-                  {plan.cta}
-                </Button>
-                <ul className="mt-8 space-y-4">
-                  {plan.features.map((feature, fidx) => (
-                    <li key={fidx} className="flex items-center gap-3">
-                      <Icon name="check" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
+                <h3 className="text-base font-black">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{item.desc}</p>
+              </Reveal>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center"
-          >
-            <motion.h2 
-              variants={itemVariants}
-              className="text-4xl font-bold text-gray-900 dark:text-white"
-            >
-              Common questions
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-6"
-          >
-            {[
-              {
-                q: "Is the free plan really free?",
-                a: "Yes! 10 active applications, full pipeline board, basic stats, no time limit. If 10 is enough for your search, you'll never pay a cent.",
-              },
-              {
-                q: "Can I export my data?",
-                a: "Absolutely. You own your data. Export to CSV anytime, or if you get hired, your history stays safe and you can come back if you search again.",
-              },
-              {
-                q: "How do follow-up reminders work?",
-                a: "Applume nudges you at 7, 14, and 21 days after you apply. Most people never follow up – the ones who do are 2-3x more likely to hear back.",
-              },
-              {
-                q: "Will this work for my field?",
-                a: "Applume works for any job search: tech, finance, marketing, academia, etc. Add any application type and track however you want.",
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={itemVariants}
-                className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <h3 className="font-bold text-gray-900 dark:text-white">{item.q}</h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-300">{item.a}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="border-t border-gray-200 bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-20 dark:border-gray-800 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-bold text-white">Your next job is out there</h2>
-          <p className="mt-4 text-lg text-emerald-100">Let's find it together. Start tracking for free – no credit card needed.</p>
-          <Button 
-            onClick={onGetStarted}
-            size="lg"
-            variant="secondary"
-            className="mt-8"
-          >
-            Get Started Free
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white px-4 py-12 dark:border-gray-800 dark:bg-gray-900 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <img src="/Logo.png" alt="Applume" className="h-6 w-6" />
-              <span className="font-bold text-gray-900 dark:text-white">Applume</span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              © {new Date().getFullYear()} Applume · Structured application tracking
-            </p>
-            <a 
-              href="/privacy" 
-              className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              Privacy Policy
-            </a>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <section id="records" className="bg-[#f7f5ef] px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="max-w-3xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">The Applume record</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+              From spreadsheet rows to application records.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Each application gets its own dossier: deadline, status, portal link, documents, notes, and the next step you need to take.
+            </p>
+          </Reveal>
+
+          <div className="mt-12 grid gap-4 lg:grid-cols-3">
+            <FeatureCard icon="dashboard" title="Application dossier" tone="emerald">
+              Keep institution, role, city, requirements, notes, documents, and saved links together instead of spreading them across columns.
+            </FeatureCard>
+            <FeatureCard icon="calendar" title="Deadline radar" tone="amber">
+              See urgent and overdue applications based on open statuses, so submitted or finished records stop shouting for attention.
+            </FeatureCard>
+            <FeatureCard icon="sparkles" title="AI record draft" tone="violet">
+              Paste a job post, program page, or description and let AI prepare the first version of the record for you.
+            </FeatureCard>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" className="bg-white px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <Reveal className="text-center">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Views for your workflow</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+              Use the view that matches the question.
+            </h2>
+          </Reveal>
+
+          <div className="mt-14 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <Reveal className="border border-slate-200 bg-[#f7f5ef] p-6">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Table", desc: "Scan every field like a cleaner spreadsheet." },
+                  { label: "Cards", desc: "Review one application at a time." },
+                  { label: "Board", desc: "Move records by status when that helps." },
+                ].map((view) => (
+                  <div key={view.label} className="border border-slate-200 bg-white p-4">
+                    <p className="text-sm font-black text-slate-950">{view.label}</p>
+                    <p className="mt-2 text-xs leading-5 text-slate-500">{view.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.08} className="border border-slate-200 bg-slate-950 p-6 text-white">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Export anytime</p>
+              <h3 className="mt-4 text-2xl font-black">Your data is not trapped.</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Download CSV when you want spreadsheet flexibility, or JSON when you want a full backup.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <span className="rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-950">applications.csv</span>
+                <span className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-white">backup.json</span>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f7f5ef] px-4 py-24 sm:px-6">
+        <Reveal className="mx-auto max-w-5xl border border-slate-200 bg-slate-950 px-6 py-16 text-center text-white sm:px-12">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Bring order to the list</p>
+          <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+            Turn your application sheet into a workspace.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400">
+            Keep the practical spreadsheet spirit, but give every application the structure it deserves.
+          </p>
+          <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-emerald-500 px-9 py-4 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition hover:bg-emerald-400" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+            Create your tracker
+          </motion.button>
+        </Reveal>
+      </section>
+
+      <LandingFooter />
     </div>
   );
 }

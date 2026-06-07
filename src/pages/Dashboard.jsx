@@ -22,7 +22,6 @@ import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyState, EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
 import { useTheme } from "@/hooks/useTheme";
-import { StatCard } from "@/components/ui/StatCard";
 import { STATUSES, PRIORITIES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
@@ -554,8 +553,8 @@ export default function Dashboard({ session }) {
       <div className="flex min-h-screen min-w-0">
 
         {/* Sidebar */}
-        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[#2a2a2e] dark:bg-[#09090b]">
-          <div className="border-b border-slate-100 px-4 py-4 dark:border-[#2a2a2e]">
+        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[#1f1f23] dark:bg-[#0d0d0f]">
+          <div className="border-b border-slate-100 px-4 py-4 dark:border-[#1f1f23]">
             <Brand dark={dark} />
           </div>
 
@@ -579,7 +578,7 @@ export default function Dashboard({ session }) {
 
           {/* Share & Sync section */}
           <div className="px-3 pb-1">
-            <div className="border-t border-slate-100 dark:border-[#2a2a2e] pt-3 pb-1">
+            <div className="border-t border-slate-100 dark:border-[#1f1f23] pt-3 pb-1">
               <p className="mb-1 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-[#52525b]">Share & Sync</p>
               <button
                 type="button"
@@ -624,7 +623,7 @@ export default function Dashboard({ session }) {
               type="button"
               onClick={toggleTheme}
               title={dark ? "Switch to light mode" : "Switch to dark mode"}
-              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#242428]"
+              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
             >
               <Icon name={dark ? "sun" : "moon"} className="h-3.5 w-3.5 shrink-0" />
               {dark ? "Light mode" : "Dark mode"}
@@ -670,7 +669,7 @@ export default function Dashboard({ session }) {
         </aside>
 
         {/* Mobile bottom nav */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[#2a2a2e] dark:bg-[#09090b]/95">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[#1f1f23] dark:bg-[#0d0d0f]/95">
           <div className="flex items-stretch">
             {[
               { view: "dashboard",    icon: "dashboard",  label: "Home"  },
@@ -716,7 +715,7 @@ export default function Dashboard({ session }) {
         <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
 
           {/* Header */}
-          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[#2a2a2e] dark:bg-[#1c1c1f]/90">
+          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[#1f1f23] dark:bg-[#111113]/90">
             <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
               <AnimatePresence mode="wait">
                 <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
@@ -870,45 +869,6 @@ export default function Dashboard({ session }) {
                           onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
                           onOpenFeedback={() => setFeedbackOpen(true)}
                         />
-
-                        {/* Premium Dashboard Stats Header */}
-                        <div className="mb-8 mt-8">
-                          <div className="mb-4">
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Command Center</h2>
-                            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Track your application pipeline at a glance</p>
-                          </div>
-                          <div className="grid grid-cols-1 gap-4 min-[640px]:grid-cols-2 lg:grid-cols-4">
-                            <StatCard
-                              icon="briefcase"
-                              label="Total Applied"
-                              value={stats.total}
-                              trend={stats.total > 0 ? "+12% this week" : null}
-                              trendDirection="up"
-                            />
-                            <StatCard
-                              icon="users"
-                              label="Interviewing"
-                              value={stats.interviews}
-                              trend={stats.interviews > 0 ? "Active conversations" : "No interviews yet"}
-                              trendDirection={stats.interviews > 0 ? "up" : "down"}
-                            />
-                            <StatCard
-                              icon="award"
-                              label="Offers"
-                              value={stats.accepted}
-                              trend={stats.accepted > 0 ? `${Math.round((stats.accepted / stats.total) * 100)}% success rate` : "Keep applying!"}
-                              trendDirection={stats.accepted > 0 ? "up" : "down"}
-                            />
-                            <StatCard
-                              icon="activity"
-                              label="Response Rate"
-                              value={`${stats.total > 0 ? Math.round(((stats.interviews + stats.accepted) / stats.total) * 100) : 0}%`}
-                              trend={stats.total > 0 ? `${stats.interviews + stats.accepted} of ${stats.total} responded` : "Start tracking"}
-                              trendDirection="up"
-                            />
-                          </div>
-                        </div>
-
                         <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
                           <Metric icon="dashboard"  label="Total"            value={stats.total}                   hint="All tracked entries"             accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"     value={stats.universities}            hint="Master's applications"           accent="blue"    delay={0.05} />
