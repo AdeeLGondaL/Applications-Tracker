@@ -592,7 +592,7 @@ export default function LandingPage({ onGetStarted }) {
 
           <p className="mx-auto mt-6 max-w-[18rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8">
             <span className="sm:hidden">Track applications with deadlines, docs, links, and next steps.</span>
-            <span className="hidden sm:inline">Track every university and job application in one organized workspace:<br/>Applume helps you manage deadlines, required documents, portal links, notes, statuses, and next steps without messy spreadsheets.</span>
+            <span className="hidden sm:inline">Applume helps you manage deadlines, required documents, portal links, notes, statuses, and next steps without messy spreadsheets.</span>
           </p>
 
           <div
