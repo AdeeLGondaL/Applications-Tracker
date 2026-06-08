@@ -270,7 +270,7 @@ function WorkspacePreview() {
   }[panel.tone];
 
   return (
-    <div className="mx-4 mt-10 max-w-[358px] sm:mx-auto sm:max-w-6xl sm:px-6">
+    <div id="example-tracker" className="mx-4 mt-10 max-w-[358px] scroll-mt-24 sm:mx-auto sm:max-w-6xl sm:px-6">
       <motion.div
         className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
         whileHover={{ y: -4 }}
@@ -432,7 +432,7 @@ function PainCard({ icon, title, copy, tone = "emerald", delay }) {
 
 function DossierSection() {
   return (
-    <section id="records" className="bg-[#f7f5ef] px-4 py-24 sm:px-6">
+    <section id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
           <Reveal>
@@ -491,7 +491,7 @@ function DossierSection() {
 
 function WorkflowSection() {
   return (
-    <section id="workflow" className="bg-white px-4 py-24 sm:px-6">
+    <section id="how-it-works" className="scroll-mt-20 bg-white px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <Reveal className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Views for your workflow</p>
@@ -557,9 +557,9 @@ export default function LandingPage({ onGetStarted }) {
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm font-semibold text-slate-500 sm:flex">
-            <a href="#whyApplume" className="transition hover:text-slate-950">Why Applume</a>
+            <a href="#why-applume" className="transition hover:text-slate-950">Why Applume</a>
             <a href="#features" className="transition hover:text-slate-950">Features</a>
-            <a href="#howitworks" className="transition hover:text-slate-950">How it works</a>
+            <a href="#how-it-works" className="transition hover:text-slate-950">How it works</a>
           </div>
           <div className="flex items-center gap-2">
             <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
@@ -584,15 +584,15 @@ export default function LandingPage({ onGetStarted }) {
           <h1
             className="mx-auto mt-7 max-w-[22rem] text-[2.1rem] font-black leading-[1.06] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.3rem] sm:text-[3.75rem] lg:text-[4.65rem]"
           >
-            <span className="block sm:inline">Replace your </span>
-            <span className="block sm:inline">application </span>
-            <span className="block sm:inline">spreadsheet </span>
-            <span className="block sm:inline">with Applume.</span>
+            <span className="block sm:inline">Track every </span>
+            <span className="block sm:inline">university and job </span>
+            <span className="block sm:inline">application in one </span>
+            <span className="block sm:inline">organized workspace.</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-[18rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8">
             <span className="sm:hidden">Track applications with deadlines, docs, links, and next steps.</span>
-            <span className="hidden sm:inline">Track every university and job application in one organized workspace. Applume helps you manage deadlines, required documents, portal links, notes, statuses, and next steps without messy spreadsheets.</span>
+            <span className="hidden sm:inline">Track every university and job application in one organized workspace:<br/>Applume helps you manage deadlines, required documents, portal links, notes, statuses, and next steps without messy spreadsheets.</span>
           </p>
 
           <div
@@ -611,7 +611,7 @@ export default function LandingPage({ onGetStarted }) {
             <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
               Build my tracker
             </motion.button>
-            <motion.a href="#whyApplume" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <motion.a href="#example-tracker" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
               View example tracker
             </motion.a>
           </div>
@@ -645,7 +645,7 @@ export default function LandingPage({ onGetStarted }) {
         </div>
       </section>
 
-      <section id="problem" className="bg-slate-950 px-4 py-24 text-white sm:px-6">
+      <section id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-24 text-white sm:px-6">
         <div className="mx-auto max-w-6xl">
           <Reveal className="max-w-3xl">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">The real problem</p>
