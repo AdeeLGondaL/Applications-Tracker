@@ -152,7 +152,7 @@ function ToneIcon({ icon, tone = "emerald" }) {
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Replace your application spreadsheet with Applume.";
+  const shareText = "Track every university and job application in one organized workspace.";
 
   function handleNativeShare() {
     navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
@@ -557,16 +557,16 @@ export default function LandingPage({ onGetStarted }) {
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm font-semibold text-slate-500 sm:flex">
-            <a href="#problem" className="transition hover:text-slate-950">Problem</a>
-            <a href="#records" className="transition hover:text-slate-950">Records</a>
-            <a href="#workflow" className="transition hover:text-slate-950">Workflow</a>
+            <a href="#whyApplume" className="transition hover:text-slate-950">Why Applume</a>
+            <a href="#features" className="transition hover:text-slate-950">Features</a>
+            <a href="#howitworks" className="transition hover:text-slate-950">How it works</a>
           </div>
           <div className="flex items-center gap-2">
             <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
               Sign in
             </motion.button>
             <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 sm:inline-flex" whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
-              <span>Start tracking</span>
+              <span>Start tracking free</span>
             </motion.button>
           </div>
         </div>
@@ -578,7 +578,7 @@ export default function LandingPage({ onGetStarted }) {
           <span className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em]">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <span className="sm:hidden">Spreadsheet escapees</span>
-            <span className="hidden sm:inline">Built for spreadsheet escapees</span>
+            <span className="hidden sm:inline">No more spreadsheet chaos</span>
           </span>
 
           <h1
@@ -592,13 +592,13 @@ export default function LandingPage({ onGetStarted }) {
 
           <p className="mx-auto mt-6 max-w-[18rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8">
             <span className="sm:hidden">Track applications with deadlines, docs, links, and next steps.</span>
-            <span className="hidden sm:inline">Track university admissions and job applications in one structured workspace: deadlines, documents, statuses, notes, links, and next steps.</span>
+            <span className="hidden sm:inline">Track every university and job application in one organized workspace. Applume helps you manage deadlines, required documents, portal links, notes, statuses, and next steps without messy spreadsheets.</span>
           </p>
 
           <div
             className="mx-auto mt-7 grid max-w-3xl gap-2 text-left text-xs font-black text-slate-600 sm:grid-cols-3"
           >
-            {["No spreadsheet chaos", "No lost deadlines", "No scattered links"].map((item) => (
+            {["No messy spreadsheets", "No missed deadlines", "No lost portal links"].map((item) => (
               <span key={item} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center shadow-sm">
                 {item}
               </span>
@@ -611,8 +611,8 @@ export default function LandingPage({ onGetStarted }) {
             <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
               Build my tracker
             </motion.button>
-            <motion.a href="#problem" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-              See why it works
+            <motion.a href="#whyApplume" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+              View example tracker
             </motion.a>
           </div>
 
@@ -622,7 +622,7 @@ export default function LandingPage({ onGetStarted }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.58, duration: 0.5 }}
           >
-            For students, graduates, and job seekers managing more applications than a spreadsheet can comfortably hold.
+            Built for students, graduates, and job seekers managing multiple applications at once.
           </motion.p>
         </div>
 

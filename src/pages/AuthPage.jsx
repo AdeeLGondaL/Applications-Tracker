@@ -58,6 +58,7 @@ function mapAuthError(error) {
   const msg = (error?.message || "").toLowerCase();
   if (msg.includes("invalid login credentials") || msg.includes("invalid credentials")) return "Incorrect email or password. Please try again.";
   if (msg.includes("email not confirmed")) return "Please confirm your email first - check your inbox for the confirmation link.";
+  if (msg.includes("provider") && (msg.includes("not enabled") || msg.includes("unsupported"))) return "Google sign-in is not enabled yet. Enable the Google provider in Supabase Auth.";
   if (msg.includes("already registered") || msg.includes("user already registered")) return "An account with this email already exists.";
   if (msg.includes("password") && (msg.includes("6") || msg.includes("characters") || msg.includes("weak") || msg.includes("short"))) return "Password must be at least 6 characters long.";
   if (msg.includes("invalid email") || msg.includes("unable to validate")) return "Enter a valid email address.";
@@ -67,11 +68,28 @@ function mapAuthError(error) {
   return error?.message || "Something went wrong. Please try again.";
 }
 
+function authRedirectUrl() {
+  if (typeof window === "undefined") return "https://applume.app/";
+  return `${window.location.origin}/`;
+}
+
+function GoogleMark() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.32 2.98-7.52Z" />
+      <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.43l-3.24-2.51c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.6-4.12H3.06v2.59A10 10 0 0 0 12 22Z" />
+      <path fill="#FBBC05" d="M6.4 13.89a6 6 0 0 1 0-3.78V7.52H3.06a10 10 0 0 0 0 8.96l3.34-2.59Z" />
+      <path fill="#EA4335" d="M12 5.99c1.47 0 2.8.5 3.84 1.5l2.86-2.86A9.6 9.6 0 0 0 12 2 10 10 0 0 0 3.06 7.52l3.34 2.59C7.2 7.75 9.4 5.99 12 5.99Z" />
+    </svg>
+  );
+}
+
 export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   const [authMode, setAuthMode] = useState(initialMode || "signin");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -98,7 +116,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   }
 
   function handleAuthSubmit() {
-    if (authLoading) return;
+    if (authLoading || oauthLoading) return;
     if (authMode === "signin") signIn();
     else signUp();
   }
@@ -121,6 +139,24 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     setAuthLoading(false);
     if (error) { setAuthError(mapAuthError(error)); return; }
     setSignupSent(true);
+  }
+
+  async function signInWithGoogle() {
+    if (authLoading || oauthLoading) return;
+    setAuthError("");
+    setFieldErrors({ email: "", password: "" });
+    setSignupSent(false);
+    setOauthLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: authRedirectUrl(),
+      },
+    });
+    if (error) {
+      setOauthLoading(false);
+      setAuthError(mapAuthError(error));
+    }
   }
 
   return (
@@ -247,6 +283,41 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : "Start with one record. Grow it into your full tracker."}</p>
                       </div>
 
+                      <div className="mb-5 space-y-3">
+                        <button
+                          type="button"
+                          onClick={signInWithGoogle}
+                          disabled={authLoading || oauthLoading}
+                          className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
+                        >
+                          {oauthLoading ? (
+                            <>
+                              <svg className="h-4 w-4 animate-spin text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
+                              </svg>
+                              Connecting to Google...
+                            </>
+                          ) : (
+                            <>
+                              <GoogleMark />
+                              Continue with Google
+                            </>
+                          )}
+                        </button>
+                        <p className="text-center text-[11px] leading-5 text-slate-400 dark:text-slate-500">
+                          By continuing, you agree to Applume's{" "}
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-emerald-600 hover:underline">
+                            Privacy Policy
+                          </a>
+                          .
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">or use email</span>
+                          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                        </div>
+                      </div>
+
                       <div className="space-y-4">
                         {/* Email field */}
                         <div className="grid gap-1.5">
@@ -347,7 +418,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                         {/* Submit button */}
                         <Button
                           onClick={handleAuthSubmit}
-                          disabled={authLoading || (authMode === "signup" && !agreedToPrivacy)}
+                          disabled={authLoading || oauthLoading || (authMode === "signup" && !agreedToPrivacy)}
                           className="h-12 w-full rounded-2xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
                         >
                           {authLoading ? (
