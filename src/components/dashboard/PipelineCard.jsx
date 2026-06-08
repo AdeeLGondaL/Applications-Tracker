@@ -25,12 +25,12 @@ export function PipelineCard({ pipeline, total }) {
     <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
       <CardContent className="p-4 sm:p-5">
         <div className="mb-5">
-          <h2 className="text-base font-black">Status breakdown</h2>
-          <p className="mt-0.5 text-xs text-slate-400 dark:text-[#71717a]">{total} total · status breakdown</p>
+          <h2 className="text-base font-black">Pipeline health</h2>
+          <p className="mt-0.5 text-xs text-slate-400 dark:text-[#71717a]">{total} records - grouped by status</p>
         </div>
 
         {total === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-400 dark:text-[#71717a]">No applications yet.</p>
+          <p className="py-6 text-center text-sm text-slate-400 dark:text-[#71717a]">Add records to see your pipeline take shape.</p>
         ) : (
           <div className="space-y-3 sm:space-y-2.5">
             {rows.map(({ status, count, color }, i) => {

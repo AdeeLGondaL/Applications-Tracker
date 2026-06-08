@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/Badge";
+import { statusTone } from "@/utils/statusTone";
 import { Icon } from "@/components/ui/Icon";
 import { STATUSES } from "@/utils/constants";
 import { deadlineInfo } from "@/utils/date";

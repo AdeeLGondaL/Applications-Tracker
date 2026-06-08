@@ -45,14 +45,14 @@ export function parsePageMeta(html, sourceUrl) {
         if (lang) result.language = String(lang).startsWith("en") ? "English" : String(lang).startsWith("de") ? "German" : "";
         break;
       }
-    } catch {}
+    } catch { /* ignore malformed structured data */ }
   }
 
   if (!result.name) {
     const ogTitle = getMeta("og:title") || doc.title || "";
     const siteName = getMeta("og:site_name") || "";
     const atMatch = ogTitle.match(/^(.+?)\s+(?:at|@|bei)\s+(.+)$/i);
-    const pipeMatch = ogTitle.match(/^(.+?)\s*[|–\-]\s*(.+)$/);
+    const pipeMatch = ogTitle.match(/^(.+?)\s*[|-]\s*(.+)$/);
     if (atMatch) {
       result.programRole = atMatch[1].trim();
       result.name = atMatch[2].trim();
@@ -96,7 +96,10 @@ export async function callGeminiExtract(input) {
       const text = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
       content = `Source URL: ${input.trim()}\n\n${text}`;
     } catch (err) {
-      throw new Error(err.message === "timeout" ? "Request timed out. Try pasting the text instead." : "Could not fetch the page. Try pasting the text instead.");
+      throw new Error(
+        err.message === "timeout" ? "Request timed out. Try pasting the text instead." : "Could not fetch the page. Try pasting the text instead.",
+        { cause: err }
+      );
     }
   }
 

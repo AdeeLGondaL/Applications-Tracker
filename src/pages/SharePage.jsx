@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/Badge";
+import { statusTone } from "@/utils/statusTone";
 import { formatDate, deadlineInfo } from "@/utils/date";
 
 function DeadlineBadge({ deadline }) {
@@ -16,7 +17,7 @@ function DeadlineBadge({ deadline }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${toneClass}`}>
       <Icon name="calendar" className="h-3 w-3" />
-      {formatDate(deadline)} · {info.label}
+      {formatDate(deadline)} - {info.label}
     </span>
   );
 }
@@ -86,11 +87,11 @@ function GroupSection({ title, icon, apps, accent }) {
 
 export default function SharePage({ token }) {
   const [apps, setApps] = useState([]);
-  const [status, setStatus] = useState("loading"); // "loading" | "ok" | "error"
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState(token ? "loading" : "error"); // "loading" | "ok" | "error"
+  const [error, setError] = useState(token ? "" : "No token provided.");
 
   useEffect(() => {
-    if (!token) { setStatus("error"); setError("No token provided."); return; }
+    if (!token) return undefined;
     fetch(`/api/share/${token}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("Invalid share link or no applications found.");
@@ -140,7 +141,7 @@ export default function SharePage({ token }) {
             <svg className="h-6 w-6 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
             </svg>
-            <span className="ml-3 text-sm text-slate-400">Loading applications…</span>
+            <span className="ml-3 text-sm text-slate-400">Loading applications...</span>
           </div>
         )}
 
@@ -193,7 +194,7 @@ export default function SharePage({ token }) {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8 text-center">
         <p className="text-sm font-semibold text-slate-600">Track your own applications for free</p>
-        <p className="mt-1 text-xs text-slate-400">Structured tracker · Export anytime · Private by default</p>
+        <p className="mt-1 text-xs text-slate-400">Structured tracker - Export anytime - Private by default</p>
         <a
           href={appUrl}
           className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600"

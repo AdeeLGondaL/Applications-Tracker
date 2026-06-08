@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
-import { Badge, Priority, statusTone } from "@/components/ui/Badge";
+import { Badge, Priority } from "@/components/ui/Badge";
+import { statusTone } from "@/utils/statusTone";
 import { STATUSES, PRIORITIES } from "@/utils/constants";
 
 export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelete, onClear }) {

@@ -44,7 +44,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
     try {
       const extracted = await callGeminiExtract(afInput.trim());
       applyExtracted(extracted);
-      try { localStorage.setItem("onboarding_ai_used", "true"); } catch {}
+      try { localStorage.setItem("onboarding_ai_used", "true"); } catch { /* ignore storage failures */ }
     } catch (err) {
       setAfError(err.message || "AI extraction failed.");
     }
@@ -76,7 +76,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
               {editingId ? "Update application" : "Add application"}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-[#a1a1aa]">
-              Fill only what you know now — you can update anything later.
+              Fill only what you know now. You can update anything later.
             </p>
           </div>
           <button
@@ -150,13 +150,13 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
                       {afIsUrl
                         ? "AI will fetch and read the page for you."
-                        : "Paste a job posting, program description, email, or any text — AI extracts the details."}
+                        : "Paste a job posting, program description, email, or any text. AI extracts the details."}
                     </p>
                     <textarea
                       value={afInput}
                       onChange={(e) => setAfInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
-                      placeholder="Paste a URL or description here…"
+                      placeholder="Paste a URL or description here..."
                       rows={afIsUrl ? 2 : 5}
                       className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b]"
                     />
@@ -177,7 +177,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                           <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                           </svg>
-                          {afIsUrl ? "Reading page…" : "Extracting…"}
+                          {afIsUrl ? "Reading page..." : "Extracting..."}
                         </>
                       ) : (
                         <>
@@ -203,7 +203,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                           transition={{ duration: 0.15 }}
                           className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400"
                         >
-                          <Icon name="check" className="h-3 w-3" />Fields populated — review and save.
+                          <Icon name="check" className="h-3 w-3" />Fields populated. Review and save.
                         </motion.p>
                       )}
                     </AnimatePresence>
@@ -227,7 +227,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   <p className="text-xs font-black text-amber-800 dark:text-amber-300">Possible duplicate</p>
                   <p className="mt-0.5 text-xs leading-5 text-amber-700 dark:text-amber-400">
                     You already have <span className="font-bold">{duplicate.name}</span> tracked as a{" "}
-                    {duplicate.type} — currently <span className="font-semibold">{duplicate.status}</span>.
+                    {duplicate.type} - currently <span className="font-semibold">{duplicate.status}</span>.
                     You can still save this as a separate entry.
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 <Input
                   value={form.city}
                   onChange={(e) => onChange("city", e.target.value)}
-                  placeholder={isUni ? "e.g., Berlin, Munich, Stuttgart" : "e.g., Stuttgart · Remote · Hybrid"}
+                  placeholder={isUni ? "e.g., Berlin, Munich, Stuttgart" : "e.g., Stuttgart / Remote / Hybrid"}
                 />
               </Field>
               <Field label={isUni ? "Application portal URL" : "Job listing URL"}>

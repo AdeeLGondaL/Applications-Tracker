@@ -9,9 +9,9 @@ export function EmptyState() {
         <div className="grid h-14 w-14 place-items-center rounded-3xl bg-slate-100 text-slate-500 dark:bg-[#1c1c1f] dark:text-[#71717a]">
           <Icon name="search" className="h-6 w-6" />
         </div>
-        <h3 className="mt-4 text-lg font-black">No applications found</h3>
+        <h3 className="mt-4 text-lg font-black">No matching records</h3>
         <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-[#71717a]">
-          Clear filters or add a new application to start tracking.
+          Clear filters or add a new application record to keep building your tracker.
         </p>
       </CardContent>
     </Card>
@@ -29,9 +29,9 @@ export function EmptyDashboard({ onAdd }) {
       <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-[#1c1c1f] dark:ring-[#2a2a2e]">
         <Icon name="dashboard" className="h-9 w-9 text-slate-300 dark:text-[#3a3a3e]" />
       </div>
-      <h2 className="text-2xl font-black">Nothing tracked yet</h2>
+      <h2 className="text-2xl font-black">Start with one record</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400 dark:text-[#71717a]">
-        Add your first application record to replace scattered spreadsheet rows with deadlines, links, notes, and next steps.
+        Add the first application from your spreadsheet. Applume will keep the deadline, links, notes, documents, and next step together.
       </p>
       <div className="mt-7">
         <button

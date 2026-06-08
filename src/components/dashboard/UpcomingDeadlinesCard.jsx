@@ -13,14 +13,14 @@ export function UpcomingDeadlinesCard({ apps }) {
             <Icon name="calendar" className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-sm font-black">Upcoming Deadlines</h2>
-            <p className="text-[10px] text-slate-400">Sorted by urgency</p>
+            <h2 className="text-sm font-black">Deadline radar</h2>
+            <p className="text-[10px] text-slate-400">Open records sorted by urgency</p>
           </div>
         </div>
 
         {apps.length === 0 ? (
           <p className="py-4 text-sm text-slate-400">
-            No deadlines set yet. Add applications with deadlines to see them here.
+            No deadlines are waiting for action. Add deadlines to records when you want them surfaced here.
           </p>
         ) : (
           <div className="space-y-2.5">

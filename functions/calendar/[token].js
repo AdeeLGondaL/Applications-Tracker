@@ -8,7 +8,7 @@ function toIcsDate(yyyy_mm_dd) {
   return yyyy_mm_dd.replace(/-/g, "");
 }
 
-function generateIcs(apps, origin) {
+function generateIcs(apps) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -27,7 +27,7 @@ function generateIcs(apps, origin) {
     deadlineDateObj.setDate(deadlineDateObj.getDate() + 1);
     const dtEnd = deadlineDateObj.toISOString().slice(0, 10).replace(/-/g, "");
 
-    const summary = escapeIcs(`${app.name}${app.programRole ? " — " + app.programRole : ""}`);
+    const summary = escapeIcs(`${app.name}${app.programRole ? " - " + app.programRole : ""}`);
     const description = escapeIcs(
       `Type: ${app.type || ""}\\nStatus: ${app.status || ""}\\nPriority: ${app.priority || ""}${app.notes ? "\\n\\n" + app.notes : ""}`
     );
@@ -37,7 +37,7 @@ function generateIcs(apps, origin) {
       `UID:applume-${app.id}@applume.app`,
       `DTSTART;VALUE=DATE:${dateStr}`,
       `DTEND;VALUE=DATE:${dtEnd}`,
-      `SUMMARY:📋 ${summary}`,
+      `SUMMARY:${summary}`,
       `DESCRIPTION:${description}`,
       app.link ? `URL:${app.link}` : "",
       `END:VEVENT`
@@ -72,8 +72,7 @@ export async function onRequest(context) {
   if (!res.ok) return new Response("Failed to fetch data", { status: 502 });
   const apps = await res.json();
 
-  const origin = new URL(context.request.url).origin;
-  const ics = generateIcs(apps, origin);
+  const ics = generateIcs(apps);
 
   return new Response(ics, {
     headers: {

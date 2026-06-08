@@ -12,7 +12,7 @@ export default function AdminPanel() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [pendingDelete, setPendingDelete] = useState(null);
 
-  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, []);
 
   async function load() {
     setLoadingData(true);

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/Badge";
+import { statusTone } from "@/utils/statusTone";
 import { STATUSES } from "@/utils/constants";
 
 export function InlineStatusPicker({ status, onStatusChange }) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 
-function getSteps(applications, userId) {
+function getSteps(applications) {
   const aiUsed = (() => {
     try { return !!localStorage.getItem("onboarding_ai_used"); } catch { return false; }
   })();
@@ -12,33 +12,33 @@ function getSteps(applications, userId) {
   return [
     {
       id: "first_app",
-      label: "Add your first application",
+      label: "Add your first application record",
       done: applications.length >= 1,
       action: null,
     },
     {
       id: "ai_used",
-      label: "Try AI auto-fill",
+      label: "Try AI auto-fill from a posting",
       done: aiUsed,
       action: null,
     },
     {
       id: "deadline",
-      label: "Track a deadline",
+      label: "Add a real deadline",
       done: applications.some((a) => a.deadline && a.deadline.trim() !== ""),
       actionLabel: "Add a deadline when adding an app",
       action: null,
     },
     {
       id: "milestone",
-      label: "Reach your first milestone",
+      label: "Move a record through the pipeline",
       done: applications.some((a) => milestoneStatuses.includes(a.status)),
       action: null,
     },
   ];
 }
 
-export function OnboardingChecklist({ userId, applications, onAddApplication, onOpenFeedback }) {
+export function OnboardingChecklist({ userId, applications, onAddApplication }) {
   const dismissedKey = `onboarding_dismissed_${userId}`;
 
   const [dismissed, setDismissed] = useState(() => {
@@ -46,7 +46,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
   });
   const [allDoneAnimating, setAllDoneAnimating] = useState(false);
 
-  const steps = getSteps(applications, userId);
+  const steps = getSteps(applications);
   const completedCount = steps.filter((s) => s.done).length;
   const allDone = completedCount === steps.length;
 
@@ -55,7 +55,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
       const timer = setTimeout(() => {
         setAllDoneAnimating(true);
         setTimeout(() => {
-          try { localStorage.setItem(dismissedKey, "true"); } catch {}
+          try { localStorage.setItem(dismissedKey, "true"); } catch { /* ignore storage failures */ }
           setDismissed(true);
         }, 2000);
       }, 400);
@@ -64,7 +64,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
   }, [allDone, dismissed, dismissedKey]);
 
   function handleDismiss() {
-    try { localStorage.setItem(dismissedKey, "true"); } catch {}
+    try { localStorage.setItem(dismissedKey, "true"); } catch { /* ignore storage failures */ }
     setDismissed(true);
   }
 
@@ -87,7 +87,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
           {allDoneAnimating ? (
             <div className="flex items-center justify-center gap-3 py-2">
               <span className="text-base font-black text-emerald-700 dark:text-emerald-300">
-                You're all set! 🎉
+                Your tracker foundation is ready.
               </span>
             </div>
           ) : (
@@ -100,10 +100,10 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
                   </div>
                   <div>
                     <p className="text-sm font-black text-slate-900 dark:text-white">
-                      Build your Applume tracker
+                      Build your structured tracker
                     </p>
                     <p className="text-xs text-slate-500 dark:text-[#a1a1aa]">
-                      {completedCount} of {steps.length} steps complete
+                      {completedCount} of {steps.length} setup steps complete
                     </p>
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication, on
                     )}
                     {!step.done && step.id === "deadline" && (
                       <span className="shrink-0 text-[10px] font-semibold text-slate-400 dark:text-[#52525b]">
-                        Add a deadline when adding an app
+                        Add a deadline inside any record
                       </span>
                     )}
                   </li>

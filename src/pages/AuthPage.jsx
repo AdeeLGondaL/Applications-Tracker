@@ -46,8 +46,8 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
-        © {new Date().getFullYear()} Applume · Structured application tracking
-        {" · "}
+        &copy; {new Date().getFullYear()} Applume - Structured application tracking
+        {" - "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
       </p>
     </footer>
@@ -57,12 +57,12 @@ function LandingFooter() {
 function mapAuthError(error) {
   const msg = (error?.message || "").toLowerCase();
   if (msg.includes("invalid login credentials") || msg.includes("invalid credentials")) return "Incorrect email or password. Please try again.";
-  if (msg.includes("email not confirmed")) return "Please confirm your email first — check your inbox for the confirmation link.";
+  if (msg.includes("email not confirmed")) return "Please confirm your email first - check your inbox for the confirmation link.";
   if (msg.includes("already registered") || msg.includes("user already registered")) return "An account with this email already exists.";
   if (msg.includes("password") && (msg.includes("6") || msg.includes("characters") || msg.includes("weak") || msg.includes("short"))) return "Password must be at least 6 characters long.";
   if (msg.includes("invalid email") || msg.includes("unable to validate")) return "Enter a valid email address.";
-  if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("over_email_send_rate_limit")) return "Too many attempts — please wait a minute and try again.";
-  if (msg.includes("network") || msg.includes("failed to fetch") || msg.includes("load failed")) return "Connection error — check your internet and try again.";
+  if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("over_email_send_rate_limit")) return "Too many attempts - please wait a minute and try again.";
+  if (msg.includes("network") || msg.includes("failed to fetch") || msg.includes("load failed")) return "Connection error - check your internet and try again.";
   if (msg.includes("signup is disabled") || msg.includes("signups not allowed")) return "New sign-ups are currently disabled. Contact the administrator.";
   return error?.message || "Something went wrong. Please try again.";
 }
@@ -151,7 +151,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
                     <span className="text-slate-950 dark:text-slate-50">App</span><span className="text-emerald-600">lume</span>
                   </h1>
-                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Replace your application spreadsheet.</p>
+                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Your application sheet, rebuilt as a workspace.</p>
                 </div>
               </div>
             </motion.div>
@@ -167,16 +167,16 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 className="max-w-md text-base leading-7 text-slate-500 dark:text-slate-400"
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, duration: 0.35 }}
               >
-                Move university and job applications out of fragile rows. Keep deadlines, statuses, links, documents, and notes in structured records.
+                Bring university and job applications out of fragile rows. Applume keeps deadlines, statuses, links, documents, notes, and next steps attached to each record.
               </motion.p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { title: "Private dossiers", desc: "Each application keeps its own notes, links, and files.", icon: "check" },
-                { title: "Deadline radar", desc: "See urgent and overdue applications without sorting columns.", icon: "calendar" },
-                { title: "Workflow views", desc: "Use table, cards, or board view without changing your data.", icon: "dashboard" },
-                { title: "Export anytime", desc: "Download CSV or JSON when you need a backup.", icon: "download" },
+                { title: "Application dossiers", desc: "Each opportunity keeps its notes, links, and files together.", icon: "check" },
+                { title: "Deadline radar", desc: "See urgent and overdue items without sorting columns.", icon: "calendar" },
+                { title: "Workflow views", desc: "Move between table, cards, and board views without changing your data.", icon: "dashboard" },
+                { title: "Export anytime", desc: "Download CSV or JSON whenever you want a backup.", icon: "download" },
               ].map((item, i) => (
                 <motion.div
                   key={item.title}
@@ -244,7 +244,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
                       <div className="mb-6">
                         <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : "Create your account"}</h2>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Sign in to access your applications." : "Build your tracker from the first record."}</p>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : "Start with one record. Grow it into your full tracker."}</p>
                       </div>
 
                       <div className="space-y-4">
@@ -313,7 +313,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                                 <p className="text-sm font-semibold text-rose-700 dark:text-rose-400">{authError}</p>
                                 {authError.includes("already exists") && (
                                   <button type="button" onClick={() => switchAuthMode("signin")} className="mt-1 text-xs font-bold text-rose-600 underline underline-offset-2 hover:no-underline dark:text-rose-400">
-                                    Sign in instead →
+                                    Sign in instead
                                   </button>
                                 )}
                                 {authError.includes("confirm your email") && (
@@ -324,7 +324,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           )}
                         </AnimatePresence>
 
-                        {/* Privacy consent checkbox — signup only */}
+                        {/* Privacy consent checkbox - signup only */}
                         {authMode === "signup" && (
                           <label className="flex items-start gap-3 cursor-pointer">
                             <input
@@ -355,7 +355,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                               </svg>
-                              {authMode === "signin" ? "Signing in…" : "Creating account…"}
+                              {authMode === "signin" ? "Signing in..." : "Creating account..."}
                             </span>
                           ) : authMode === "signin" ? "Sign in to account" : "Create free account"}
                         </Button>
@@ -370,7 +370,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       </div>
                       <div>
                         <p className="text-sm font-black text-emerald-900 dark:text-emerald-300">Your data stays private</p>
-                        <p className="mt-1 text-xs leading-5 text-emerald-700/70 dark:text-emerald-400/70">Each account is isolated in Supabase. Your applications are only visible to you.</p>
+                        <p className="mt-1 text-xs leading-5 text-emerald-700/70 dark:text-emerald-400/70">Each account is isolated in Supabase. Your application records are only visible to you unless you choose to share a tracker link.</p>
                       </div>
                     </div>
                   </div>

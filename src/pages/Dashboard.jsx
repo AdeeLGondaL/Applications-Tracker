@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { Brand } from "@/components/layout/Brand";
@@ -12,21 +11,20 @@ import { ProgressCard } from "@/components/dashboard/ProgressCard";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
-import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
-import { ApplicationCard, ApplicationGrid } from "@/components/applications/ApplicationCard";
+import { ApplicationGrid } from "@/components/applications/ApplicationCard";
 import { KanbanBoard } from "@/components/applications/KanbanBoard";
 import { ApplicationDrawer } from "@/components/applications/ApplicationDrawer";
 import { BulkActionBar } from "@/components/applications/BulkActionBar";
-import { EmptyState, EmptyDashboard } from "@/components/applications/EmptyState";
+import { EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
 import { useTheme } from "@/hooks/useTheme";
-import { STATUSES, PRIORITIES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
+import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 
-// LandingFooter — inline here so Dashboard can render it at the bottom
+// LandingFooter - inline here so Dashboard can render it at the bottom
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
@@ -68,8 +66,8 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-slate-400 dark:text-[#71717a]">
-        © {new Date().getFullYear()} Applume · Structured application tracking
-        {" · "}
+        &copy; {new Date().getFullYear()} Applume - Structured application tracking
+        {" - "}
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-slate-600 dark:text-[#71717a] dark:hover:text-[#a1a1aa] transition-colors">Privacy Policy</a>
       </p>
     </footer>
@@ -98,7 +96,7 @@ function FeedbackModal({ session, onClose }) {
       steps: steps.trim() || null,
     });
     setLoading(false);
-    if (sbError) setError("Couldn't send feedback — please try again.");
+    if (sbError) setError("Couldn't send feedback. Please try again.");
     else setSent(true);
   }
 
@@ -125,7 +123,7 @@ function FeedbackModal({ session, onClose }) {
               </motion.div>
               <h3 className="text-xl font-black text-slate-950 dark:text-white">Feedback received</h3>
               <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-[#a1a1aa]">
-                {type === "bug" ? "Thanks for reporting — we'll investigate and fix it." : "Great idea — we'll consider it for a future update."}
+                {type === "bug" ? "Thanks for reporting. We'll investigate and fix it." : "Great idea. We'll consider it for a future update."}
               </p>
               <button type="button" onClick={onClose} className="mt-6 rounded-2xl bg-slate-950 px-8 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
                 Done
@@ -172,8 +170,8 @@ function FeedbackModal({ session, onClose }) {
                     value={desc}
                     onChange={(e) => setDesc(e.target.value)}
                     placeholder={type === "bug"
-                      ? "Describe what went wrong and what you expected instead…"
-                      : "Explain the problem this would solve, or how you'd use it…"}
+                      ? "Describe what went wrong and what you expected instead..."
+                      : "Explain the problem this would solve, or how you'd use it..."}
                   />
                 </Field>
 
@@ -209,7 +207,7 @@ function FeedbackModal({ session, onClose }) {
                       <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                       </svg>
-                      Sending…
+                      Sending...
                     </span>
                   ) : type === "bug" ? "Submit bug report" : "Submit feature request"}
                 </Button>
@@ -224,10 +222,10 @@ function FeedbackModal({ session, onClose }) {
 }
 
 const VIEW_META = {
-  dashboard:    { title: "Dashboard",      sub: "Overview"      },
-  universities: { title: "Universities",   sub: "Applications"  },
-  jobs:         { title: "Jobs",           sub: "Applications"  },
-  urgent:       { title: "Urgent",         sub: "Action needed" },
+  dashboard:    { title: "Workspace",          sub: "Tracker overview" },
+  universities: { title: "University records", sub: "Admissions"       },
+  jobs:         { title: "Job records",        sub: "Applications"     },
+  urgent:       { title: "Deadline radar",     sub: "Action needed"    },
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
 
@@ -242,7 +240,9 @@ export default function Dashboard({ session }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [sortBy, setSortBy] = useState("deadline");
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState(() => (
+    typeof window !== "undefined" && window.innerWidth < 768 ? "cards" : "table"
+  ));
   const [sidebarView, setSidebarView] = useState("dashboard");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -255,10 +255,7 @@ export default function Dashboard({ session }) {
   const mobileMenuRef = useRef(null);
 
   useEffect(() => {
-    if (!session?.user) {
-      setApplications([]);
-      return;
-    }
+    if (!session?.user) return;
     fetchApplications();
   }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -275,10 +272,6 @@ export default function Dashboard({ session }) {
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  useEffect(() => {
-    if (window.innerWidth < 768) setViewMode("cards");
   }, []);
 
   async function fetchApplications() {
@@ -585,7 +578,7 @@ export default function Dashboard({ session }) {
                 onClick={() => {
                   const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
                   navigator.clipboard.writeText(url);
-                  notify("Calendar URL copied! Paste it in Google Calendar → Other calendars → From URL", "success");
+                  notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
                 }}
                 className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
               >
@@ -806,7 +799,7 @@ export default function Dashboard({ session }) {
                           onClick={() => {
                             const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
                             navigator.clipboard.writeText(url);
-                            notify("Calendar URL copied! Paste it in Google Calendar → Other calendars → From URL", "success");
+                            notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
                             setMobileMenuOpen(false);
                           }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
@@ -857,7 +850,7 @@ export default function Dashboard({ session }) {
                         <svg className="h-6 w-6 animate-spin text-slate-300 dark:text-[#52525b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                         </svg>
-                        <span className="ml-3 text-sm text-slate-400 dark:text-[#71717a]">Loading your applications…</span>
+                        <span className="ml-3 text-sm text-slate-400 dark:text-[#71717a]">Loading your applications...</span>
                       </div>
                     ) : applications.length === 0 ? (
                       <EmptyDashboard onAdd={() => openNew()} />
@@ -870,11 +863,11 @@ export default function Dashboard({ session }) {
                           onOpenFeedback={() => setFeedbackOpen(true)}
                         />
                         <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
-                          <Metric icon="dashboard"  label="Total"            value={stats.total}                   hint="All tracked entries"             accent="slate"   delay={0}    />
+                          <Metric icon="dashboard"  label="Records"          value={stats.total}                   hint="Every tracked application"        accent="slate"   delay={0}    />
                           <Metric icon="university" label="Universities"     value={stats.universities}            hint="Master's applications"           accent="blue"    delay={0.05} />
                           <Metric icon="job"        label="Jobs"             value={stats.jobs}                    hint="Work applications"               accent="violet"  delay={0.1}  />
-                          <Metric icon="calendar"   label="Needs attention"  value={stats.urgent + stats.overdue}  hint={stats.urgent + stats.overdue === 0 ? "All deadlines on track" : `${stats.overdue} overdue · ${stats.urgent} due soon`} danger={stats.urgent + stats.overdue > 0} delay={0.15} />
-                          <Metric icon="check"      label="Submitted +"      value={stats.submitted}               hint={stats.accepted > 0 || stats.interviews > 0 ? `${stats.accepted} accepted · ${stats.interviews} interviews` : "Submitted or further"} accent="emerald" delay={0.2} />
+                          <Metric icon="calendar"   label="Needs attention"  value={stats.urgent + stats.overdue}  hint={stats.urgent + stats.overdue === 0 ? "All deadlines on track" : `${stats.overdue} overdue - ${stats.urgent} due soon`} danger={stats.urgent + stats.overdue > 0} delay={0.15} />
+                          <Metric icon="check"      label="Submitted +"      value={stats.submitted}               hint={stats.accepted > 0 || stats.interviews > 0 ? `${stats.accepted} accepted - ${stats.interviews} interviews` : "Submitted or further"} accent="emerald" delay={0.2} />
                         </div>
                         <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
                           <PipelineCard pipeline={pipeline} total={stats.total} />
