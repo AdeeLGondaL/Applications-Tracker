@@ -2,188 +2,90 @@ import { useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 
-const demoSets = {
-  university: {
-    label: "University",
-    headline: "Admissions tracker",
-    context: "Programs, portals, transcripts, motivation letters, deadlines.",
-    pasteTitle: "Paste an admissions page",
-    pasteText: "M.Sc. Computer Science - deadline 15 Jun - transcript, CV, motivation letter required...",
-    records: [
-      {
-        id: "tum",
-        name: "TU Munich",
-        detail: "M.Sc. Computer Science",
-        status: "Deadline soon",
-        deadline: "15 Jun",
-        tone: "amber",
-        fields: [
-          ["Documents", "4/5 ready"],
-          ["Portal link", "Saved"],
-          ["Next step", "Upload transcript"],
-          ["Notes", "Module fit added"],
-        ],
-        checklist: ["CV attached", "Transcript pending", "Motivation letter drafted", "Portal account ready"],
-        activity: "Last note: check certified transcript requirements before submitting.",
-      },
-      {
-        id: "berlin",
-        name: "TU Berlin",
-        detail: "M.Sc. Data Science",
-        status: "Documents",
-        deadline: "01 Jul",
-        tone: "emerald",
-        fields: [
-          ["Documents", "3/5 ready"],
-          ["Portal link", "Saved"],
-          ["Next step", "Request module description"],
-          ["Notes", "Language proof needed"],
-        ],
-        checklist: ["CV attached", "Transcript attached", "Language proof pending", "Requirements saved"],
-        activity: "Last note: compare module catalog with admission requirements.",
-      },
-      {
-        id: "saarland",
-        name: "Saarland University",
-        detail: "Visual Computing",
-        status: "Researching",
-        deadline: "20 Jul",
-        tone: "blue",
-        fields: [
-          ["Documents", "1/5 ready"],
-          ["Portal link", "Not saved"],
-          ["Next step", "Review prerequisites"],
-          ["Notes", "Portfolio optional"],
-        ],
-        checklist: ["Program page saved", "CV pending", "Transcript pending", "Motivation letter pending"],
-        activity: "Last note: ask whether current credits meet the entry requirement.",
-      },
-    ],
-  },
-  job: {
-    label: "Job",
-    headline: "Job search tracker",
-    context: "Roles, recruiters, resumes, interviews, follow-ups, saved job posts.",
-    pasteTitle: "Paste a job post",
-    pasteText: "Working Student QA - BMW Group - hybrid Munich - apply with CV and portfolio...",
-    records: [
-      {
-        id: "bmw",
-        name: "BMW Group",
-        detail: "Working Student QA",
-        status: "Applied",
-        deadline: "Follow up 18 Jun",
-        tone: "blue",
-        fields: [
-          ["Resume", "Submitted"],
-          ["Job link", "Saved"],
-          ["Next step", "Follow up recruiter"],
-          ["Notes", "Testing tools listed"],
-        ],
-        checklist: ["CV attached", "Cover note saved", "Recruiter note ready", "Job post archived"],
-        activity: "Last note: follow up if there is no answer by next Tuesday.",
-      },
-      {
-        id: "sap",
-        name: "SAP",
-        detail: "Frontend Intern",
-        status: "Interview",
-        deadline: "Prep today",
-        tone: "amber",
-        fields: [
-          ["Resume", "Tailored"],
-          ["Job link", "Saved"],
-          ["Next step", "Prepare examples"],
-          ["Notes", "React project relevant"],
-        ],
-        checklist: ["CV attached", "Interview notes drafted", "Portfolio link checked", "Questions prepared"],
-        activity: "Last note: prepare a concise story about the dashboard project.",
-      },
-      {
-        id: "zalando",
-        name: "Zalando",
-        detail: "Junior Product Analyst",
-        status: "To apply",
-        deadline: "No deadline",
-        tone: "emerald",
-        fields: [
-          ["Resume", "Needs edit"],
-          ["Job link", "Saved"],
-          ["Next step", "Tailor CV"],
-          ["Notes", "SQL requested"],
-        ],
-        checklist: ["Job post saved", "CV pending", "Skills matched", "Salary note added"],
-        activity: "Last note: add analytics coursework before applying.",
-      },
-    ],
-  },
-};
+const pipelineStages = [
+  { label: "Saved", count: 12 },
+  { label: "Preparing", count: 7 },
+  { label: "Applied", count: 18 },
+  { label: "Interview", count: 4 },
+  { label: "Offer", count: 2 },
+];
 
-const painCards = [
+const problemCards = [
+  ["Missed deadlines", "Application dates stay buried until the final week."],
+  ["Scattered documents", "CVs, transcripts, portfolios, and links drift across folders."],
+  ["Messy spreadsheets", "Rows work at first, then lose context as the search grows."],
+  ["No clear progress", "It becomes hard to see what needs action today."],
+];
+
+const spreadsheetRows = [
+  ["TU Munich", "Documents missing", "Deadline soon", "15 Jun"],
+  ["Google Internship", "Preparing", "CV ready", "18 Jun"],
+  ["DAAD Scholarship", "Applied", "Waiting", "25 Jun"],
+  ["Amsterdam University", "Submitted", "Interview pending", "01 Jul"],
+];
+
+const features = [
   {
+    title: "Application tracker",
+    copy: "Track universities, jobs, internships, and scholarships in one place.",
+    preview: ["University", "Job", "Internship", "Scholarship"],
+    icon: "dashboard",
+  },
+  {
+    title: "Deadline management",
+    copy: "See urgent tasks and upcoming deadlines before they become a problem.",
+    preview: ["15 Jun", "18 Jun", "01 Jul"],
     icon: "calendar",
-    title: "Deadlines hide until they are urgent",
-    copy: "A date in a spreadsheet cell does not feel important until it is already too close.",
-    tone: "amber",
   },
   {
-    icon: "link",
-    title: "Links scatter across tabs and inboxes",
-    copy: "Portal pages, job posts, folders, and emails drift away from the application they belong to.",
-    tone: "blue",
+    title: "Document checklist",
+    copy: "Keep CVs, motivation letters, transcripts, portfolios, and links organized.",
+    preview: ["CV", "Transcript", "Portfolio", "Link"],
+    icon: "check",
   },
   {
-    icon: "copy",
-    title: "Rows stop carrying enough context",
-    copy: "A serious search needs documents, status, notes, next steps, and a reliable history.",
-    tone: "slate",
+    title: "Status pipeline",
+    copy: "Know exactly where every application stands.",
+    preview: ["Saved", "Applied", "Interview"],
+    icon: "filter",
   },
   {
-    icon: "sparkles",
-    title: "Manual entry breaks momentum",
-    copy: "Starting every application from a blank row is exactly where good tracking habits fade.",
-    tone: "violet",
+    title: "Notes and next steps",
+    copy: "Store follow-ups, interview notes, requirements, and reminders.",
+    preview: ["Follow up", "Prep notes", "Requirement"],
+    icon: "edit",
+  },
+  {
+    title: "Progress overview",
+    copy: "Understand your application journey with simple visual stats.",
+    preview: ["41 total", "4 interviews", "2 offers"],
+    icon: "eye",
   },
 ];
 
-const audienceCards = [
-  {
-    icon: "university",
-    title: "For university applications",
-    copy: "Track programs, admissions portals, document checklists, transcripts, motivation letters, and hard deadlines.",
-    items: ["Transcript", "Motivation letter", "Portal link"],
-  },
-  {
-    icon: "job",
-    title: "For job applications",
-    copy: "Track roles, companies, recruiter notes, resumes, interviews, follow-ups, and saved job descriptions.",
-    items: ["CV", "Recruiter note", "Follow-up"],
-  },
+const storySteps = [
+  ["Discover opportunity", "Save the role, program, internship, or scholarship before it disappears."],
+  ["Save it in Applume", "Turn the source into a structured application record."],
+  ["Prepare documents", "Keep every CV, transcript, portfolio, and portal link attached."],
+  ["Submit application", "Move the record through the pipeline with a clear next step."],
+  ["Track outcome", "Review status, notes, and progress without rebuilding a spreadsheet."],
 ];
 
-const flowSteps = [
-  {
-    label: "Paste",
-    title: "Drop in a posting or program page",
-    copy: "Start from the text you already have instead of rebuilding the same details by hand.",
-  },
-  {
-    label: "Review",
-    title: "Applume prepares the record",
-    copy: "AI autofill can draft the obvious fields while you stay in control of what gets saved.",
-  },
-  {
-    label: "Track",
-    title: "Keep every next step visible",
-    copy: "Move from a messy list to a workspace that keeps deadlines, documents, links, and notes together.",
-  },
-];
+function PlaneIcon({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <path d="M56 8 6 30.5l20 7.2L33.5 58 56 8Z" fill="currentColor" />
+      <path d="M26 37.7 56 8 33.5 58l-7.5-20.3Z" fill="rgba(255,255,255,0.45)" />
+      <path d="M26 37.7 18.5 49 21 35.9 56 8 26 37.7Z" fill="rgba(17,24,39,0.16)" />
+    </svg>
+  );
+}
 
-function ScrollThread() {
-  const { scrollYProgress } = useScroll();
+function ScrollProgress() {
   const reducedMotion = useReducedMotion();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 170, damping: 35, restDelta: 0.001 });
-  return <motion.div className="fixed left-0 right-0 top-0 z-[70] h-[3px] origin-left bg-emerald-500" style={{ scaleX: reducedMotion ? 1 : scaleX }} />;
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 34, restDelta: 0.001 });
+  return <motion.div className="fixed inset-x-0 top-0 z-[80] h-[3px] origin-left bg-indigo-600" style={{ scaleX: reducedMotion ? 1 : scaleX }} />;
 }
 
 function Reveal({ children, className = "", delay = 0 }) {
@@ -191,310 +93,273 @@ function Reveal({ children, className = "", delay = 0 }) {
   return (
     <motion.div
       className={className}
-      initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 32 }}
       whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: false, amount: 0.18 }}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
   );
 }
 
-function ToneIcon({ icon, tone = "emerald" }) {
-  const toneClass = {
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    amber: "border-amber-200 bg-amber-50 text-amber-700",
-    blue: "border-blue-200 bg-blue-50 text-blue-700",
-    violet: "border-violet-200 bg-violet-50 text-violet-700",
-    slate: "border-slate-200 bg-slate-50 text-slate-700",
-  }[tone];
-
+function SectionLabel({ children }) {
   return (
-    <div className={`grid h-10 w-10 place-items-center rounded-lg border ${toneClass}`}>
-      <Icon name={icon} className="h-4 w-4" />
+    <p className="text-xs font-black uppercase tracking-[0.22em] text-indigo-600">
+      {children}
+    </p>
+  );
+}
+
+function GlassCard({ children, className = "" }) {
+  return (
+    <div className={`rounded-[2rem] border border-[rgba(15,23,42,0.08)] bg-white/80 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl ${className}`}>
+      {children}
     </div>
   );
 }
 
-function LandingFooter() {
-  const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Your applications deserve better than a spreadsheet.";
+function FloatingPlaneJourney() {
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], ["6vh", "88vh"]);
+  const x = useTransform(scrollYProgress, [0, 0.22, 0.48, 0.72, 1], ["78vw", "66vw", "17vw", "72vw", "50vw"]);
+  const rotate = useTransform(scrollYProgress, [0, 0.22, 0.48, 0.72, 1], [-8, 18, 138, 28, 92]);
+  const opacity = useTransform(scrollYProgress, [0, 0.05, 0.92, 1], [0, 1, 1, 0.9]);
 
-  function handleNativeShare() {
-    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
-  }
+  if (reducedMotion) return null;
 
-  function handleCopy() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    }).catch(() => {});
-  }
+  return (
+    <div className="pointer-events-none fixed inset-0 z-20 hidden overflow-hidden lg:block" aria-hidden="true">
+      <svg className="absolute inset-0 h-full w-full opacity-40" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M78 7 C88 18, 58 26, 67 39 C76 55, 20 52, 18 69 C17 84, 72 78, 50 93" stroke="#4F46E5" strokeWidth="0.18" strokeDasharray="1 1.8" fill="none" />
+      </svg>
+      <motion.div className="absolute left-0 top-0 text-amber-500 drop-shadow-[0_16px_28px_rgba(245,158,11,0.25)]" style={{ x, y, rotate, opacity }}>
+        <PlaneIcon className="h-11 w-11" />
+      </motion.div>
+    </div>
+  );
+}
 
-  const socials = [
-    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${url}`)}` },
-    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
-    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}` },
+function MobileMenu({ onGetStarted }) {
+  const [open, setOpen] = useState(false);
+  const links = [
+    ["Features", "#features"],
+    ["How it works", "#how-it-works"],
+    ["Pricing", "#pricing"],
+    ["FAQ", "#faq"],
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-white px-6 py-10 text-center">
-      <p className="text-sm font-black text-slate-800">Know someone still managing applications in a spreadsheet?</p>
-      <p className="mt-1 text-xs text-slate-500">Share Applume as their structured tracker.</p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-        {typeof navigator !== "undefined" && !!navigator.share && (
-          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
-            <Icon name="share" className="h-3.5 w-3.5" /> Share
+    <div className="sm:hidden">
+      <button type="button" aria-label="Open navigation menu" onClick={() => setOpen((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white/80 text-slate-900 shadow-sm">
+        <span className="flex h-4 w-5 flex-col justify-between">
+          <span className="h-0.5 rounded-full bg-current" />
+          <span className="h-0.5 rounded-full bg-current" />
+          <span className="h-0.5 rounded-full bg-current" />
+        </span>
+      </button>
+      {open && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="absolute left-4 right-4 top-[4.6rem] rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl">
+          <div className="grid gap-1">
+            {links.map(([label, href]) => (
+              <a key={href} href={href} onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50">
+                {label}
+              </a>
+            ))}
+          </div>
+          <button type="button" onClick={onGetStarted} className="mt-3 w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white">
+            Start free
           </button>
-        )}
-        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}>
-          <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
-          {copied ? "Copied" : "Copy link"}
-        </button>
-        {socials.map(({ label, href }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50">
-            {label}
-          </a>
-        ))}
-      </div>
-      <p className="mt-8 text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} Applume - Structured application tracking
-        {" - "}
-        <a href="/privacy" className="text-slate-400 transition-colors hover:text-slate-600">Privacy Policy</a>
-      </p>
-    </footer>
-  );
-}
-
-function HeroBackground() {
-  const { scrollY } = useScroll();
-  const reducedMotion = useReducedMotion();
-  const y = useSpring(useTransform(scrollY, [0, 700], [0, 80]), { stiffness: 70, damping: 24 });
-  const routeScale = useSpring(useTransform(scrollY, [0, 520], [0.25, 1]), { stiffness: 90, damping: 26 });
-  const sheetOpacity = useTransform(scrollY, [0, 460], [0.9, 0.25]);
-  const recordOpacity = useTransform(scrollY, [0, 460], [0.2, 0.9]);
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[58rem] bg-[linear-gradient(to_right,rgba(15,23,42,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] bg-[size:72px_48px] opacity-50" />
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-[#f7f5ef]" />
-      <motion.div
-        className="absolute left-[8%] top-28 hidden w-56 rotate-[-7deg] rounded-lg border border-rose-100 bg-white/90 p-3 shadow-xl shadow-slate-900/10 sm:block"
-        style={{ y: reducedMotion ? 0 : y, opacity: reducedMotion ? 0.75 : sheetOpacity }}
-      >
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">Messy sheet</p>
-        <div className="grid grid-cols-4 gap-1 text-[9px] font-bold text-slate-400">
-          {["Name", "Due", "Status", "Where", "TUM", "15 Jun", "?", "email", "BMW", "", "applied", "tab 12", "SAP", "?", "maybe", "inbox"].map((cell, index) => (
-            <span key={`${cell}-${index}`} className={`truncate rounded border px-1.5 py-1 ${cell === "?" || cell === "" || cell === "tab 12" ? "border-rose-100 bg-rose-50 text-rose-500" : "border-slate-100 bg-slate-50"}`}>
-              {cell || "-"}
-            </span>
-          ))}
-        </div>
-      </motion.div>
-      <motion.div
-        className="absolute left-[19%] right-[19%] top-[31rem] hidden h-px origin-left bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent sm:block"
-        style={{ scaleX: reducedMotion ? 0.75 : routeScale }}
-      />
-      <motion.div
-        className="absolute right-[4%] top-24 hidden w-60 rotate-[6deg] rounded-lg border border-emerald-100 bg-white/95 p-4 shadow-xl shadow-emerald-900/10 lg:block"
-        style={{ opacity: reducedMotion ? 0.8 : recordOpacity }}
-      >
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Applume record</p>
-        <p className="mt-2 text-sm font-black text-slate-900">One application, all context</p>
-        <div className="mt-3 space-y-1.5">
-          {["Deadline visible", "Documents tracked", "Portal link attached"].map((line) => (
-            <div key={line} className="rounded-md bg-emerald-50 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-800">{line}</div>
-          ))}
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
 
-function ProductDemo() {
-  const [mode, setMode] = useState("university");
-  const [selectedId, setSelectedId] = useState(demoSets.university.records[0].id);
-  const reducedMotion = useReducedMotion();
-  const active = demoSets[mode];
-  const selected = active.records.find((record) => record.id === selectedId) || active.records[0];
+function Navigation({ onGetStarted }) {
+  return (
+    <nav className="sticky top-0 z-[70] border-b border-[rgba(15,23,42,0.08)] bg-[#FAFAF7]/80 backdrop-blur-2xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <a href="/" className="flex items-center gap-3" aria-label="Applume home">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 via-sky-400 to-amber-400 text-white shadow-lg shadow-indigo-500/20">
+            <PlaneIcon className="h-5 w-5 -rotate-12" />
+          </span>
+          <span className="text-lg font-black tracking-tight text-slate-950">Applume</span>
+        </a>
+        <div className="hidden items-center gap-8 text-sm font-bold text-slate-500 sm:flex">
+          <a href="#features" className="transition hover:text-slate-950">Features</a>
+          <a href="#how-it-works" className="transition hover:text-slate-950">How it works</a>
+          <a href="#pricing" className="transition hover:text-slate-950">Pricing</a>
+          <a href="#faq" className="transition hover:text-slate-950">FAQ</a>
+        </div>
+        <div className="hidden items-center gap-3 sm:flex">
+          <button type="button" onClick={onGetStarted} className="rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-white hover:text-slate-950">
+            Log in
+          </button>
+          <button type="button" onClick={onGetStarted} className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800">
+            Start free
+          </button>
+        </div>
+        <MobileMenu onGetStarted={onGetStarted} />
+      </div>
+    </nav>
+  );
+}
 
-  function switchMode(nextMode) {
-    setMode(nextMode);
-    setSelectedId(demoSets[nextMode].records[0].id);
+function ProductMockup() {
+  const reducedMotion = useReducedMotion();
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
+  const statuses = ["Saved", "Preparing", "Applied", "Interview", "Offer"];
+
+  function handleMove(event) {
+    if (reducedMotion || window.innerWidth < 1024) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ rotateX: y * -5, rotateY: x * 7 });
   }
 
-  const toneClass = {
-    amber: "bg-amber-100 text-amber-800",
-    blue: "bg-blue-100 text-blue-800",
-    emerald: "bg-emerald-100 text-emerald-800",
-  }[selected.tone];
-
   return (
-    <div id="example-tracker" className="mx-auto mt-12 w-full max-w-[calc(100vw-2rem)] scroll-mt-24 px-0 sm:max-w-6xl sm:px-6">
-      <motion.div
-        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
-        initial={false}
-        whileInView={reducedMotion ? undefined : { y: [8, 0] }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="flex flex-col items-stretch gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
-            <span className="ml-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 sm:ml-2 sm:text-[10px] sm:tracking-[0.2em]">Product demo</span>
+    <motion.div
+      onMouseMove={handleMove}
+      onMouseLeave={() => setTilt({ rotateX: 0, rotateY: 0 })}
+      animate={tilt}
+      transition={{ type: "spring", stiffness: 140, damping: 20 }}
+      className="relative mx-auto w-full max-w-[calc(100vw-2rem)] overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-2 shadow-[0_40px_120px_rgba(15,23,42,0.18)] backdrop-blur-2xl sm:max-w-2xl sm:p-3"
+      style={{ transformStyle: "preserve-3d" }}
+    >
+      <div className="grid min-h-[31rem] min-w-0 overflow-hidden rounded-[1.55rem] border border-slate-200 bg-slate-950 text-white lg:grid-cols-[12rem_1fr]">
+        <aside className="hidden border-r border-white/10 bg-white/[0.04] p-5 lg:block">
+          <div className="mb-8 flex items-center gap-2 text-amber-300">
+            <PlaneIcon className="h-5 w-5" />
+            <span className="text-xs font-black uppercase tracking-[0.2em]">Applume</span>
           </div>
-          <div className="grid w-full grid-cols-2 rounded-lg border border-slate-200 bg-white p-1 sm:w-auto">
-            {Object.entries(demoSets).map(([key, value]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => switchMode(key)}
-                className={`rounded-md px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-              >
-                {value.label}
-              </button>
+          {["Dashboard", "Applications", "Documents", "Calendar", "Settings"].map((item, index) => (
+            <div key={item} className={`mb-2 rounded-2xl px-3 py-2 text-sm font-bold ${index === 1 ? "bg-white text-slate-950" : "text-slate-400"}`}>
+              {item}
+            </div>
+          ))}
+        </aside>
+        <div className="min-w-0 bg-[#f8fafc] p-4 text-slate-950 sm:p-5">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-indigo-600 sm:tracking-[0.2em]">Application workspace</p>
+              <h3 className="mt-2 text-2xl font-black leading-tight">Today needs attention</h3>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-800">3 deadlines</div>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              ["Total", "41"],
+              ["Preparing", "7"],
+              ["Interviews", "4"],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+                <p className="mt-2 text-3xl font-black">{value}</p>
+              </div>
             ))}
           </div>
-        </div>
-
-        <div className="grid bg-[#f7f5ef] lg:grid-cols-[0.78fr_1.22fr]">
-          <div className="border-b border-slate-200 bg-slate-950 p-4 text-white lg:border-b-0 lg:border-r lg:p-5">
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-              <div className="flex items-center gap-2 text-emerald-300">
-                <Icon name="sparkles" className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-[0.18em]">AI autofill draft</span>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {statuses.map((status, index) => (
+              <div key={status} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{status}</p>
+                <div className="mt-3 space-y-2">
+                  {index < 3 && (
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <p className="text-xs font-black">{index === 0 ? "DAAD Scholarship" : index === 1 ? "Google Internship" : "TU Munich"}</p>
+                      <p className="mt-1 text-[11px] font-bold text-slate-500">{index === 2 ? "Deadline 15 Jun" : "Documents ready"}</p>
+                    </div>
+                  )}
+                  {index === 3 && (
+                    <div className="rounded-xl border border-sky-100 bg-sky-50 p-3">
+                      <p className="text-xs font-black">Amsterdam Univ.</p>
+                      <p className="mt-1 text-[11px] font-bold text-sky-700">Interview pending</p>
+                    </div>
+                  )}
+                  {index === 4 && (
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                      <p className="text-xs font-black">Offer</p>
+                      <p className="mt-1 text-[11px] font-bold text-emerald-700">2 active</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="mt-3 text-sm font-black">{active.pasteTitle}</p>
-              <p className="mt-2 rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-xs leading-5 text-slate-400">
-                {active.pasteText}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {["Name found", "Deadline found", "Checklist started"].map((item) => (
-                  <span key={item} className="rounded-md bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold text-emerald-200">{item}</span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{active.headline}</p>
-              <div className="space-y-2">
-                {active.records.map((record) => {
-                  const activeRecord = record.id === selected.id;
-                  return (
-                    <motion.button
-                      key={record.id}
-                      type="button"
-                      onClick={() => setSelectedId(record.id)}
-                      className={`w-full rounded-lg border p-3 text-left transition ${activeRecord ? "border-emerald-300 bg-white text-slate-950" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}
-                      whileHover={reducedMotion ? undefined : { x: 4 }}
-                      whileTap={reducedMotion ? undefined : { scale: 0.99 }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-black">{record.name}</p>
-                          <p className={`mt-0.5 truncate text-xs font-semibold ${activeRecord ? "text-slate-500" : "text-slate-400"}`}>{record.detail}</p>
-                        </div>
-                        <span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-black ${activeRecord ? toneClass : "bg-white/10 text-slate-300"}`}>{record.status}</span>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
+            ))}
           </div>
-
-          <div className="p-4 sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">{active.context}</p>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{selected.name}</h3>
-                <p className="mt-1 text-sm font-semibold text-slate-500">{selected.detail}</p>
-              </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-right">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">Deadline</p>
-                <p className="mt-1 text-sm font-black text-amber-950">{selected.deadline}</p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {selected.fields.map(([label, value]) => (
-                <div key={label} className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
-                  <p className="mt-2 text-sm font-black text-slate-900">{value}</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_0.85fr]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Document checklist</p>
+              {["CV ready", "Transcript pending", "Portfolio linked"].map((item, index) => (
+                <div key={item} className="mt-3 flex items-center gap-2 text-sm font-bold text-slate-700">
+                  <span className={`grid h-5 w-5 place-items-center rounded-md border ${index === 1 ? "border-amber-200 bg-amber-50 text-amber-600" : "border-emerald-200 bg-emerald-50 text-emerald-600"}`}>
+                    <Icon name={index === 1 ? "calendar" : "check"} className="h-3 w-3" />
+                  </span>
+                  {item}
                 </div>
               ))}
             </div>
-
-            <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.78fr]">
-              <div className="rounded-lg border border-slate-200 bg-white p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Document checklist</p>
-                <div className="mt-3 space-y-2">
-                  {selected.checklist.map((item, index) => {
-                    const done = !item.toLowerCase().includes("pending");
-                    return (
-                      <div key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${done ? "border-emerald-200 bg-emerald-50 text-emerald-600" : "border-amber-200 bg-amber-50 text-amber-600"}`}>
-                          <Icon name={done ? "check" : "calendar"} className="h-3 w-3" />
-                        </span>
-                        <span>{index === 0 ? item : item}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-950 p-4 text-white">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">Notes and next step</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{selected.activity}</p>
-                <div className="mt-4 rounded-md bg-white/10 px-3 py-2 text-xs font-bold text-slate-200">
-                  Everything stays attached to this record.
-                </div>
-              </div>
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Next step</p>
+              <p className="mt-3 text-sm font-bold leading-6 text-slate-700">Upload certified transcript before submission.</p>
             </div>
           </div>
         </div>
+      </div>
+      <motion.div className="absolute -left-6 top-16 hidden rounded-3xl border border-white/70 bg-white/90 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl lg:block" animate={reducedMotion ? undefined : { y: [0, -10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
+        <p className="text-xs font-black text-slate-950">Deadline radar</p>
+        <p className="mt-1 text-xs font-bold text-amber-600">TU Munich in 4 days</p>
       </motion.div>
-    </div>
+      <motion.div className="absolute -right-8 bottom-16 hidden rounded-3xl border border-white/70 bg-white/90 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl lg:block" animate={reducedMotion ? undefined : { y: [0, 12, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}>
+        <p className="text-xs font-black text-slate-950">Progress</p>
+        <p className="mt-1 text-xs font-bold text-indigo-600">24 applications active</p>
+      </motion.div>
+    </motion.div>
   );
 }
 
-function TransformationStrip() {
+function HeroSection({ onGetStarted }) {
   const ref = useRef(null);
   const reducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const sheetX = useTransform(scrollYProgress, [0, 0.55], [0, -44]);
-  const recordX = useTransform(scrollYProgress, [0.2, 0.75], [44, 0]);
-  const sheetOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0.36]);
-  const recordOpacity = useTransform(scrollYProgress, [0.15, 0.75], [0.44, 1]);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const planeX = useTransform(scrollYProgress, [0, 0.35, 0.7, 1], [0, 40, 20, -20]);
+  const planeY = useTransform(scrollYProgress, [0, 0.35, 0.7, 1], [0, -20, 20, 58]);
+  const planeRotate = useTransform(scrollYProgress, [0, 0.5, 1], [-12, 12, 42]);
+  const mockupScale = useTransform(scrollYProgress, [0, 0.6, 1], [0.96, 1, 1.03]);
+  const mockupOpacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.72, 1, 1]);
 
   return (
-    <section ref={ref} className="border-y border-slate-200 bg-white px-4 py-10 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-        <motion.div className="rounded-lg border border-rose-100 bg-rose-50 p-4" style={{ x: reducedMotion ? 0 : sheetX, opacity: reducedMotion ? 1 : sheetOpacity }}>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">Before</p>
-          <p className="mt-2 text-lg font-black text-slate-950">Rows full of question marks</p>
-          <div className="mt-4 grid grid-cols-4 gap-1 text-[10px] font-bold">
-            {["Name", "Due", "Status", "Where", "TUM", "15 Jun", "?", "inbox", "BMW", "", "applied", "tab 12"].map((cell, index) => (
-              <span key={`${cell}-${index}`} className={`truncate rounded-md border px-2 py-1.5 ${cell === "?" || cell === "" || cell === "tab 12" ? "border-rose-200 bg-white text-rose-500" : "border-slate-200 bg-white text-slate-500"}`}>
-                {cell || "-"}
-              </span>
-            ))}
+    <section ref={ref} className="relative min-h-[125vh] overflow-hidden bg-[#FAFAF7] px-4 sm:px-6">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(79,70,229,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(79,70,229,0.055)_1px,transparent_1px)] bg-[size:72px_72px]" />
+      <div className="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full bg-sky-300/20 blur-3xl" />
+      <div className="sticky top-20 mx-auto grid w-full max-w-7xl min-w-0 min-h-[min(calc(100vh-5rem),860px)] items-center gap-12 py-14 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
+        <div className="relative z-10 w-full max-w-[calc(100vw-2rem)] min-w-0 lg:max-w-none">
+          <motion.div className="mb-7 inline-flex max-w-full items-center gap-2 rounded-full border border-indigo-200 bg-white/75 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-indigo-700 shadow-sm backdrop-blur-xl sm:text-xs sm:tracking-[0.14em]" initial={false}>
+            <span className="h-2 w-2 rounded-full bg-sky-400" />
+            <span className="min-w-0 whitespace-normal">Built for students, job seekers, and applicants</span>
+          </motion.div>
+          <h1 className="max-w-3xl text-[2.75rem] font-black leading-[0.98] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
+            Replace your application spreadsheet.
+          </h1>
+          <p className="mt-7 max-w-[22rem] break-words text-lg leading-8 text-slate-600 sm:max-w-2xl sm:text-xl">
+            Track deadlines, documents, statuses, and next steps for every university or job application in one organized workspace.
+          </p>
+          <div className="mt-9 flex w-full max-w-[22rem] flex-col gap-3 sm:max-w-none sm:flex-row">
+            <button type="button" onClick={onGetStarted} className="w-full rounded-full bg-indigo-600 px-7 py-4 text-base font-black text-white shadow-xl shadow-indigo-600/25 transition hover:-translate-y-0.5 hover:bg-indigo-500 sm:w-auto">
+              Start tracking for free
+            </button>
+            <a href="#how-it-works" className="w-full rounded-full border border-slate-200 bg-white/75 px-7 py-4 text-center text-base font-black text-slate-800 shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-white sm:w-auto">
+              See how it works
+            </a>
           </div>
-        </motion.div>
-        <div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-emerald-300">
-          <Icon name="sparkles" className="h-5 w-5" />
+          <p className="mt-5 max-w-[22rem] text-sm font-bold leading-6 text-slate-500 sm:max-w-none">No more messy spreadsheets. No more missed deadlines.</p>
         </div>
-        <motion.div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4" style={{ x: reducedMotion ? 0 : recordX, opacity: reducedMotion ? 1 : recordOpacity }}>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">After</p>
-          <p className="mt-2 text-lg font-black text-slate-950">Records with context</p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            {["Deadline visible", "Documents attached", "Next step ready"].map((item) => (
-              <span key={item} className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-center text-xs font-black text-emerald-800">{item}</span>
-            ))}
-          </div>
+        <motion.div className="relative z-10 w-full max-w-[calc(100vw-2rem)] min-w-0 justify-self-center lg:max-w-none" style={{ scale: reducedMotion ? 1 : mockupScale, opacity: reducedMotion ? 1 : mockupOpacity }}>
+          <motion.div className="absolute -left-2 -top-12 z-10 text-amber-500 drop-shadow-[0_16px_30px_rgba(245,158,11,0.3)] sm:-left-10" style={{ x: reducedMotion ? 0 : planeX, y: reducedMotion ? 0 : planeY, rotate: reducedMotion ? -12 : planeRotate }}>
+            <PlaneIcon className="h-12 w-12 sm:h-16 sm:w-16" />
+          </motion.div>
+          <ProductMockup />
         </motion.div>
       </div>
     </section>
@@ -503,29 +368,120 @@ function TransformationStrip() {
 
 function ProblemSection() {
   return (
-    <section id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-24 text-white sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <Reveal className="max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Where spreadsheets break</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-            It is not the tracking that is hard. It is keeping the context alive.
-          </h2>
-          <p className="mt-4 text-base leading-7 text-slate-400">
-            Applications become stressful when dates, documents, links, notes, and next steps live in different places. Applume is built around that exact moment.
-          </p>
+    <section className="bg-[#FAFAF7] px-4 py-28 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <SectionLabel>Problem</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Application tracking should not feel chaotic.</h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">Applume gives scattered application work a clear home: deadlines, documents, notes, statuses, and next steps.</p>
         </Reveal>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {painCards.map((item, index) => (
-            <Reveal key={item.title} delay={index * 0.06} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
-              <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 280, damping: 22 }}>
-                <div className="mb-5">
-                  <ToneIcon icon={item.icon} tone={item.tone} />
+        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {problemCards.map(([title, copy], index) => (
+            <Reveal key={title} delay={index * 0.06}>
+              <GlassCard className="h-full p-6">
+                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white">
+                  <Icon name={index === 0 ? "calendar" : index === 1 ? "copy" : index === 2 ? "dashboard" : "eye"} />
                 </div>
-                <h3 className="text-base font-black">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{item.copy}</p>
-              </motion.div>
+                <h3 className="mt-8 text-xl font-black text-slate-950">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{copy}</p>
+              </GlassCard>
             </Reveal>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SpreadsheetTransformSection() {
+  const ref = useRef(null);
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const sheetOpacity = useTransform(scrollYProgress, [0.1, 0.55], [1, 0.22]);
+  const sheetScale = useTransform(scrollYProgress, [0.1, 0.65], [1, 0.92]);
+  const cardsY = useTransform(scrollYProgress, [0.2, 0.78], [90, 0]);
+  const cardsOpacity = useTransform(scrollYProgress, [0.25, 0.62], [0, 1]);
+
+  return (
+    <section ref={ref} id="how-it-works" className="relative overflow-hidden bg-white px-4 py-28 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <SectionLabel>Chaos to clarity</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Messy spreadsheet {"->"} organized tracker.</h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">Rows become application records with deadlines, documents, statuses, and next steps attached.</p>
+        </Reveal>
+        <div className="relative mt-16 min-h-[38rem]">
+          <motion.div className="absolute inset-x-0 top-0 mx-auto max-w-5xl rounded-[2rem] border border-rose-100 bg-rose-50/75 p-5 shadow-xl shadow-rose-100/50" style={{ opacity: reducedMotion ? 0.35 : sheetOpacity, scale: reducedMotion ? 0.96 : sheetScale }}>
+            <div className="grid grid-cols-4 gap-2 text-xs font-black uppercase tracking-[0.12em] text-rose-500">
+              {["Application", "Status", "Documents", "Deadline"].map((heading) => (
+                <div key={heading} className="rounded-xl bg-white px-3 py-3">{heading}</div>
+              ))}
+            </div>
+            <div className="mt-2 grid gap-2">
+              {spreadsheetRows.map((row) => (
+                <div key={row[0]} className="grid grid-cols-4 gap-2 text-sm font-bold text-slate-600">
+                  {row.map((cell) => (
+                    <div key={cell} className="truncate rounded-xl border border-rose-100 bg-white px-3 py-4">{cell}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          <motion.div className="absolute inset-x-0 top-16 mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4" style={{ y: reducedMotion ? 0 : cardsY, opacity: reducedMotion ? 1 : cardsOpacity }}>
+            {spreadsheetRows.map((row, index) => (
+              <GlassCard key={row[0]} className="p-5">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-black text-indigo-700">{row[1]}</span>
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">{row[3]}</span>
+                </div>
+                <h3 className="text-xl font-black text-slate-950">{row[0]}</h3>
+                <p className="mt-2 text-sm font-bold text-slate-500">{row[2]}</p>
+                <div className="mt-6 h-2 rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-sky-400" style={{ width: `${44 + index * 12}%` }} />
+                </div>
+              </GlassCard>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PipelineSection() {
+  const ref = useRef(null);
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start center", "end center"] });
+  const lineScale = useTransform(scrollYProgress, [0.1, 0.9], [0, 1]);
+  const planeX = useTransform(scrollYProgress, [0.1, 0.9], ["0%", "94%"]);
+
+  return (
+    <section ref={ref} className="overflow-hidden bg-[#FAFAF7] px-4 py-28 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <SectionLabel>Pipeline</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Follow every application from saved to offer.</h2>
+        </Reveal>
+        <div className="relative mt-16 rounded-[2rem] border border-[rgba(15,23,42,0.08)] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+          <div className="absolute left-8 right-8 top-1/2 hidden h-1 -translate-y-1/2 rounded-full bg-slate-100 lg:block">
+            <motion.div className="h-full origin-left rounded-full bg-gradient-to-r from-indigo-600 via-sky-400 to-amber-400" style={{ scaleX: reducedMotion ? 1 : lineScale }} />
+            <motion.div className="absolute -top-5 text-amber-500" style={{ left: reducedMotion ? "94%" : planeX }}>
+              <PlaneIcon className="h-10 w-10 rotate-45" />
+            </motion.div>
+          </div>
+          <div className="relative z-10 grid gap-4 lg:grid-cols-5">
+            {pipelineStages.map((stage, index) => (
+              <Reveal key={stage.label} delay={index * 0.06}>
+                <motion.div whileInView={reducedMotion ? undefined : { scale: [0.96, 1.03, 1] }} viewport={{ once: false, amount: 0.7 }} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{stage.label}</p>
+                  <motion.p className="mt-6 text-5xl font-black text-slate-950" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}>
+                    {stage.count}
+                  </motion.p>
+                  <p className="mt-2 text-sm font-bold text-slate-500">applications</p>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -534,61 +490,96 @@ function ProblemSection() {
 
 function FeatureSection() {
   return (
-    <section id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <Reveal>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Every application becomes a record</p>
-            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-              Not another list. A place for the whole application.
-            </h2>
-            <p className="mt-4 text-base leading-7 text-slate-600">
-              Each record keeps the practical pieces together: status, deadline, documents, links, notes, next action, and exportable data.
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} className="grid gap-3 sm:grid-cols-2">
-            {[
-              ["Status", "Applying, interview, offer, rejected"],
-              ["Deadline", "Urgent and overdue items stay visible"],
-              ["Documents", "CV, transcript, portfolio, motivation letter"],
-              ["Links", "Portal pages, job posts, folders, emails"],
-              ["Notes", "Interview prep and admissions requirements"],
-              ["Export", "CSV or JSON when you want your data out"],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">{label}</p>
-                <p className="mt-2 text-sm font-semibold leading-5 text-slate-700">{value}</p>
-              </div>
-            ))}
-          </Reveal>
+    <section id="features" className="bg-white px-4 py-28 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <Reveal className="max-w-3xl">
+          <SectionLabel>Features</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">A premium workspace for the full application workflow.</h2>
+        </Reveal>
+        <div className="mt-16 grid gap-5 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <Reveal key={feature.title} delay={(index % 3) * 0.06} className={index === 0 || index === 5 ? "lg:col-span-2" : ""}>
+              <GlassCard className="group h-full overflow-hidden p-6 transition duration-500 hover:-translate-y-1 hover:shadow-[0_36px_100px_rgba(79,70,229,0.14)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-600">
+                    <Icon name={feature.icon} className="h-5 w-5" />
+                  </div>
+                  <div className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">Applume</div>
+                </div>
+                <h3 className="mt-8 text-2xl font-black text-slate-950">{feature.title}</h3>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">{feature.copy}</p>
+                <div className="mt-8 rounded-[1.35rem] border border-slate-200 bg-slate-50 p-3">
+                  <div className="grid gap-2">
+                    {feature.preview.map((item) => (
+                      <div key={item} className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 shadow-sm">{item}</div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function AudienceSection() {
+function ScrollStorySection() {
+  return (
+    <section className="bg-[#FAFAF7] px-4 py-28 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <SectionLabel>Scroll story</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">From opportunity to outcome.</h2>
+        </Reveal>
+        <div className="relative mt-16">
+          <div className="absolute bottom-0 left-5 top-0 w-px bg-gradient-to-b from-indigo-600 via-sky-400 to-amber-400 sm:left-1/2" />
+          {storySteps.map(([title, copy], index) => (
+            <Reveal key={title} delay={index * 0.04} className={`relative mb-8 flex ${index % 2 === 0 ? "sm:justify-start" : "sm:justify-end"}`}>
+              <div className="absolute left-0 top-7 grid h-10 w-10 place-items-center rounded-full border border-white bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 sm:left-1/2 sm:-translate-x-1/2">
+                {index + 1}
+              </div>
+              <GlassCard className="ml-16 w-full p-6 sm:ml-0 sm:w-[44%]">
+                <div className="mb-5 text-amber-500">
+                  <PlaneIcon className="h-7 w-7 rotate-45" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-950">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{copy}</p>
+                <div className="mt-6 rounded-2xl bg-slate-50 p-3">
+                  <div className="h-2 w-2/3 rounded-full bg-indigo-200" />
+                  <div className="mt-3 h-2 w-1/2 rounded-full bg-sky-200" />
+                </div>
+              </GlassCard>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingFAQ({ onGetStarted }) {
+  const faqs = [
+    ["Is Applume only for jobs?", "No. It is built for universities, jobs, internships, and scholarships."],
+    ["Can I start without importing data?", "Yes. Start with one record, then add applications as you go."],
+    ["Will I keep control of my data?", "Yes. Applume focuses on private account data and exportable records."],
+  ];
+
   return (
     <section className="bg-white px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <Reveal className="text-center">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Built for admissions and job hunts</p>
-          <h2 className="mx-auto mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-            Same chaos, different applications. Applume handles both.
-          </h2>
-        </Reveal>
-        <div className="mt-12 grid gap-4 lg:grid-cols-2">
-          {audienceCards.map((card, index) => (
-            <Reveal key={card.title} delay={index * 0.08} className="rounded-lg border border-slate-200 bg-[#f7f5ef] p-6">
-              <ToneIcon icon={card.icon} tone={index === 0 ? "emerald" : "blue"} />
-              <h3 className="mt-5 text-2xl font-black text-slate-950">{card.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{card.copy}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {card.items.map((item) => (
-                  <span key={item} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600">{item}</span>
-                ))}
-              </div>
-            </Reveal>
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <GlassCard id="pricing" className="p-8">
+          <SectionLabel>Pricing</SectionLabel>
+          <h2 className="mt-5 text-4xl font-black text-slate-950">Start free while Applume grows.</h2>
+          <p className="mt-4 text-slate-600">Create a tracker, organize your records, and help shape the product with feedback.</p>
+          <button type="button" onClick={onGetStarted} className="mt-8 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white">Start tracking for free</button>
+        </GlassCard>
+        <div id="faq" className="grid gap-4">
+          {faqs.map(([question, answer]) => (
+            <GlassCard key={question} className="p-6">
+              <h3 className="text-xl font-black text-slate-950">{question}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{answer}</p>
+            </GlassCard>
           ))}
         </div>
       </div>
@@ -596,186 +587,60 @@ function AudienceSection() {
   );
 }
 
-function HowItWorksSection() {
+function FinalCTA({ onGetStarted }) {
+  const reducedMotion = useReducedMotion();
   return (
-    <section id="how-it-works" className="scroll-mt-20 bg-slate-950 px-4 py-24 text-white sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <Reveal className="max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">From paste to tracker</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-            Make logging an application feel lighter than filling a row.
-          </h2>
-          <p className="mt-4 text-base leading-7 text-slate-400">
-            The product should reduce friction, not add another chore. Applume keeps manual control while making the first draft faster.
-          </p>
-        </Reveal>
-        <div className="mt-14 grid gap-4 lg:grid-cols-3">
-          {flowSteps.map((step, index) => (
-            <Reveal key={step.label} delay={index * 0.08} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
-              <div className="inline-flex rounded-md bg-emerald-400/10 px-3 py-1.5 text-xs font-black text-emerald-300">{step.label}</div>
-              <h3 className="mt-5 text-xl font-black">{step.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-400">{step.copy}</p>
-            </Reveal>
-          ))}
+    <section className="relative overflow-hidden bg-[#FAFAF7] px-4 py-28 sm:px-6">
+      <motion.div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(79,70,229,0.18),transparent_34%),radial-gradient(circle_at_70%_65%,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_28%_70%,rgba(245,158,11,0.18),transparent_30%)]" animate={reducedMotion ? undefined : { scale: [1, 1.04, 1] }} transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
+      <Reveal className="relative mx-auto max-w-5xl rounded-[2.5rem] border border-white/80 bg-white/80 p-8 text-center shadow-[0_40px_120px_rgba(15,23,42,0.14)] backdrop-blur-2xl sm:p-14">
+        <div className="mx-auto mb-8 grid h-16 w-16 place-items-center rounded-[1.4rem] bg-gradient-to-br from-indigo-600 via-sky-400 to-amber-400 text-white shadow-xl shadow-indigo-500/25">
+          <PlaneIcon className="h-8 w-8 rotate-45" />
         </div>
-        <Reveal delay={0.14} className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-slate-950">
-          <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Grounded trust</p>
-              <h3 className="mt-3 text-3xl font-black leading-tight">Private by default. Export whenever you want.</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Sign in with Google or email. Your records belong to your account, and shared tracker links are intentional.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                ["Google/email", "Sign-in options"],
-                ["CSV/JSON", "No lock-in"],
-                ["Feedback", "Built with users"],
-              ].map(([value, label]) => (
-                <div key={value} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-sm font-black">{value}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      </div>
+        <h2 className="text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Stop managing your future in a spreadsheet.</h2>
+        <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-600">Build a clearer application workflow with Applume.</p>
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <button type="button" onClick={onGetStarted} className="rounded-full bg-indigo-600 px-8 py-4 text-base font-black text-white shadow-xl shadow-indigo-600/25 transition hover:-translate-y-0.5 hover:bg-indigo-500">Start tracking for free</button>
+          <a href="#how-it-works" className="rounded-full border border-slate-200 bg-white px-8 py-4 text-base font-black text-slate-800 shadow-sm transition hover:-translate-y-0.5">View demo</a>
+        </div>
+      </Reveal>
     </section>
   );
 }
 
-function FounderNote({ onGetStarted }) {
+function LandingFooter() {
   return (
-    <section className="bg-[#f7f5ef] px-4 py-24 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-stretch">
-        <Reveal className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">A note from the builder</p>
-          <p className="mt-5 text-xl font-black leading-8 text-slate-950">
-            Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
-          </p>
-          <p className="mt-4 text-sm leading-6 text-slate-600">
-            The goal is simple: keep the speed people like about spreadsheets, then add the structure that deadlines, documents, links, and interviews actually need.
-          </p>
-        </Reveal>
-        <Reveal delay={0.08} className="rounded-lg border border-slate-200 bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/15">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Bring order to the list</p>
-          <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-            Turn your application sheet into a finished workspace.
-          </h2>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-slate-400">
-            Keep the speed of a spreadsheet, then add the structure needed to stay prepared and consistent.
-          </p>
-          <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-lg bg-emerald-500 px-9 py-4 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition hover:bg-emerald-400" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
-            Create your tracker
-          </motion.button>
-        </Reveal>
+    <footer className="border-t border-[rgba(15,23,42,0.08)] bg-white px-4 py-10 sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 text-slate-950">
+          <PlaneIcon className="h-5 w-5 rotate-45 text-amber-500" />
+          <span>Applume</span>
+        </div>
+        <div className="flex gap-5">
+          <a href="/privacy" className="hover:text-slate-950">Privacy</a>
+          <a href="#features" className="hover:text-slate-950">Features</a>
+          <a href="#faq" className="hover:text-slate-950">FAQ</a>
+        </div>
       </div>
-    </section>
+    </footer>
   );
 }
 
 export default function LandingPage({ onGetStarted }) {
-  const reducedMotion = useReducedMotion();
-
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f7f5ef] text-slate-950">
-      <ScrollThread />
-      <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f7f5ef]/90 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <a href="/" className="flex items-center gap-2.5">
-            <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
-            <span className="text-sm font-black tracking-tight">
-              <span className="text-slate-950">App</span><span className="text-emerald-600">lume</span>
-            </span>
-          </a>
-          <div className="hidden items-center gap-7 text-sm font-semibold text-slate-500 sm:flex">
-            <a href="#why-applume" className="transition hover:text-slate-950">Why Applume</a>
-            <a href="#features" className="transition hover:text-slate-950">Features</a>
-            <a href="#how-it-works" className="transition hover:text-slate-950">How it works</a>
-          </div>
-          <div className="flex items-center gap-2">
-            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
-              Sign in
-            </motion.button>
-            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 sm:inline-flex" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
-              <span>Start tracking free</span>
-            </motion.button>
-          </div>
-        </div>
-      </nav>
-
-      <section className="relative overflow-hidden px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24">
-        <HeroBackground />
-        <div className="relative z-10 mx-auto max-w-5xl">
-          <motion.span
-            className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em]"
-            whileHover={reducedMotion ? undefined : { y: -2 }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Built for spreadsheet escapees
-          </motion.span>
-
-          <motion.h1
-            className="mx-auto mt-7 max-w-[17rem] text-[1.62rem] font-black leading-[1.1] tracking-tight min-[420px]:max-w-5xl min-[420px]:text-[2.7rem] sm:text-[4rem] sm:leading-[1.03] lg:text-[5.15rem]"
-            initial={false}
-          >
-            <span className="block sm:hidden">Applications</span>
-            <span className="block sm:hidden">deserve better</span>
-            <span className="block sm:hidden">than a</span>
-            <span className="block sm:hidden">spreadsheet.</span>
-            <span className="hidden sm:inline">Your applications deserve better than </span>
-            <span className="hidden sm:block">a spreadsheet.</span>
-          </motion.h1>
-
-          <motion.p
-            className="mx-auto mt-6 max-w-[19rem] text-base leading-7 text-slate-600 sm:max-w-3xl sm:text-lg sm:leading-8"
-            initial={false}
-          >
-            Applume turns job and university applications into structured records with deadlines, documents, links, notes, statuses, and next steps.
-          </motion.p>
-
-          <motion.div
-            className="mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-black text-slate-600 sm:max-w-3xl sm:grid-cols-3"
-            initial={false}
-          >
-            {["12 tabs open", "Deadline hidden in a row", "Portal link lost again"].map((item) => (
-              <span key={item} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center shadow-sm">
-                {item}
-              </span>
-            ))}
-          </motion.div>
-
-          <motion.div
-            className="mx-auto mt-9 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
-            initial={false}
-          >
-            <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
-              Build my tracker
-            </motion.button>
-            <motion.a href="#example-tracker" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
-              See the product demo
-            </motion.a>
-          </motion.div>
-
-          <motion.p
-            className="mx-auto mt-5 max-w-[17rem] text-xs leading-5 text-slate-500 sm:max-w-xl"
-            initial={false}
-          >
-            For students, graduates, and job seekers managing multiple applications at once.
-          </motion.p>
-        </div>
-
-        <ProductDemo />
-      </section>
-
-      <TransformationStrip />
-      <ProblemSection />
-      <FeatureSection />
-      <AudienceSection />
-      <HowItWorksSection />
-      <FounderNote onGetStarted={onGetStarted} />
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF7] font-sans text-slate-950 antialiased">
+      <ScrollProgress />
+      <FloatingPlaneJourney />
+      <Navigation onGetStarted={onGetStarted} />
+      <main>
+        <HeroSection onGetStarted={onGetStarted} />
+        <ProblemSection />
+        <SpreadsheetTransformSection />
+        <PipelineSection />
+        <FeatureSection />
+        <ScrollStorySection />
+        <PricingFAQ onGetStarted={onGetStarted} />
+        <FinalCTA onGetStarted={onGetStarted} />
+      </main>
       <LandingFooter />
     </div>
   );
