@@ -142,7 +142,7 @@ const painCards = [
     icon: "sparkles",
     title: "Manual entry breaks momentum",
     copy: "Starting every application from a blank row is exactly where good tracking habits fade.",
-    tone: "violet",
+    tone: "emerald",
   },
 ];
 
@@ -206,12 +206,11 @@ function ToneIcon({ icon, tone = "emerald" }) {
     emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
     blue: "border-blue-200 bg-blue-50 text-blue-700",
-    violet: "border-violet-200 bg-violet-50 text-violet-700",
     slate: "border-slate-200 bg-slate-50 text-slate-700",
   }[tone];
 
   return (
-    <div className={`grid h-10 w-10 place-items-center rounded-lg border ${toneClass}`}>
+    <div className={`grid h-10 w-10 place-items-center rounded-lg border shadow-sm shadow-slate-900/5 ${toneClass}`}>
       <Icon name={icon} className="h-4 w-4" />
     </div>
   );
@@ -240,12 +239,12 @@ function LandingFooter() {
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-white px-6 py-10 text-center">
+    <footer className="border-t border-slate-200 bg-white px-6 py-12 text-center">
       <p className="text-sm font-black text-slate-800">Know someone still managing applications in a spreadsheet?</p>
       <p className="mt-1 text-xs text-slate-500">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
-          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
+          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100">
             <Icon name="share" className="h-3.5 w-3.5" /> Share
           </button>
         )}
@@ -278,11 +277,11 @@ function HeroBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[58rem] bg-[linear-gradient(to_right,rgba(15,23,42,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.06)_1px,transparent_1px)] bg-[size:72px_48px] opacity-50" />
+      <div className="absolute inset-x-0 top-0 h-[58rem] bg-[linear-gradient(to_right,rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.045)_1px,transparent_1px)] bg-[size:72px_48px] opacity-40" />
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-[#f7f5ef]" />
       <motion.div
-        className="absolute left-[8%] top-28 hidden w-56 rotate-[-7deg] rounded-lg border border-rose-100 bg-white/90 p-3 shadow-xl shadow-slate-900/10 sm:block"
-        style={{ y: reducedMotion ? 0 : y, opacity: reducedMotion ? 0.75 : sheetOpacity }}
+        className="absolute left-[6%] top-32 hidden w-56 rotate-[-4deg] rounded-lg border border-rose-100 bg-white/80 p-3 shadow-lg shadow-slate-900/10 sm:block"
+        style={{ y: reducedMotion ? 0 : y, opacity: reducedMotion ? 0.45 : sheetOpacity }}
       >
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">Messy sheet</p>
         <div className="grid grid-cols-4 gap-1 text-[9px] font-bold text-slate-400">
@@ -298,8 +297,8 @@ function HeroBackground() {
         style={{ scaleX: reducedMotion ? 0.75 : routeScale }}
       />
       <motion.div
-        className="absolute right-[4%] top-24 hidden w-60 rotate-[6deg] rounded-lg border border-emerald-100 bg-white/95 p-4 shadow-xl shadow-emerald-900/10 lg:block"
-        style={{ opacity: reducedMotion ? 0.8 : recordOpacity }}
+        className="absolute right-[4%] top-28 hidden w-60 rotate-[4deg] rounded-lg border border-emerald-100 bg-white/90 p-4 shadow-lg shadow-slate-900/10 lg:block"
+        style={{ opacity: reducedMotion ? 0.55 : recordOpacity }}
       >
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Applume record</p>
         <p className="mt-2 text-sm font-black text-slate-900">One application, all context</p>
@@ -332,15 +331,15 @@ function ProductDemo() {
   }[selected.tone];
 
   return (
-    <div id="example-tracker" className="mx-auto mt-12 w-full max-w-[calc(100vw-2rem)] scroll-mt-24 px-0 sm:max-w-6xl sm:px-6">
+    <div id="example-tracker" className="mx-auto mt-12 w-full max-w-[calc(100vw-2rem)] scroll-mt-24 px-0 sm:mt-14 sm:max-w-6xl sm:px-6">
       <motion.div
-        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-900/10"
+        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10"
         initial={false}
         whileInView={reducedMotion ? undefined : { y: [8, 0] }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="flex flex-col items-stretch gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex flex-col items-stretch gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
@@ -353,7 +352,7 @@ function ProductDemo() {
                 key={key}
                 type="button"
                 onClick={() => switchMode(key)}
-                className={`rounded-md px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                className={`rounded-md px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"}`}
               >
                 {value.label}
               </button>
@@ -361,15 +360,15 @@ function ProductDemo() {
           </div>
         </div>
 
-        <div className="grid bg-[#f7f5ef] lg:grid-cols-[0.78fr_1.22fr]">
-          <div className="border-b border-slate-200 bg-slate-950 p-4 text-white lg:border-b-0 lg:border-r lg:p-5">
+        <div className="grid bg-[#f8fafc] lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="border-b border-slate-200 bg-slate-900 p-4 text-white lg:border-b-0 lg:border-r lg:p-5">
             <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
               <div className="flex items-center gap-2 text-emerald-300">
                 <Icon name="sparkles" className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-[0.18em]">AI autofill draft</span>
               </div>
               <p className="mt-3 text-sm font-black">{active.pasteTitle}</p>
-              <p className="mt-2 rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-xs leading-5 text-slate-400">
+              <p className="mt-2 rounded-md border border-white/10 bg-slate-950/60 px-3 py-3 text-xs leading-5 text-slate-400">
                 {active.pasteText}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -389,7 +388,7 @@ function ProductDemo() {
                       key={record.id}
                       type="button"
                       onClick={() => setSelectedId(record.id)}
-                      className={`w-full rounded-lg border p-3 text-left transition ${activeRecord ? "border-emerald-300 bg-white text-slate-950" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}
+                      className={`w-full rounded-lg border p-3 text-left transition ${activeRecord ? "border-emerald-300 bg-white text-slate-950 shadow-sm" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}
                       whileHover={reducedMotion ? undefined : { x: 4 }}
                       whileTap={reducedMotion ? undefined : { scale: 0.99 }}
                     >
@@ -422,7 +421,7 @@ function ProductDemo() {
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {selected.fields.map(([label, value]) => (
-                <div key={label} className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div key={label} className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-900/5">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
                   <p className="mt-2 text-sm font-black text-slate-900">{value}</p>
                 </div>
@@ -430,7 +429,7 @@ function ProductDemo() {
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.78fr]">
-              <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Document checklist</p>
                 <div className="mt-3 space-y-2">
                   {selected.checklist.map((item, index) => {
@@ -446,7 +445,7 @@ function ProductDemo() {
                   })}
                 </div>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-950 p-4 text-white">
+              <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 text-white shadow-sm shadow-slate-900/10">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">Notes and next step</p>
                 <p className="mt-3 text-sm leading-6 text-slate-300">{selected.activity}</p>
                 <div className="mt-4 rounded-md bg-white/10 px-3 py-2 text-xs font-bold text-slate-200">
@@ -471,9 +470,9 @@ function TransformationStrip() {
   const recordOpacity = useTransform(scrollYProgress, [0.15, 0.75], [0.44, 1]);
 
   return (
-    <section ref={ref} className="border-y border-slate-200 bg-white px-4 py-10 sm:px-6">
+    <section ref={ref} className="border-y border-slate-200 bg-white px-4 py-12 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-        <motion.div className="rounded-lg border border-rose-100 bg-rose-50 p-4" style={{ x: reducedMotion ? 0 : sheetX, opacity: reducedMotion ? 1 : sheetOpacity }}>
+        <motion.div className="rounded-lg border border-rose-100 bg-rose-50 p-5 shadow-sm shadow-slate-900/5" style={{ x: reducedMotion ? 0 : sheetX, opacity: reducedMotion ? 1 : sheetOpacity }}>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">Before</p>
           <p className="mt-2 text-lg font-black text-slate-950">Rows full of question marks</p>
           <div className="mt-4 grid grid-cols-4 gap-1 text-[10px] font-bold">
@@ -484,10 +483,10 @@ function TransformationStrip() {
             ))}
           </div>
         </motion.div>
-        <div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-emerald-300">
+        <div className="mx-auto grid h-11 w-11 place-items-center rounded-lg bg-emerald-600 text-white shadow-sm shadow-emerald-900/15">
           <Icon name="sparkles" className="h-5 w-5" />
         </div>
-        <motion.div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4" style={{ x: reducedMotion ? 0 : recordX, opacity: reducedMotion ? 1 : recordOpacity }}>
+        <motion.div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm shadow-slate-900/5" style={{ x: reducedMotion ? 0 : recordX, opacity: reducedMotion ? 1 : recordOpacity }}>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">After</p>
           <p className="mt-2 text-lg font-black text-slate-950">Records with context</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -503,20 +502,20 @@ function TransformationStrip() {
 
 function ProblemSection() {
   return (
-    <section id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-24 text-white sm:px-6">
+    <section id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Where spreadsheets break</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             It is not the tracking that is hard. It is keeping the context alive.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-400">
             Applications become stressful when dates, documents, links, notes, and next steps live in different places. Applume is built around that exact moment.
           </p>
         </Reveal>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {painCards.map((item, index) => (
-            <Reveal key={item.title} delay={index * 0.06} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
+            <Reveal key={item.title} delay={index * 0.06} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
               <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 280, damping: 22 }}>
                 <div className="mb-5">
                   <ToneIcon icon={item.icon} tone={item.tone} />
@@ -534,12 +533,12 @@ function ProblemSection() {
 
 function FeatureSection() {
   return (
-    <section id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-24 sm:px-6">
+    <section id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Every application becomes a record</p>
-            <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+            <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
               Not another list. A place for the whole application.
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
@@ -555,7 +554,7 @@ function FeatureSection() {
               ["Notes", "Interview prep and admissions requirements"],
               ["Export", "CSV or JSON when you want your data out"],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div key={label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">{label}</p>
                 <p className="mt-2 text-sm font-semibold leading-5 text-slate-700">{value}</p>
               </div>
@@ -569,17 +568,17 @@ function FeatureSection() {
 
 function AudienceSection() {
   return (
-    <section className="bg-white px-4 py-24 sm:px-6">
+    <section className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <Reveal className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Built for admissions and job hunts</p>
-          <h2 className="mx-auto mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+          <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Same chaos, different applications. Applume handles both.
           </h2>
         </Reveal>
         <div className="mt-12 grid gap-4 lg:grid-cols-2">
           {audienceCards.map((card, index) => (
-            <Reveal key={card.title} delay={index * 0.08} className="rounded-lg border border-slate-200 bg-[#f7f5ef] p-6">
+            <Reveal key={card.title} delay={index * 0.08} className="rounded-lg border border-slate-200 bg-[#f7f5ef] p-6 shadow-sm shadow-slate-900/5">
               <ToneIcon icon={card.icon} tone={index === 0 ? "emerald" : "blue"} />
               <h3 className="mt-5 text-2xl font-black text-slate-950">{card.title}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">{card.copy}</p>
@@ -598,31 +597,31 @@ function AudienceSection() {
 
 function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="scroll-mt-20 bg-slate-950 px-4 py-24 text-white sm:px-6">
+    <section id="how-it-works" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">From paste to tracker</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Make logging an application feel lighter than filling a row.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-400">
             The product should reduce friction, not add another chore. Applume keeps manual control while making the first draft faster.
           </p>
         </Reveal>
-        <div className="mt-14 grid gap-4 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 lg:grid-cols-3">
           {flowSteps.map((step, index) => (
-            <Reveal key={step.label} delay={index * 0.08} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
+            <Reveal key={step.label} delay={index * 0.08} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
               <div className="inline-flex rounded-md bg-emerald-400/10 px-3 py-1.5 text-xs font-black text-emerald-300">{step.label}</div>
               <h3 className="mt-5 text-xl font-black">{step.title}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-400">{step.copy}</p>
             </Reveal>
           ))}
         </div>
-        <Reveal delay={0.14} className="mt-6 rounded-lg border border-white/10 bg-white p-5 text-slate-950">
+        <Reveal delay={0.14} className="mt-6 rounded-lg border border-white/10 bg-white p-6 text-slate-950 shadow-sm shadow-black/10">
           <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Grounded trust</p>
-              <h3 className="mt-3 text-3xl font-black leading-tight">Private by default. Export whenever you want.</h3>
+              <h3 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">Private by default. Export whenever you want.</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">
                 Sign in with Google or email. Your records belong to your account, and shared tracker links are intentional.
               </p>
@@ -648,9 +647,9 @@ function HowItWorksSection() {
 
 function FounderNote({ onGetStarted }) {
   return (
-    <section className="bg-[#f7f5ef] px-4 py-24 sm:px-6">
+    <section className="bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-stretch">
-        <Reveal className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <Reveal className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-900/5">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">A note from the builder</p>
           <p className="mt-5 text-xl font-black leading-8 text-slate-950">
             Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
@@ -659,15 +658,15 @@ function FounderNote({ onGetStarted }) {
             The goal is simple: keep the speed people like about spreadsheets, then add the structure that deadlines, documents, links, and interviews actually need.
           </p>
         </Reveal>
-        <Reveal delay={0.08} className="rounded-lg border border-slate-200 bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/15">
+        <Reveal delay={0.08} className="rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-xl shadow-slate-900/15">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Bring order to the list</p>
-          <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+          <h2 className="mt-5 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Turn your application sheet into a finished workspace.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-slate-400">
             Keep the speed of a spreadsheet, then add the structure needed to stay prepared and consistent.
           </p>
-          <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-lg bg-emerald-500 px-9 py-4 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition hover:bg-emerald-400" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+          <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-lg bg-emerald-600 px-9 py-4 text-base font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
             Create your tracker
           </motion.button>
         </Reveal>
@@ -682,7 +681,7 @@ export default function LandingPage({ onGetStarted }) {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f5ef] text-slate-950">
       <ScrollThread />
-      <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f7f5ef]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-[#f7f5ef]/95 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
           <a href="/" className="flex items-center gap-2.5">
             <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
@@ -696,21 +695,21 @@ export default function LandingPage({ onGetStarted }) {
             <a href="#how-it-works" className="transition hover:text-slate-950">How it works</a>
           </div>
           <div className="flex items-center gap-2">
-            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white sm:block" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
+            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 sm:block" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
               Sign in
             </motion.button>
-            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 sm:inline-flex" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
+            <motion.button type="button" onClick={onGetStarted} className="hidden rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-emerald-900/15 transition hover:bg-emerald-700 sm:inline-flex" whileHover={reducedMotion ? undefined : { y: -1 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
               <span>Start tracking free</span>
             </motion.button>
           </div>
         </div>
       </nav>
 
-      <section className="relative overflow-hidden px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24">
+      <section className="relative overflow-hidden px-4 pb-16 pt-14 text-center sm:px-6 sm:pt-20 lg:pb-20 lg:pt-24">
         <HeroBackground />
-        <div className="relative z-10 mx-auto max-w-5xl">
+        <div className="relative z-10 mx-auto max-w-4xl">
           <motion.span
-            className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em]"
+            className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm shadow-slate-900/5 sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
             whileHover={reducedMotion ? undefined : { y: -2 }}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -718,7 +717,7 @@ export default function LandingPage({ onGetStarted }) {
           </motion.span>
 
           <motion.h1
-            className="mx-auto mt-7 max-w-[17rem] text-[1.62rem] font-black leading-[1.1] tracking-tight min-[420px]:max-w-5xl min-[420px]:text-[2.7rem] sm:text-[4rem] sm:leading-[1.03] lg:text-[5.15rem]"
+            className="mx-auto mt-7 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.8rem] sm:text-[4rem] sm:leading-[1.04] lg:text-[4.75rem]"
             initial={false}
           >
             <span className="block sm:hidden">Applications</span>
@@ -730,18 +729,18 @@ export default function LandingPage({ onGetStarted }) {
           </motion.h1>
 
           <motion.p
-            className="mx-auto mt-6 max-w-[19rem] text-base leading-7 text-slate-600 sm:max-w-3xl sm:text-lg sm:leading-8"
+            className="mx-auto mt-6 max-w-[20rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8"
             initial={false}
           >
             Applume turns job and university applications into structured records with deadlines, documents, links, notes, statuses, and next steps.
           </motion.p>
 
           <motion.div
-            className="mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-black text-slate-600 sm:max-w-3xl sm:grid-cols-3"
+            className="mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-bold text-slate-600 sm:max-w-2xl sm:grid-cols-3"
             initial={false}
           >
             {["12 tabs open", "Deadline hidden in a row", "Portal link lost again"].map((item) => (
-              <span key={item} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center shadow-sm">
+              <span key={item} className="rounded-lg border border-slate-200 bg-white/95 px-3 py-2.5 text-center shadow-sm shadow-slate-900/5">
                 {item}
               </span>
             ))}
@@ -751,10 +750,10 @@ export default function LandingPage({ onGetStarted }) {
             className="mx-auto mt-9 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
             initial={false}
           >
-            <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-slate-950 px-8 py-3.5 text-base font-bold text-white shadow-xl shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
+            <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
               Build my tracker
             </motion.button>
-            <motion.a href="#example-tracker" className="w-full rounded-lg border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
+            <motion.a href="#example-tracker" className="w-full rounded-lg border border-slate-200 bg-white/95 px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm shadow-slate-900/5 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-700 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
               See the product demo
             </motion.a>
           </motion.div>
