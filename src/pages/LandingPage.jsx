@@ -1,6 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const demoSets = {
   university: {
@@ -186,19 +190,75 @@ function ScrollThread() {
   return <motion.div className="fixed left-0 right-0 top-0 z-[70] h-[3px] origin-left bg-emerald-500" style={{ scaleX: reducedMotion ? 1 : scaleX }} />;
 }
 
-function Reveal({ children, className = "", delay = 0 }) {
-  const reducedMotion = useReducedMotion();
-  return (
-    <motion.div
-      className={className}
-      initial={reducedMotion ? false : { opacity: 0, y: 24 }}
-      whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => (
+    typeof window !== "undefined" &&
+    !!window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ));
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(query.matches);
+    updatePreference();
+
+    query.addEventListener("change", updatePreference);
+    return () => query.removeEventListener("change", updatePreference);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+function useGsapReveal(ref, {
+  selector = null,
+  trigger = null,
+  start = "top 82%",
+  y = 18,
+  scale = 1,
+  duration = 0.75,
+  stagger = 0.08,
+  delay = 0,
+  immediate = false,
+} = {}) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    const root = ref.current;
+    if (!root || prefersReducedMotion) return undefined;
+
+    const ctx = gsap.context(() => {
+      const targets = selector ? gsap.utils.toArray(selector, root) : [root];
+      if (!targets.length) return;
+
+      const fromVars = { autoAlpha: 0, y };
+      if (scale !== 1) fromVars.scale = scale;
+
+      const tweenVars = {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration,
+        delay,
+        stagger,
+        ease: "power3.out",
+        clearProps: "transform,opacity,visibility",
+      };
+
+      if (!immediate) {
+        tweenVars.scrollTrigger = {
+          trigger: trigger ? root.querySelector(trigger) || root : root,
+          start,
+          once: true,
+        };
+      }
+
+      gsap.fromTo(targets, fromVars, tweenVars);
+    }, root);
+
+    return () => ctx.revert();
+  }, [delay, duration, immediate, prefersReducedMotion, ref, scale, selector, stagger, start, trigger, y]);
 }
 
 function ToneIcon({ icon, tone = "emerald" }) {
@@ -313,11 +373,13 @@ function HeroBackground() {
 }
 
 function ProductDemo() {
+  const demoRef = useRef(null);
   const [mode, setMode] = useState("university");
   const [selectedId, setSelectedId] = useState(demoSets.university.records[0].id);
   const reducedMotion = useReducedMotion();
   const active = demoSets[mode];
   const selected = active.records.find((record) => record.id === selectedId) || active.records[0];
+  useGsapReveal(demoRef, { selector: ".js-hero-demo", y: 22, scale: 0.96, duration: 0.9, stagger: 0, start: "top 88%" });
 
   function switchMode(nextMode) {
     setMode(nextMode);
@@ -331,9 +393,9 @@ function ProductDemo() {
   }[selected.tone];
 
   return (
-    <div id="example-tracker" className="mx-auto mt-12 w-full max-w-[calc(100vw-2rem)] scroll-mt-24 px-0 sm:mt-14 sm:max-w-6xl sm:px-6">
+    <div ref={demoRef} id="example-tracker" className="mx-auto mt-12 w-full max-w-[calc(100vw-2rem)] scroll-mt-24 px-0 sm:mt-14 sm:max-w-6xl sm:px-6">
       <motion.div
-        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10"
+        className="js-hero-demo overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10"
         initial={false}
         whileInView={reducedMotion ? undefined : { y: [8, 0] }}
         viewport={{ once: true, margin: "-80px" }}
@@ -501,10 +563,14 @@ function TransformationStrip() {
 }
 
 function ProblemSection() {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", y: 18, duration: 0.78 });
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.72, stagger: 0.07, start: "top 78%" });
+
   return (
-    <section id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
+    <section ref={sectionRef} id="why-applume" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
-        <Reveal className="max-w-3xl">
+        <div className="js-gsap-heading max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Where spreadsheets break</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             It is not the tracking that is hard. It is keeping the context alive.
@@ -512,10 +578,10 @@ function ProblemSection() {
           <p className="mt-4 text-base leading-7 text-slate-400">
             Applications become stressful when dates, documents, links, notes, and next steps live in different places. Applume is built around that exact moment.
           </p>
-        </Reveal>
+        </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {painCards.map((item, index) => (
-            <Reveal key={item.title} delay={index * 0.06} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
+          {painCards.map((item) => (
+            <div key={item.title} className="js-gsap-card rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
               <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 280, damping: 22 }}>
                 <div className="mb-5">
                   <ToneIcon icon={item.icon} tone={item.tone} />
@@ -523,7 +589,7 @@ function ProblemSection() {
                 <h3 className="text-base font-black">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-400">{item.copy}</p>
               </motion.div>
-            </Reveal>
+            </div>
           ))}
         </div>
       </div>
@@ -532,11 +598,15 @@ function ProblemSection() {
 }
 
 function FeatureSection() {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", y: 18, duration: 0.78 });
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.72, stagger: 0.06, start: "top 78%" });
+
   return (
-    <section id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
+    <section ref={sectionRef} id="features" className="scroll-mt-20 bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <Reveal>
+          <div className="js-gsap-heading">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Every application becomes a record</p>
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
               Not another list. A place for the whole application.
@@ -544,8 +614,8 @@ function FeatureSection() {
             <p className="mt-4 text-base leading-7 text-slate-600">
               Each record keeps the practical pieces together: status, deadline, documents, links, notes, next action, and exportable data.
             </p>
-          </Reveal>
-          <Reveal delay={0.08} className="grid gap-3 sm:grid-cols-2">
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
               ["Status", "Applying, interview, offer, rejected"],
               ["Deadline", "Urgent and overdue items stay visible"],
@@ -554,12 +624,12 @@ function FeatureSection() {
               ["Notes", "Interview prep and admissions requirements"],
               ["Export", "CSV or JSON when you want your data out"],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
+              <div key={label} className="js-gsap-card rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">{label}</p>
                 <p className="mt-2 text-sm font-semibold leading-5 text-slate-700">{value}</p>
               </div>
             ))}
-          </Reveal>
+          </div>
         </div>
       </div>
     </section>
@@ -567,18 +637,22 @@ function FeatureSection() {
 }
 
 function AudienceSection() {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", y: 18, duration: 0.78 });
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.72, stagger: 0.08, start: "top 78%" });
+
   return (
-    <section className="bg-white px-4 py-20 sm:px-6 lg:py-24">
+    <section ref={sectionRef} className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
-        <Reveal className="text-center">
+        <div className="js-gsap-heading text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Built for admissions and job hunts</p>
           <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Same chaos, different applications. Applume handles both.
           </h2>
-        </Reveal>
+        </div>
         <div className="mt-12 grid gap-4 lg:grid-cols-2">
           {audienceCards.map((card, index) => (
-            <Reveal key={card.title} delay={index * 0.08} className="rounded-lg border border-slate-200 bg-[#f7f5ef] p-6 shadow-sm shadow-slate-900/5">
+            <div key={card.title} className="js-gsap-card rounded-lg border border-slate-200 bg-[#f7f5ef] p-6 shadow-sm shadow-slate-900/5">
               <ToneIcon icon={card.icon} tone={index === 0 ? "emerald" : "blue"} />
               <h3 className="mt-5 text-2xl font-black text-slate-950">{card.title}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">{card.copy}</p>
@@ -587,7 +661,7 @@ function AudienceSection() {
                   <span key={item} className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600">{item}</span>
                 ))}
               </div>
-            </Reveal>
+            </div>
           ))}
         </div>
       </div>
@@ -596,10 +670,14 @@ function AudienceSection() {
 }
 
 function HowItWorksSection() {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", y: 18, duration: 0.78 });
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.72, stagger: 0.08, start: "top 78%" });
+
   return (
-    <section id="how-it-works" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
+    <section ref={sectionRef} id="how-it-works" className="scroll-mt-20 bg-slate-950 px-4 py-20 text-white sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
-        <Reveal className="max-w-3xl">
+        <div className="js-gsap-heading max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">From paste to tracker</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Make logging an application feel lighter than filling a row.
@@ -607,17 +685,17 @@ function HowItWorksSection() {
           <p className="mt-4 text-base leading-7 text-slate-400">
             The product should reduce friction, not add another chore. Applume keeps manual control while making the first draft faster.
           </p>
-        </Reveal>
+        </div>
         <div className="mt-12 grid gap-4 lg:grid-cols-3">
-          {flowSteps.map((step, index) => (
-            <Reveal key={step.label} delay={index * 0.08} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
+          {flowSteps.map((step) => (
+            <div key={step.label} className="js-gsap-card rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-sm shadow-black/10">
               <div className="inline-flex rounded-md bg-emerald-400/10 px-3 py-1.5 text-xs font-black text-emerald-300">{step.label}</div>
               <h3 className="mt-5 text-xl font-black">{step.title}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-400">{step.copy}</p>
-            </Reveal>
+            </div>
           ))}
         </div>
-        <Reveal delay={0.14} className="mt-6 rounded-lg border border-white/10 bg-white p-6 text-slate-950 shadow-sm shadow-black/10">
+        <div className="js-gsap-card mt-6 rounded-lg border border-white/10 bg-white p-6 text-slate-950 shadow-sm shadow-black/10">
           <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">Grounded trust</p>
@@ -639,17 +717,20 @@ function HowItWorksSection() {
               ))}
             </div>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
 }
 
 function FounderNote({ onGetStarted }) {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.78, stagger: 0.08 });
+
   return (
-    <section className="bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
+    <section ref={sectionRef} className="bg-[#f7f5ef] px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-stretch">
-        <Reveal className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-900/5">
+        <div className="js-gsap-card rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-900/5">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-600">A note from the builder</p>
           <p className="mt-5 text-xl font-black leading-8 text-slate-950">
             Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
@@ -657,8 +738,8 @@ function FounderNote({ onGetStarted }) {
           <p className="mt-4 text-sm leading-6 text-slate-600">
             The goal is simple: keep the speed people like about spreadsheets, then add the structure that deadlines, documents, links, and interviews actually need.
           </p>
-        </Reveal>
-        <Reveal delay={0.08} className="rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-xl shadow-slate-900/15">
+        </div>
+        <div className="js-gsap-card rounded-lg border border-slate-800 bg-slate-900 p-8 text-white shadow-xl shadow-slate-900/15">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Bring order to the list</p>
           <h2 className="mt-5 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Turn your application sheet into a finished workspace.
@@ -669,14 +750,16 @@ function FounderNote({ onGetStarted }) {
           <motion.button type="button" onClick={onGetStarted} className="mt-8 rounded-lg bg-emerald-600 px-9 py-4 text-base font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
             Create your tracker
           </motion.button>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
 }
 
 export default function LandingPage({ onGetStarted }) {
+  const heroRef = useRef(null);
   const reducedMotion = useReducedMotion();
+  useGsapReveal(heroRef, { selector: ".js-hero-reveal", y: 18, duration: 0.82, stagger: 0.09, immediate: true });
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f5ef] text-slate-950">
@@ -705,11 +788,11 @@ export default function LandingPage({ onGetStarted }) {
         </div>
       </nav>
 
-      <section className="relative overflow-hidden px-4 pb-16 pt-14 text-center sm:px-6 sm:pt-20 lg:pb-20 lg:pt-24">
+      <section ref={heroRef} className="relative overflow-hidden px-4 pb-16 pt-14 text-center sm:px-6 sm:pt-20 lg:pb-20 lg:pt-24">
         <HeroBackground />
         <div className="relative z-10 mx-auto max-w-4xl">
           <motion.span
-            className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm shadow-slate-900/5 sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
+            className="js-hero-reveal inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700 shadow-sm shadow-slate-900/5 sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
             whileHover={reducedMotion ? undefined : { y: -2 }}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -717,7 +800,7 @@ export default function LandingPage({ onGetStarted }) {
           </motion.span>
 
           <motion.h1
-            className="mx-auto mt-7 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.8rem] sm:text-[4rem] sm:leading-[1.04] lg:text-[4.75rem]"
+            className="js-hero-reveal mx-auto mt-7 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.8rem] sm:text-[4rem] sm:leading-[1.04] lg:text-[4.75rem]"
             initial={false}
           >
             <span className="block sm:hidden">Applications</span>
@@ -729,14 +812,14 @@ export default function LandingPage({ onGetStarted }) {
           </motion.h1>
 
           <motion.p
-            className="mx-auto mt-6 max-w-[20rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8"
+            className="js-hero-reveal mx-auto mt-6 max-w-[20rem] text-base leading-7 text-slate-600 sm:max-w-2xl sm:text-lg sm:leading-8"
             initial={false}
           >
             Applume turns job and university applications into structured records with deadlines, documents, links, notes, statuses, and next steps.
           </motion.p>
 
           <motion.div
-            className="mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-bold text-slate-600 sm:max-w-2xl sm:grid-cols-3"
+            className="js-hero-reveal mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-bold text-slate-600 sm:max-w-2xl sm:grid-cols-3"
             initial={false}
           >
             {["12 tabs open", "Deadline hidden in a row", "Portal link lost again"].map((item) => (
@@ -747,7 +830,7 @@ export default function LandingPage({ onGetStarted }) {
           </motion.div>
 
           <motion.div
-            className="mx-auto mt-9 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
+            className="js-hero-reveal mx-auto mt-9 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
             initial={false}
           >
             <motion.button type="button" onClick={onGetStarted} className="w-full rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-700 sm:w-auto" whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}>
@@ -759,7 +842,7 @@ export default function LandingPage({ onGetStarted }) {
           </motion.div>
 
           <motion.p
-            className="mx-auto mt-5 max-w-[17rem] text-xs leading-5 text-slate-500 sm:max-w-xl"
+            className="js-hero-reveal mx-auto mt-5 max-w-[17rem] text-xs leading-5 text-slate-500 sm:max-w-xl"
             initial={false}
           >
             For students, graduates, and job seekers managing multiple applications at once.
