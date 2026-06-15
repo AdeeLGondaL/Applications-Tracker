@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10b981" />
+    <meta name="theme-color" content="#0B8F6A" />
     <meta
       name="description"
       content="Applume replaces messy application spreadsheets with a structured tracker for university admissions and job applications."
@@ -23,7 +23,8 @@
       content="Track university admissions and job applications in one structured workspace with deadlines, documents, statuses, notes, links, and next steps."
     />
     <meta property="og:image" content="https://applume.app/Logo.png" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image:alt" content="Applume application tracker logo" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Applume - Replace your application spreadsheet" />
     <meta
       name="twitter:description"
@@ -31,6 +32,37 @@
     />
     <meta name="twitter:image" content="https://applume.app/Logo.png" />
     <title>Applume - Replace your application spreadsheet</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://applume.app/#organization",
+            "name": "Applume",
+            "url": "https://applume.app/",
+            "logo": "https://applume.app/Logo.png"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://applume.app/#software",
+            "name": "Applume",
+            "applicationCategory": "ProductivityApplication",
+            "operatingSystem": "Web",
+            "url": "https://applume.app/",
+            "description": "Applume replaces messy application spreadsheets with a structured tracker for university admissions and job applications.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "publisher": {
+              "@id": "https://applume.app/#organization"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

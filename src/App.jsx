@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { lazy, Suspense, useEffect, useState } from "react";
 import LandingPage from "@/pages/LandingPage";
-import AuthPage from "@/pages/AuthPage";
-import Dashboard from "@/pages/Dashboard";
-import SharePage from "@/pages/SharePage";
-import PrivacyPage from "@/pages/PrivacyPage";
+
+const AuthPage = lazy(() => import("@/pages/AuthPage"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const SharePage = lazy(() => import("@/pages/SharePage"));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
+
+function RouteLoader() {
+  return <div className="min-h-screen bg-[#F6FBFA]" aria-label="Loading" />;
+}
 
 function AuthedApp() {
   const [session, setSession] = useState(undefined); // undefined = loading
@@ -12,26 +16,53 @@ function AuthedApp() {
   const [authMode, setAuthMode] = useState("signin");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
-    return () => subscription.unsubscribe();
+    let subscription;
+    let active = true;
+
+    import("@/lib/supabaseClient").then(({ supabase }) => {
+      if (!active) return;
+      supabase.auth.getSession().then(({ data }) => {
+        if (active) setSession(data.session ?? null);
+      });
+      const authState = supabase.auth.onAuthStateChange((_, nextSession) => {
+        if (active) setSession(nextSession);
+      });
+      subscription = authState.data.subscription;
+    });
+
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   if (session === undefined) return null; // loading splash
 
   if (session) return <Dashboard session={session} />;
-  if (showAuth) return <AuthPage mode={authMode} onModeChange={setAuthMode} onClose={() => setShowAuth(false)} onSuccess={() => setShowAuth(false)} />;
+  if (showAuth) {
+    return (
+      <AuthPage
+        mode={authMode}
+        onModeChange={setAuthMode}
+        onClose={() => setShowAuth(false)}
+        onSuccess={() => setShowAuth(false)}
+      />
+    );
+  }
   return <LandingPage onGetStarted={() => { setShowAuth(true); setAuthMode("signin"); }} />;
 }
 
 export default function App() {
   const path = window.location.pathname;
-  if (path.startsWith("/share/")) {
-    const token = path.replace("/share/", "").replace(/\/$/, "");
-    return <SharePage token={token} />;
-  }
-  if (path === "/privacy" || path === "/privacy/") {
-    return <PrivacyPage />;
-  }
-  return <AuthedApp />;
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      {path.startsWith("/share/") ? (
+        <SharePage token={path.replace("/share/", "").replace(/\/$/, "")} />
+      ) : path === "/privacy" || path === "/privacy/" ? (
+        <PrivacyPage />
+      ) : (
+        <AuthedApp />
+      )}
+    </Suspense>
+  );
 }

@@ -267,7 +267,7 @@ function useGsapReveal(ref, {
         duration,
         delay,
         stagger,
-        ease: "power3.out",
+        ease: "power2.out",
         clearProps: "transform,opacity,visibility",
       };
 
@@ -324,7 +324,7 @@ function LandingFooter() {
   ];
 
   return (
-    <footer className="border-t border-[rgba(23,49,46,0.08)] bg-white px-6 py-12 text-center">
+    <footer className="border-t border-[rgba(23,49,46,0.08)] bg-white px-6 py-10 text-center">
       <p className="text-sm font-black text-[#17312E]">Know someone still managing applications in a spreadsheet?</p>
       <p className="mt-1 text-xs text-[#667A75]">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
@@ -595,25 +595,25 @@ function ProblemSection() {
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
 
   return (
-    <section ref={sectionRef} id="why-applume" className="scroll-mt-20 bg-[#17312E] px-4 py-24 text-white sm:px-6 lg:py-28">
+    <section ref={sectionRef} id="why-applume" className="scroll-mt-24 bg-white px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#9AD6D1]">Where spreadsheets break</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Where spreadsheets break</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             It is not the tracking that is hard. It is keeping the context alive.
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#BFD3CF]">
+          <p className="mt-4 text-base leading-7 text-[#667A75]">
             Applications become stressful when dates, documents, links, notes, and next steps live in different places. Applume is built around that exact moment.
           </p>
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {painCards.map((item) => (
-            <div key={item.title} className="js-gsap-card rounded-2xl border border-white/10 bg-white/[0.05] p-6 shadow-sm shadow-black/5">
+            <div key={item.title} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-6 shadow-sm shadow-[#17312E]/[0.03]">
               <div className="mb-5">
                 <ToneIcon icon={item.icon} tone={item.tone} />
               </div>
               <h3 className="text-base font-black">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#BFD3CF]">{item.copy}</p>
+              <p className="mt-2 text-sm leading-6 text-[#667A75]">{item.copy}</p>
             </div>
           ))}
         </div>
@@ -628,7 +628,7 @@ function FeatureSection() {
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
 
   return (
-    <section ref={sectionRef} id="features" className="scroll-mt-20 bg-[#F6FBFA] px-4 py-24 sm:px-6 lg:py-28">
+    <section ref={sectionRef} id="features" className="scroll-mt-24 bg-[#F6FBFA] px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="js-gsap-heading">
@@ -667,7 +667,7 @@ function AudienceSection() {
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
 
   return (
-    <section ref={sectionRef} className="bg-white px-4 py-24 sm:px-6 lg:py-28">
+    <section ref={sectionRef} className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Built for admissions and job hunts</p>
@@ -696,31 +696,31 @@ function AudienceSection() {
 
 function ApplicationPipeline() {
   return (
-    <div className="js-gsap-card mt-8 rounded-2xl border border-white/10 bg-white/[0.05] p-5 shadow-sm shadow-black/5 sm:p-6">
+    <div className="js-gsap-card mt-8 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-5 shadow-sm shadow-[#17312E]/[0.03] sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#9AD6D1]">Application pipeline</p>
-          <h3 className="mt-2 text-2xl font-black leading-tight text-white sm:text-3xl">Saved to offer, every step stays visible.</h3>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Application pipeline</p>
+          <h3 className="mt-2 text-2xl font-black leading-tight text-[#17312E] sm:text-3xl">Saved to offer, every step stays visible.</h3>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-[#BFD3CF]">
+        <p className="max-w-sm text-sm leading-6 text-[#667A75]">
           A quiet path keeps progress visible without adding another stressful dashboard.
         </p>
       </div>
 
       <div className="relative mt-8">
-        <div className="pointer-events-none absolute left-6 right-6 top-5 hidden h-px bg-white/15 md:block">
-          <div className="h-px w-full bg-[#9AD6D1]/70" />
+        <div className="pointer-events-none absolute left-6 right-6 top-5 hidden h-px bg-[#D8DDD5] md:block">
+          <div className="h-px w-full bg-[#2F8F88]/45" />
         </div>
 
         <div className="grid gap-3 md:grid-cols-5">
           {pipelineSteps.map((step, index) => (
-            <div key={step.label} className="relative min-h-[8.5rem] rounded-2xl border border-white/10 bg-[#163734]/55 p-4 pt-12 text-left shadow-sm shadow-black/5">
+            <div key={step.label} className="relative min-h-[8.5rem] rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-4 pt-12 text-left shadow-sm shadow-[#17312E]/[0.03]">
               <span className="absolute left-4 top-4 grid h-4 w-4 place-items-center rounded-full border border-[#9AD6D1]/60 bg-[#2F8F88]">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
               </span>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9AB2AD]">Step {index + 1}</p>
-              <h4 className="mt-2 text-base font-black text-white">{step.label}</h4>
-              <p className="mt-2 text-xs leading-5 text-[#BFD3CF]">{step.copy}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">Step {index + 1}</p>
+              <h4 className="mt-2 text-base font-black text-[#17312E]">{step.label}</h4>
+              <p className="mt-2 text-xs leading-5 text-[#667A75]">{step.copy}</p>
             </div>
           ))}
         </div>
@@ -735,28 +735,28 @@ function HowItWorksSection() {
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
 
   return (
-    <section ref={sectionRef} id="how-it-works" className="scroll-mt-20 bg-[#17312E] px-4 py-24 text-white sm:px-6 lg:py-28">
+    <section ref={sectionRef} id="how-it-works" className="scroll-mt-24 bg-[#F6FBFA] px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#9AD6D1]">From paste to tracker</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">From paste to tracker</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Make logging an application feel lighter than filling a row.
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#BFD3CF]">
+          <p className="mt-4 text-base leading-7 text-[#667A75]">
             The product should reduce friction, not add another chore. Applume keeps manual control while making the first draft faster.
           </p>
         </div>
         <div className="mt-12 grid gap-4 lg:grid-cols-3">
           {flowSteps.map((step) => (
-            <div key={step.label} className="js-gsap-card rounded-2xl border border-white/10 bg-white/[0.05] p-6 shadow-sm shadow-black/5">
-              <div className="inline-flex rounded-xl bg-[#2F8F88]/20 px-3 py-1.5 text-xs font-black text-[#9AD6D1]">{step.label}</div>
+            <div key={step.label} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 shadow-sm shadow-[#17312E]/[0.03]">
+              <div className="inline-flex rounded-xl bg-[#EEF7F5] px-3 py-1.5 text-xs font-black text-[#256E68]">{step.label}</div>
               <h3 className="mt-5 text-xl font-black">{step.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#BFD3CF]">{step.copy}</p>
+              <p className="mt-3 text-sm leading-6 text-[#667A75]">{step.copy}</p>
             </div>
           ))}
         </div>
         <ApplicationPipeline />
-        <div className="js-gsap-card mt-6 rounded-2xl border border-white/10 bg-white p-6 text-[#17312E] shadow-sm shadow-black/5">
+        <div className="js-gsap-card mt-6 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 text-[#17312E] shadow-sm shadow-[#17312E]/[0.03]">
           <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Grounded trust</p>
@@ -789,7 +789,7 @@ function FounderNote({ onGetStarted }) {
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
 
   return (
-    <section ref={sectionRef} className="bg-[#F6FBFA] px-4 py-24 sm:px-6 lg:py-28">
+    <section ref={sectionRef} aria-labelledby="final-cta-title" className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-stretch">
         <div className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 shadow-sm shadow-[#17312E]/[0.03]">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">A note from the builder</p>
@@ -802,14 +802,14 @@ function FounderNote({ onGetStarted }) {
         </div>
         <div className="js-gsap-card rounded-2xl border border-[#17312E]/10 bg-[#17312E] p-8 text-white shadow-lg shadow-[#17312E]/[0.08]">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[#9AD6D1]">Bring order to the list</p>
-          <h2 className="mt-5 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
+          <h2 id="final-cta-title" className="mt-5 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Turn your application sheet into a finished workspace.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-[#BFD3CF]">
             Keep the speed of a spreadsheet, then add the structure needed to stay prepared and consistent.
           </p>
           <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-[#2F8F88] px-9 py-4 text-base font-bold text-white shadow-sm shadow-black/10 transition hover:bg-[#256E68]">
-            Create your tracker
+            Start tracking free
           </button>
         </div>
       </div>
@@ -823,9 +823,9 @@ export default function LandingPage({ onGetStarted }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F6FBFA] text-[#17312E]">
-      <nav className="sticky top-0 z-50 border-b border-[rgba(23,49,46,0.08)] bg-[#F6FBFA]/90 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <a href="/" className="flex items-center gap-2.5">
+      <header className="sticky top-0 z-50 border-b border-[rgba(23,49,46,0.08)] bg-[#F6FBFA]/92 backdrop-blur-xl">
+        <nav aria-label="Primary" className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <a href="/" className="flex min-h-11 items-center gap-2.5">
             <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
               <span className="text-[#17312E]">App</span><span className="text-[#2F8F88]">lume</span>
@@ -837,17 +837,18 @@ export default function LandingPage({ onGetStarted }) {
             <a href="#how-it-works" className="transition hover:text-[#17312E]">How it works</a>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onGetStarted} className="hidden rounded-xl px-3.5 py-2 text-sm font-semibold text-[#667A75] transition hover:bg-white hover:text-[#17312E] sm:block">
+            <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#667A75] transition hover:bg-white hover:text-[#17312E] sm:block">
               Sign in
             </button>
-            <button type="button" onClick={onGetStarted} className="hidden rounded-xl bg-[#2F8F88] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68] sm:inline-flex">
+            <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[#2F8F88] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68]">
               <span>Start tracking free</span>
             </button>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
-      <section ref={heroRef} className="relative overflow-hidden px-4 pb-20 pt-16 text-center sm:px-6 sm:pt-24 lg:pb-24 lg:pt-28">
+      <main>
+      <section ref={heroRef} className="relative overflow-hidden px-4 pb-16 pt-10 text-center sm:px-6 sm:pt-14 lg:pb-20 lg:pt-16">
         <div className="relative z-10 mx-auto max-w-4xl">
           <span
             className="js-hero-reveal inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-full border border-[rgba(23,49,46,0.08)] bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#2F8F88] shadow-sm shadow-[#17312E]/[0.03] sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
@@ -857,7 +858,7 @@ export default function LandingPage({ onGetStarted }) {
           </span>
 
           <h1
-            className="js-hero-reveal mx-auto mt-7 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.8rem] sm:text-[4rem] sm:leading-[1.04] lg:text-[4.75rem]"
+            className="js-hero-reveal mx-auto mt-5 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.7rem] sm:text-[3.6rem] sm:leading-[1.04] lg:text-[4.25rem]"
           >
             <span className="block sm:hidden">Applications</span>
             <span className="block sm:hidden">deserve better</span>
@@ -868,15 +869,15 @@ export default function LandingPage({ onGetStarted }) {
           </h1>
 
           <p
-            className="js-hero-reveal mx-auto mt-6 max-w-[21rem] text-base leading-7 text-[#667A75] sm:max-w-2xl sm:text-lg sm:leading-8"
+            className="js-hero-reveal mx-auto mt-5 max-w-[21rem] text-base leading-7 text-[#667A75] sm:max-w-2xl sm:text-lg sm:leading-8"
           >
             Applume turns job and university applications into calm, structured records with deadlines, documents, links, notes, statuses, and next steps.
           </p>
 
           <div
-            className="js-hero-reveal mx-auto mt-7 grid w-full max-w-sm gap-2 text-xs font-bold text-[#667A75] sm:max-w-2xl sm:grid-cols-3"
+            className="js-hero-reveal mx-auto mt-6 grid w-full max-w-sm gap-2 text-xs font-bold text-[#667A75] sm:max-w-2xl sm:grid-cols-3"
           >
-            {["12 tabs open", "Deadline hidden in a row", "Portal link lost again"].map((item) => (
+            {["University + job workflows", "Manual control", "Export anytime"].map((item) => (
               <span key={item} className="rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/90 px-3 py-2.5 text-center shadow-sm shadow-[#17312E]/[0.03]">
                 {item}
               </span>
@@ -884,18 +885,18 @@ export default function LandingPage({ onGetStarted }) {
           </div>
 
           <div
-            className="js-hero-reveal mx-auto mt-9 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
+            className="js-hero-reveal mx-auto mt-7 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
           >
-            <button type="button" onClick={onGetStarted} className="w-full rounded-xl bg-[#2F8F88] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68] sm:w-auto">
-              Build my tracker
+            <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[#2F8F88] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68] sm:w-auto">
+              Start tracking free
             </button>
-            <a href="#example-tracker" className="w-full rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[#2F8F88]/30 hover:bg-white hover:text-[#256E68] sm:w-auto">
+            <a href="#example-tracker" className="w-full min-h-11 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[#2F8F88]/30 hover:bg-white hover:text-[#256E68] sm:w-auto">
               See the product demo
             </a>
           </div>
 
           <p
-            className="js-hero-reveal mx-auto mt-5 max-w-[17rem] text-xs leading-5 text-[#667A75] sm:max-w-xl"
+            className="js-hero-reveal mx-auto mt-4 max-w-[17rem] text-xs leading-5 text-[#667A75] sm:max-w-xl"
           >
             For students, graduates, and job seekers managing multiple applications at once.
           </p>
@@ -910,6 +911,7 @@ export default function LandingPage({ onGetStarted }) {
       <AudienceSection />
       <HowItWorksSection />
       <FounderNote onGetStarted={onGetStarted} />
+      </main>
       <LandingFooter />
     </div>
   );
