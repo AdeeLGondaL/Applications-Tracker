@@ -3,10 +3,16 @@
 
 @layer base {
   :root {
-    --brand: #0b8f6a;
-    --brand-strong: #0a6e57;
-    --brand-bright: #0cbd82;
-    --brand-tint: #e9f7f2;
+    --applume-accent: #009966;
+    --applume-accent-hover: #007a52;
+    --applume-accent-soft: #e6f7f1;
+    --applume-accent-muted: #ccefe3;
+    --applume-accent-border: rgba(0, 153, 102, 0.18);
+    --applume-accent-shadow: rgba(0, 153, 102, 0.16);
+    --brand: var(--applume-accent);
+    --brand-strong: var(--applume-accent-hover);
+    --brand-bright: var(--applume-accent);
+    --brand-tint: var(--applume-accent-soft);
     --surface: #fcfbf8;
     --surface-alt: #f5f3ed;
     --card: #ffffff;

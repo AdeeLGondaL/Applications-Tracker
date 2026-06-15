@@ -288,9 +288,9 @@ function useGsapReveal(ref, {
 
 function ToneIcon({ icon, tone = "emerald" }) {
   const toneClass = {
-    emerald: "border-[#2F8F88]/20 bg-[#EEF7F5] text-[#2F8F88]",
+    emerald: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]",
     amber: "border-[#D58A55]/25 bg-[#D58A55]/10 text-[#8A4E27]",
-    blue: "border-[#2F8F88]/15 bg-[#EEF7F5] text-[#256E68]",
+    blue: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
     slate: "border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] text-[#667A75]",
   }[tone];
 
@@ -329,16 +329,16 @@ function LandingFooter() {
       <p className="mt-1 text-xs text-[#667A75]">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
-          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-xl border border-[#2F8F88]/20 bg-[#EEF7F5] px-4 py-2.5 text-sm font-bold text-[#256E68] transition hover:border-[#2F8F88]/35 hover:bg-[#E1F0ED]">
+          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-4 py-2.5 text-sm font-bold text-[var(--applume-accent-hover)] transition hover:border-[rgba(0,153,102,0.35)] hover:bg-[var(--applume-accent-muted)]">
             <Icon name="share" className="h-3.5 w-3.5" /> Share
           </button>
         )}
-        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-[#2F8F88]/20 bg-[#EEF7F5] text-[#256E68]" : "border-[rgba(23,49,46,0.08)] bg-white text-[#17312E] hover:border-[#2F8F88]/25 hover:bg-[#F6FBFA]"}`}>
+        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "border-[rgba(23,49,46,0.08)] bg-white text-[#17312E] hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA]"}`}>
           <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
           {copied ? "Copied" : "Copy link"}
         </button>
         {socials.map(({ label, href }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-2.5 text-sm font-bold text-[#667A75] transition hover:border-[#2F8F88]/25 hover:bg-[#F6FBFA]">
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-2.5 text-sm font-bold text-[#667A75] transition hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA] hover:text-[var(--applume-accent-hover)]">
             {label}
           </a>
         ))}
@@ -367,8 +367,8 @@ function ProductDemo() {
 
   const toneClass = {
     amber: "bg-[#D58A55]/15 text-[#8A4E27]",
-    blue: "bg-[#EEF7F5] text-[#256E68]",
-    emerald: "bg-[#EEF7F5] text-[#256E68]",
+    blue: "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
+    emerald: "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
   }[selected.tone];
 
   return (
@@ -378,7 +378,7 @@ function ProductDemo() {
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-[#D58A55]/45" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#C7DDD9]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[#2F8F88]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--applume-accent)]" />
             <span className="ml-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#667A75] sm:ml-2 sm:text-[10px] sm:tracking-[0.2em]">Product demo</span>
           </div>
           <div className="grid w-full grid-cols-2 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-1 sm:w-auto">
@@ -387,7 +387,7 @@ function ProductDemo() {
                 key={key}
                 type="button"
                 onClick={() => switchMode(key)}
-                className={`rounded-xl px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-[#2F8F88] text-white shadow-sm shadow-[#17312E]/5" : "text-[#667A75] hover:bg-white"}`}
+                className={`rounded-xl px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-[var(--applume-accent)] text-white shadow-sm shadow-[var(--applume-accent-shadow)]" : "text-[#667A75] hover:bg-white hover:text-[var(--applume-accent-hover)]"}`}
               >
                 {value.label}
               </button>
@@ -398,7 +398,7 @@ function ProductDemo() {
         <div className="grid bg-[#F6FBFA] lg:grid-cols-[0.72fr_1.28fr]">
           <div className="border-b border-[rgba(23,49,46,0.08)] bg-[#163734] p-4 text-white lg:border-b-0 lg:border-r lg:p-5">
             <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-              <div className="flex items-center gap-2 text-[#9AD6D1]">
+              <div className="flex items-center gap-2 text-[var(--applume-accent-muted)]">
                 <Icon name="sparkles" className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-[0.18em]">AI autofill draft</span>
               </div>
@@ -407,8 +407,8 @@ function ProductDemo() {
                 {active.pasteText}
               </p>
               <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#9AD6D1]">Saved to Applume</p>
-                <div className="mt-3 rounded-lg border border-[#9AD6D1]/35 bg-[#2F8F88]/10 p-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--applume-accent-muted)]">Saved to Applume</p>
+                <div className="mt-3 rounded-lg border border-[rgba(204,239,227,0.35)] bg-[rgba(0,153,102,0.12)] p-3">
                   <p className="text-sm font-black text-white">{selected.name}</p>
                   <p className="mt-1 text-xs font-semibold text-[#BFD3CF]">{selected.detail}</p>
                   <div className="mt-3 grid gap-2 text-[10px] font-bold text-[#CDEBE8] sm:grid-cols-3">
@@ -430,7 +430,7 @@ function ProductDemo() {
                       key={record.id}
                       type="button"
                       onClick={() => setSelectedId(record.id)}
-                      className={`w-full rounded-2xl border p-3 text-left transition ${activeRecord ? "border-[#9AD6D1] bg-white text-[#17312E] shadow-sm shadow-[#17312E]/5" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}
+                      className={`w-full rounded-2xl border p-3 text-left transition ${activeRecord ? "border-[var(--applume-accent-muted)] bg-white text-[#17312E] shadow-sm shadow-[var(--applume-accent-shadow)]" : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"}`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -449,7 +449,7 @@ function ProductDemo() {
           <div className="p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2F8F88]">{active.context}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">{active.context}</p>
                 <h3 className="mt-2 text-2xl font-black tracking-tight text-[#17312E]">{selected.name}</h3>
                 <p className="mt-1 text-sm font-semibold text-[#667A75]">{selected.detail}</p>
               </div>
@@ -476,7 +476,7 @@ function ProductDemo() {
                     const done = !item.toLowerCase().includes("pending");
                     return (
                       <div key={item} className="flex items-center gap-2 text-sm font-semibold text-[#17312E]">
-                        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${done ? "border-[#2F8F88]/25 bg-[#EEF7F5] text-[#2F8F88]" : "border-[#D58A55]/25 bg-[#D58A55]/10 text-[#8A4E27]"}`}>
+                        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${done ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]" : "border-[#D58A55]/25 bg-[#D58A55]/10 text-[#8A4E27]"}`}>
                           <Icon name={done ? "check" : "calendar"} className="h-3 w-3" />
                         </span>
                         <span>{item}</span>
@@ -486,7 +486,7 @@ function ProductDemo() {
                 </div>
               </div>
               <div className="rounded-2xl border border-[#17312E]/10 bg-[#17312E] p-4 text-white shadow-sm shadow-[#17312E]/5">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9AD6D1]">Notes and next step</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--applume-accent-muted)]">Notes and next step</p>
                 <p className="mt-3 text-sm leading-6 text-[#D9E7E4]">{selected.activity}</p>
                 <div className="mt-4 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-[#E7F2F0]">
                   Everything stays attached to this record.
@@ -509,7 +509,7 @@ function TransformationStrip() {
     <section ref={ref} className="border-y border-[rgba(23,49,46,0.08)] bg-white px-4 py-24 sm:px-6 lg:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="js-transform-heading mx-auto max-w-3xl text-center">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Spreadsheet chaos to Applume clarity</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Spreadsheet chaos to Applume clarity</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#17312E] sm:text-5xl">
             From spreadsheet chaos to application clarity.
           </h2>
@@ -526,7 +526,7 @@ function TransformationStrip() {
             </div>
             <div className="overflow-x-auto p-3">
               <div className="min-w-[34rem] rounded-xl border border-[rgba(23,49,46,0.08)] bg-white text-left text-xs font-semibold text-[#667A75]">
-                <div className="grid grid-cols-[1.2fr_0.9fr_1.1fr] border-b border-[rgba(23,49,46,0.08)] bg-[#EEF7F5] text-[10px] font-black uppercase tracking-[0.14em] text-[#667A75]">
+                <div className="grid grid-cols-[1.2fr_0.9fr_1.1fr] border-b border-[rgba(23,49,46,0.08)] bg-[var(--applume-accent-soft)] text-[10px] font-black uppercase tracking-[0.14em] text-[#667A75]">
                   <span className="px-3 py-2">Application</span>
                   <span className="px-3 py-2">Status</span>
                   <span className="px-3 py-2">Notes</span>
@@ -537,8 +537,8 @@ function TransformationStrip() {
                       const highlight = (index === 0 && cellIndex > 0) || (index === 3 && cellIndex === 2);
                       return (
                         <span key={value} className="relative overflow-hidden px-3 py-3">
-                          {highlight && <span className="pointer-events-none absolute inset-x-2 inset-y-2 rounded-lg bg-[#2F8F88]/10 ring-1 ring-inset ring-[#2F8F88]/25" />}
-                          <span className={`relative z-10 ${highlight ? "text-[#256E68]" : ""}`}>{value}</span>
+                          {highlight && <span className="pointer-events-none absolute inset-x-2 inset-y-2 rounded-lg bg-[rgba(0,153,102,0.10)] ring-1 ring-inset ring-[var(--applume-accent-border)]" />}
+                          <span className={`relative z-10 ${highlight ? "text-[var(--applume-accent-hover)]" : ""}`}>{value}</span>
                         </span>
                       );
                     })}
@@ -548,21 +548,21 @@ function TransformationStrip() {
             </div>
           </div>
 
-          <div className="js-transform-card-reveal mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2F8F88] text-white shadow-sm shadow-[#17312E]/5 lg:h-14 lg:w-14">
+          <div className="js-transform-card-reveal mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--applume-accent)] text-white shadow-sm shadow-[var(--applume-accent-shadow)] lg:h-14 lg:w-14">
             <Icon name="sparkles" className="h-5 w-5" />
           </div>
 
-          <div className="js-transform-card-reveal rounded-2xl border border-[#2F8F88]/20 bg-[#EEF7F5] p-4 shadow-sm shadow-[#17312E]/[0.03]">
+          <div className="js-transform-card-reveal rounded-2xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] p-4 shadow-sm shadow-[#17312E]/[0.03]">
             <div className="mb-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2F8F88]">After</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">After</p>
               <p className="mt-1 text-lg font-black text-[#17312E]">Applume records with clear next steps</p>
             </div>
             <div className="grid gap-3">
               {transformationCards.map((card) => {
                 const toneClass = {
                   amber: "border-[#D58A55]/25 bg-[#D58A55]/10 text-[#8A4E27]",
-                  blue: "border-[#2F8F88]/15 bg-[#EEF7F5] text-[#256E68]",
-                  emerald: "border-[#2F8F88]/15 bg-[#EEF7F5] text-[#256E68]",
+                  blue: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
+                  emerald: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
                 }[card.tone];
 
                 return (
@@ -575,7 +575,7 @@ function TransformationStrip() {
                       <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-black ${toneClass}`}>{card.status}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#F6FBFA] px-3 py-2 text-xs font-bold text-[#667A75]">
-                      <Icon name={card.tone === "amber" ? "calendar" : "check"} className={`h-3.5 w-3.5 ${card.tone === "amber" ? "text-[#8A4E27]" : "text-[#2F8F88]"}`} />
+                      <Icon name={card.tone === "amber" ? "calendar" : "check"} className={`h-3.5 w-3.5 ${card.tone === "amber" ? "text-[#8A4E27]" : "text-[var(--applume-accent)]"}`} />
                       {card.meta}
                     </div>
                   </div>
@@ -598,7 +598,7 @@ function ProblemSection() {
     <section ref={sectionRef} id="why-applume" className="scroll-mt-24 bg-white px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Where spreadsheets break</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Where spreadsheets break</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             It is not the tracking that is hard. It is keeping the context alive.
           </h2>
@@ -632,7 +632,7 @@ function FeatureSection() {
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="js-gsap-heading">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Every application becomes a record</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Every application becomes a record</p>
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
               Not another list. A place for the whole application.
             </h2>
@@ -650,7 +650,7 @@ function FeatureSection() {
               ["Export", "CSV or JSON when you want your data out"],
             ].map(([label, value]) => (
               <div key={label} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-4 shadow-sm shadow-[#17312E]/[0.03]">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#2F8F88]">{label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">{label}</p>
                 <p className="mt-2 text-sm font-semibold leading-5 text-[#17312E]">{value}</p>
               </div>
             ))}
@@ -670,7 +670,7 @@ function AudienceSection() {
     <section ref={sectionRef} className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading text-center">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Built for admissions and job hunts</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Built for admissions and job hunts</p>
           <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Same chaos, different applications. Applume handles both.
           </h2>
@@ -699,7 +699,7 @@ function ApplicationPipeline() {
     <div className="js-gsap-card mt-8 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-5 shadow-sm shadow-[#17312E]/[0.03] sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Application pipeline</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Application pipeline</p>
           <h3 className="mt-2 text-2xl font-black leading-tight text-[#17312E] sm:text-3xl">Saved to offer, every step stays visible.</h3>
         </div>
         <p className="max-w-sm text-sm leading-6 text-[#667A75]">
@@ -709,13 +709,13 @@ function ApplicationPipeline() {
 
       <div className="relative mt-8">
         <div className="pointer-events-none absolute left-6 right-6 top-5 hidden h-px bg-[#D8DDD5] md:block">
-          <div className="h-px w-full bg-[#2F8F88]/45" />
+          <div className="h-px w-full bg-[rgba(0,153,102,0.45)]" />
         </div>
 
         <div className="grid gap-3 md:grid-cols-5">
           {pipelineSteps.map((step, index) => (
             <div key={step.label} className="relative min-h-[8.5rem] rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-4 pt-12 text-left shadow-sm shadow-[#17312E]/[0.03]">
-              <span className="absolute left-4 top-4 grid h-4 w-4 place-items-center rounded-full border border-[#9AD6D1]/60 bg-[#2F8F88]">
+              <span className="absolute left-4 top-4 grid h-4 w-4 place-items-center rounded-full border border-[rgba(204,239,227,0.60)] bg-[var(--applume-accent)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
               </span>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">Step {index + 1}</p>
@@ -738,7 +738,7 @@ function HowItWorksSection() {
     <section ref={sectionRef} id="how-it-works" className="scroll-mt-24 bg-[#F6FBFA] px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="js-gsap-heading max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">From paste to tracker</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">From paste to tracker</p>
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Make logging an application feel lighter than filling a row.
           </h2>
@@ -749,7 +749,7 @@ function HowItWorksSection() {
         <div className="mt-12 grid gap-4 lg:grid-cols-3">
           {flowSteps.map((step) => (
             <div key={step.label} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 shadow-sm shadow-[#17312E]/[0.03]">
-              <div className="inline-flex rounded-xl bg-[#EEF7F5] px-3 py-1.5 text-xs font-black text-[#256E68]">{step.label}</div>
+              <div className="inline-flex rounded-xl bg-[var(--applume-accent-soft)] px-3 py-1.5 text-xs font-black text-[var(--applume-accent-hover)]">{step.label}</div>
               <h3 className="mt-5 text-xl font-black">{step.title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#667A75]">{step.copy}</p>
             </div>
@@ -759,7 +759,7 @@ function HowItWorksSection() {
         <div className="js-gsap-card mt-6 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 text-[#17312E] shadow-sm shadow-[#17312E]/[0.03]">
           <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">Grounded trust</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Grounded trust</p>
               <h3 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">Private by default. Export whenever you want.</h3>
               <p className="mt-3 text-sm leading-6 text-[#667A75]">
                 Sign in with Google or email. Your records belong to your account, and shared tracker links are intentional.
@@ -792,7 +792,7 @@ function FounderNote({ onGetStarted }) {
     <section ref={sectionRef} aria-labelledby="final-cta-title" className="bg-white px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-stretch">
         <div className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 shadow-sm shadow-[#17312E]/[0.03]">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2F8F88]">A note from the builder</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">A note from the builder</p>
           <p className="mt-5 text-xl font-black leading-8 text-[#17312E]">
             Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
           </p>
@@ -801,14 +801,14 @@ function FounderNote({ onGetStarted }) {
           </p>
         </div>
         <div className="js-gsap-card rounded-2xl border border-[#17312E]/10 bg-[#17312E] p-8 text-white shadow-lg shadow-[#17312E]/[0.08]">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#9AD6D1]">Bring order to the list</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent-muted)]">Bring order to the list</p>
           <h2 id="final-cta-title" className="mt-5 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Turn your application sheet into a finished workspace.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-[#BFD3CF]">
             Keep the speed of a spreadsheet, then add the structure needed to stay prepared and consistent.
           </p>
-          <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-[#2F8F88] px-9 py-4 text-base font-bold text-white shadow-sm shadow-black/10 transition hover:bg-[#256E68]">
+          <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-[var(--applume-accent)] px-9 py-4 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
             Start tracking free
           </button>
         </div>
@@ -828,7 +828,7 @@ export default function LandingPage({ onGetStarted }) {
           <a href="/" className="flex min-h-11 items-center gap-2.5">
             <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
-              <span className="text-[#17312E]">App</span><span className="text-[#2F8F88]">lume</span>
+              <span className="text-[#17312E]">App</span><span className="text-[var(--applume-accent)]">lume</span>
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm font-semibold text-[#667A75] sm:flex">
@@ -840,7 +840,7 @@ export default function LandingPage({ onGetStarted }) {
             <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#667A75] transition hover:bg-white hover:text-[#17312E] sm:block">
               Sign in
             </button>
-            <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[#2F8F88] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68]">
+            <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
               <span>Start tracking free</span>
             </button>
           </div>
@@ -851,9 +851,9 @@ export default function LandingPage({ onGetStarted }) {
       <section ref={heroRef} className="relative overflow-hidden px-4 pb-16 pt-10 text-center sm:px-6 sm:pt-14 lg:pb-20 lg:pt-16">
         <div className="relative z-10 mx-auto max-w-4xl">
           <span
-            className="js-hero-reveal inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-full border border-[rgba(23,49,46,0.08)] bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#2F8F88] shadow-sm shadow-[#17312E]/[0.03] sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
+            className="js-hero-reveal inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-full border border-[var(--applume-accent-border)] bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--applume-accent)] shadow-sm shadow-[#17312E]/[0.03] sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-[#2F8F88]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--applume-accent)]" />
             Built for spreadsheet escapees
           </span>
 
@@ -887,10 +887,10 @@ export default function LandingPage({ onGetStarted }) {
           <div
             className="js-hero-reveal mx-auto mt-7 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
           >
-            <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[#2F8F88] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[#17312E]/5 transition hover:bg-[#256E68] sm:w-auto">
+            <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] sm:w-auto">
               Start tracking free
             </button>
-            <a href="#example-tracker" className="w-full min-h-11 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[#2F8F88]/30 hover:bg-white hover:text-[#256E68] sm:w-auto">
+            <a href="#example-tracker" className="w-full min-h-11 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[var(--applume-accent-border)] hover:bg-white hover:text-[var(--applume-accent-hover)] sm:w-auto">
               See the product demo
             </a>
           </div>
