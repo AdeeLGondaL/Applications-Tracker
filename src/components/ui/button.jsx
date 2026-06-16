@@ -1,6 +1,6 @@
 
 const variants = {
-  default: "bg-slate-950 text-white hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white",
+  default: "bg-[var(--applume-accent-strong)] text-white hover:bg-[var(--applume-accent-ink)] dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white",
   outline: "border border-slate-200 bg-white text-slate-950 hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#f0f0f0] dark:hover:bg-[#242428]",
 };
 

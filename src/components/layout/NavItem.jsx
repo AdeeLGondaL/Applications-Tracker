@@ -7,12 +7,12 @@ export function NavItem({ icon, label, count, active = false, alert = false, onC
       onClick={onClick}
       className={`group w-full flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
         active
-          ? "bg-slate-950 text-white shadow-sm dark:bg-[#1c1c1f] dark:text-white"
-          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-[#71717a] dark:hover:bg-[#1c1c1f] dark:hover:text-[#f0f0f0]"
+          ? "bg-[var(--applume-accent-strong)] text-white shadow-sm shadow-[var(--applume-accent-shadow)] dark:bg-[#1c1c1f] dark:text-white"
+          : "text-slate-500 hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-ink)] dark:text-[#71717a] dark:hover:bg-[#1c1c1f] dark:hover:text-[#f0f0f0]"
       }`}
     >
       <span className="flex items-center gap-2.5">
-        <Icon name={icon} className={active ? "text-white" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-[#d4d4d8]"} />
+        <Icon name={icon} className={active ? "text-white" : "text-slate-400 group-hover:text-[var(--applume-accent)] dark:group-hover:text-[#d4d4d8]"} />
         {label}
       </span>
       {typeof count === "number" && count > 0 && (

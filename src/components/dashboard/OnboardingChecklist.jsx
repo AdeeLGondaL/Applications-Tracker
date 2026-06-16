@@ -79,14 +79,14 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={`mb-5 overflow-hidden rounded-[2rem] border shadow-sm ${
           allDoneAnimating
-            ? "border-emerald-300 bg-emerald-50 dark:border-emerald-700/60 dark:bg-emerald-900/30"
-            : "border-emerald-100 bg-white dark:border-emerald-900/50 dark:bg-emerald-900/20"
+            ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] dark:border-[rgba(0,153,102,0.36)] dark:bg-[rgba(0,153,102,0.18)]"
+            : "border-[var(--applume-accent-border)] bg-white dark:border-[rgba(0,153,102,0.24)] dark:bg-[rgba(0,153,102,0.1)]"
         }`}
       >
         <div className="p-5">
           {allDoneAnimating ? (
             <div className="flex items-center justify-center gap-3 py-2">
-              <span className="text-base font-black text-emerald-700 dark:text-emerald-300">
+              <span className="text-base font-black text-[var(--applume-accent-hover)] dark:text-[var(--applume-accent-muted)]">
                 Your tracker foundation is ready.
               </span>
             </div>
@@ -95,8 +95,8 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
               {/* Header row */}
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-emerald-100 dark:bg-emerald-800/50">
-                    <Icon name="sparkles" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-[var(--applume-accent-soft)] dark:bg-[rgba(0,153,102,0.18)]">
+                    <Icon name="sparkles" className="h-4 w-4 text-[var(--applume-accent)] dark:text-[var(--applume-accent-muted)]" />
                   </div>
                   <div>
                     <p className="text-sm font-black text-slate-900 dark:text-white">
@@ -120,7 +120,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
               {/* Progress bar */}
               <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#2a2a2e]">
                 <motion.div
-                  className="h-full rounded-full bg-emerald-500"
+                  className="h-full rounded-full bg-[var(--applume-accent)]"
                   initial={{ width: 0 }}
                   animate={{ width: `${(completedCount / steps.length) * 100}%` }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
@@ -135,7 +135,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         step.done
-                          ? "border-emerald-500 bg-emerald-500"
+                          ? "border-[var(--applume-accent)] bg-[var(--applume-accent)]"
                           : "border-slate-300 bg-white dark:border-[#3a3a3e] dark:bg-[#111113]"
                       }`}
                     >
@@ -156,7 +156,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                       <button
                         type="button"
                         onClick={onAddApplication}
-                        className="shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                        className="shrink-0 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:border-[rgba(0,153,102,0.32)] dark:bg-[rgba(0,153,102,0.16)] dark:text-[var(--applume-accent-muted)] dark:hover:bg-[rgba(0,153,102,0.24)]"
                       >
                         Add application
                       </button>
