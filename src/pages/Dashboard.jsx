@@ -8,6 +8,8 @@ import { Brand } from "@/components/layout/Brand";
 import { NavItem } from "@/components/layout/NavItem";
 import { Metric } from "@/components/dashboard/Metric";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
+import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { DocumentsCompletenessCard } from "@/components/dashboard/DocumentsCompletenessCard";
@@ -23,6 +25,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
+import { trackEvent, trackOnce } from "@/utils/analytics";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -200,8 +203,16 @@ export default function Dashboard({ session }) {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
+    try {
+      return localStorage.getItem(`applume_onboarding_wizard_${session?.user?.id || "anonymous"}`) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const exportMenuRef = useRef(null);
+  const importInputRef = useRef(null);
   const profileMenuRef = useRef(null);
   const profileMenuCloseTimer = useRef(null);
 
@@ -254,6 +265,50 @@ export default function Dashboard({ session }) {
     setToastKind(kind);
   }
 
+  function completeOnboardingWizard() {
+    try {
+      localStorage.setItem(`applume_onboarding_wizard_${session?.user?.id || "anonymous"}`, "true");
+    } catch {
+      // The wizard can still continue when storage is unavailable.
+    }
+    setOnboardingWizardDone(true);
+  }
+
+  function openImportPicker() {
+    trackEvent("import_method_selected", { method: "backup" });
+    importInputRef.current?.click();
+  }
+
+  function skipOnboardingWizard() {
+    trackEvent("onboarding_checklist_completed", { skipped: true, source: "wizard" });
+    completeOnboardingWizard();
+  }
+
+  function openNewTracked(type = "University", source = "manual") {
+    trackEvent("dashboard_focus_card_clicked", {
+      action: "add_application",
+      type,
+      source,
+    });
+    openNew(type);
+  }
+
+  function openUrgentQueue(source = "focus") {
+    trackEvent("dashboard_focus_card_clicked", { card: "urgent", source });
+    handleSidebarView("urgent");
+    setSortBy("deadline");
+  }
+
+  function openInterviewQueue(firstItem) {
+    trackEvent("dashboard_focus_card_clicked", { card: "interviews" });
+    if (firstItem) openEdit(firstItem);
+  }
+
+  function openDocumentQueue(firstItem) {
+    trackEvent("dashboard_focus_card_clicked", { card: "missing_documents" });
+    if (firstItem) openEdit(firstItem);
+  }
+
   function clearProfileMenuCloseTimer() {
     if (profileMenuCloseTimer.current) {
       window.clearTimeout(profileMenuCloseTimer.current);
@@ -284,6 +339,7 @@ export default function Dashboard({ session }) {
     if (!session?.user) return;
     const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
     navigator.clipboard.writeText(url);
+    trackEvent("calendar_sync_connected", { method: "copied_url" });
     notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
   }
 
@@ -384,6 +440,22 @@ export default function Dashboard({ session }) {
     return { documented, incompleteItems };
   }, [applications]);
 
+  const focusThisWeek = useMemo(() => {
+    const overdueItems = applications.filter((app) => {
+      if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
+      const d = daysUntil(app.deadline);
+      return d !== null && d < 0;
+    });
+    const dueSoonItems = applications.filter((app) => {
+      if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
+      const d = daysUntil(app.deadline);
+      return d !== null && d >= 0 && d <= 7;
+    });
+    const interviewItems = applications.filter((app) => app.status === "Interview");
+    const missingDocumentItems = applications.filter((app) => !String(app.documents || "").trim());
+    return { overdueItems, dueSoonItems, interviewItems, missingDocumentItems };
+  }, [applications]);
+
   const headerSummary = sidebarView === "dashboard"
     ? `${stats.total} tracked · ${stats.actionNeeded} action needed · ${stats.progress}% submitted or beyond`
     : VIEW_META[sidebarView]?.sub;
@@ -419,6 +491,8 @@ export default function Dashboard({ session }) {
       user_id: session.user.id,
     };
 
+    const isFirstSavedRecord = !editingId && applications.length === 0;
+
     if (editingId) {
       const { error } = await supabase
         .from("applications")
@@ -433,6 +507,18 @@ export default function Dashboard({ session }) {
       const { error } = await supabase.from("applications").insert([newApp]);
       if (error) { notify(error.message, "error"); return; }
       setApplications((old) => [normalize(newApp), ...old]);
+      if (isFirstSavedRecord) {
+        trackOnce("first_record_created", { type: payload.type });
+      }
+      if (payload.deadline) {
+        trackOnce("first_deadline_added", { type: payload.type });
+      }
+      if (payload.notes) {
+        trackOnce("first_next_step_added", { type: payload.type });
+      }
+      if (payload.documents) {
+        trackOnce("first_checklist_created", { type: payload.type });
+      }
       notify("Application added.");
     }
 
@@ -462,6 +548,7 @@ export default function Dashboard({ session }) {
     setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: newStatus, lastUpdated: today } : a));
     const { error } = await supabase.from("applications").update({ status: newStatus, lastUpdated: today }).eq("id", id).eq("user_id", session.user.id);
     if (error) notify(error.message, "error");
+    else trackOnce("first_status_updated", { status: newStatus });
   }
 
   function toggleSelect(id) {
@@ -542,6 +629,9 @@ export default function Dashboard({ session }) {
         const { error } = await supabase.from("applications").upsert(rows, { onConflict: "id" });
         if (error) throw error;
         setApplications(rows);
+        trackEvent("import_method_selected", { method: "backup_uploaded", count: rows.length });
+        if (rows.length > 0) trackOnce("first_record_created", { type: rows[0].type, source: "import" });
+        completeOnboardingWizard();
         notify("Backup imported.");
       } catch {
         notify("Could not import this JSON file.", "error");
@@ -667,14 +757,14 @@ export default function Dashboard({ session }) {
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Download backup
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <label className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
                           <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import backup
-                          <input type="file" accept="application/json" className="hidden" onChange={(e) => { importJson(e); setExportMenuOpen(false); }} />
-                        </label>
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
+                <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={importJson} />
 
                 <button
                   type="button"
@@ -784,10 +874,39 @@ export default function Dashboard({ session }) {
                         </svg>
                         <span className="ml-3 text-sm text-slate-400 dark:text-[#71717a]">Loading your applications...</span>
                       </div>
+                    ) : applications.length === 0 && !onboardingWizardDone ? (
+                      <OnboardingWizard
+                        userId={session?.user?.id}
+                        onStart={(type) => {
+                          completeOnboardingWizard();
+                          openNewTracked(type, "onboarding_wizard");
+                        }}
+                        onImport={() => {
+                          completeOnboardingWizard();
+                          openImportPicker();
+                        }}
+                        onSkip={skipOnboardingWizard}
+                      />
                     ) : applications.length === 0 ? (
-                      <EmptyDashboard onAdd={() => openNew()} />
+                      <EmptyDashboard
+                        onAdd={() => openNewTracked("University", "empty_dashboard")}
+                        onImport={openImportPicker}
+                      />
                     ) : (
                       <>
+                        <FocusThisWeek
+                          overdueCount={focusThisWeek.overdueItems.length}
+                          dueSoonCount={focusThisWeek.dueSoonItems.length}
+                          interviewCount={focusThisWeek.interviewItems.length}
+                          missingDocsCount={focusThisWeek.missingDocumentItems.length}
+                          onReviewUrgent={() => openUrgentQueue("focus_layer")}
+                          onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
+                          onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
+                          onAddUniversity={() => openNewTracked("University", "focus")}
+                          onAddJob={() => openNewTracked("Job", "focus")}
+                          onImport={openImportPicker}
+                          onCalendarSync={copyCalendarUrl}
+                        />
                         <div className="mb-5 grid auto-rows-fr grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-4">
                           <Metric
                             icon="dashboard"

@@ -18,7 +18,7 @@ export function EmptyState() {
   );
 }
 
-export function EmptyDashboard({ onAdd }) {
+export function EmptyDashboard({ onAdd, onImport }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -29,16 +29,23 @@ export function EmptyDashboard({ onAdd }) {
       <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-[#1c1c1f] dark:ring-[#2a2a2e]">
         <Icon name="dashboard" className="h-9 w-9 text-slate-300 dark:text-[#3a3a3e]" />
       </div>
-      <h2 className="text-2xl font-black">Start with one record</h2>
+      <h2 className="text-2xl font-black">Track your first application</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400 dark:text-[#71717a]">
-        Add the first application from your spreadsheet. Applume will keep the deadline, links, notes, documents, and next step together.
+        Add one real application or import an existing backup. Applume will keep deadlines, links, notes, documents, and next steps together.
       </p>
-      <div className="mt-7">
+      <div className="mt-7 flex flex-wrap justify-center gap-2.5">
         <button
           onClick={onAdd}
           className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white"
         >
           <Icon name="plus" className="h-4 w-4" /> Add application
+        </button>
+        <button
+          type="button"
+          onClick={onImport}
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
+        >
+          <Icon name="upload" className="h-4 w-4" /> Import backup
         </button>
       </div>
     </motion.div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
+import { trackOnce } from "@/utils/analytics";
 
 function getSteps(applications) {
   const aiUsed = (() => {
@@ -52,6 +53,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
 
   useEffect(() => {
     if (allDone && !dismissed) {
+      trackOnce("onboarding_checklist_completed", { source: "dashboard_checklist" });
       const timer = setTimeout(() => {
         setAllDoneAnimating(true);
         setTimeout(() => {
