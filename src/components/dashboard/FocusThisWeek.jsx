@@ -47,7 +47,7 @@ export function FocusThisWeek({
   const focusTone = overdueCount > 0 ? "danger" : dueSoonCount > 0 ? "warning" : "accent";
 
   return (
-    <div className="mb-5 grid gap-4 xl:grid-cols-[1.45fr_0.55fr]">
+    <div className="grid gap-4 xl:grid-cols-[1.45fr_0.55fr]">
       <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
         <CardContent className="p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">

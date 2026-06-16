@@ -13,6 +13,19 @@ import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { DocumentsCompletenessCard } from "@/components/dashboard/DocumentsCompletenessCard";
+import { DashboardCustomizeDrawer } from "@/components/dashboard/DashboardCustomizeDrawer";
+import {
+  ApplicationsByStatusPanel,
+  CalendarPreviewPanel,
+  DeadlinesNext30DaysPanel,
+  InterviewsFollowupsPanel,
+  JobResponseRatePanel,
+  MissingInformationPanel,
+  QuickActionsPanel,
+  RecentActivityPanel,
+  SubmissionTrendPanel,
+  UniversityDeadlineDistributionPanel,
+} from "@/components/dashboard/OptionalPanels";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
 import { ApplicationGrid } from "@/components/applications/ApplicationCard";
@@ -26,6 +39,7 @@ import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
+import { DASHBOARD_WIDGETS, loadDashboardPreferences, normalizeDashboardPreferences, saveDashboardPreferences } from "@/utils/dashboardPreferences";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -182,6 +196,20 @@ const VIEW_META = {
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
 
+function DashboardPanel({ size, editing, children }) {
+  const span = {
+    small: "lg:col-span-3 md:col-span-6",
+    medium: "lg:col-span-6 md:col-span-6",
+    large: "lg:col-span-12 md:col-span-12",
+  }[size] || "lg:col-span-6 md:col-span-6";
+
+  return (
+    <div className={`col-span-12 min-w-0 ${span} ${editing ? "rounded-[1.25rem] outline outline-1 outline-[var(--applume-accent-border)] outline-offset-2" : ""}`}>
+      {children}
+    </div>
+  );
+}
+
 export default function Dashboard({ session }) {
   const { dark, toggle: toggleTheme } = useTheme();
   const [applications, setApplications] = useState([]);
@@ -201,6 +229,9 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(false);
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [dashboardPreferences, setDashboardPreferences] = useState(() => loadDashboardPreferences(session?.user?.id));
+  const [draftDashboardPreferences, setDraftDashboardPreferences] = useState(() => loadDashboardPreferences(session?.user?.id));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
@@ -263,6 +294,28 @@ export default function Dashboard({ session }) {
   function notify(msg, kind = "success") {
     setToast(msg);
     setToastKind(kind);
+  }
+
+  function openCustomizeDrawer() {
+    setDraftDashboardPreferences(dashboardPreferences);
+    setCustomizeOpen(true);
+  }
+
+  function saveCustomizeDrawer() {
+    try {
+      const nextPreferences = normalizeDashboardPreferences(draftDashboardPreferences);
+      saveDashboardPreferences(nextPreferences, session?.user?.id);
+      setDashboardPreferences(nextPreferences);
+      setDraftDashboardPreferences(nextPreferences);
+      setCustomizeOpen(false);
+      notify("Dashboard layout saved.", "success");
+    } catch {
+      notify("Could not save dashboard layout.", "error");
+    }
+  }
+
+  function resetCustomizeDrawer(nextPreferences) {
+    setDraftDashboardPreferences(nextPreferences);
   }
 
   function completeOnboardingWizard() {
@@ -456,8 +509,18 @@ export default function Dashboard({ session }) {
     return { overdueItems, dueSoonItems, interviewItems, missingDocumentItems };
   }, [applications]);
 
+  const dashboardWidgetRegistry = useMemo(() => {
+    return Object.fromEntries(DASHBOARD_WIDGETS.map((widget) => [widget.id, widget]));
+  }, []);
+
+  const visibleDashboardWidgets = useMemo(() => {
+    return dashboardPreferences.widgets
+      .filter((widget) => widget.visible && dashboardWidgetRegistry[widget.id])
+      .sort((a, b) => a.order - b.order);
+  }, [dashboardPreferences, dashboardWidgetRegistry]);
+
   const headerSummary = sidebarView === "dashboard"
-    ? `${stats.total} tracked · ${stats.actionNeeded} action needed · ${stats.progress}% submitted or beyond`
+    ? `${stats.total} tracked - ${stats.actionNeeded} action needed - ${stats.progress}% submitted or beyond`
     : VIEW_META[sidebarView]?.sub;
 
   function openNew(type = "University") {
@@ -641,6 +704,70 @@ export default function Dashboard({ session }) {
     event.target.value = "";
   }
 
+  function renderDashboardWidget(widget) {
+    switch (widget.id) {
+      case "focusThisWeek":
+        return (
+          <FocusThisWeek
+            overdueCount={focusThisWeek.overdueItems.length}
+            dueSoonCount={focusThisWeek.dueSoonItems.length}
+            interviewCount={focusThisWeek.interviewItems.length}
+            missingDocsCount={focusThisWeek.missingDocumentItems.length}
+            onReviewUrgent={() => openUrgentQueue("focus_layer")}
+            onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
+            onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
+            onAddUniversity={() => openNewTracked("University", "focus")}
+            onAddJob={() => openNewTracked("Job", "focus")}
+            onImport={openImportPicker}
+            onCalendarSync={copyCalendarUrl}
+          />
+        );
+      case "applicationsTracked":
+        return <Metric icon="dashboard" label="Applications tracked" value={stats.total} hint={`${stats.universities} university - ${stats.jobs} job`} accent="slate" delay={0} />;
+      case "dueSoon":
+        return <Metric icon="calendar" label="Due soon" value={stats.dueSoon7} hint="Records due in the next 7 days" accent="blue" delay={0} />;
+      case "actionNeeded":
+        return <Metric icon="reset" label="Action needed" value={stats.actionNeeded} hint={stats.actionNeeded === 0 ? "All deadlines on track" : `${stats.overdue} overdue - ${stats.dueSoon7} due soon`} danger={stats.actionNeeded > 0} delay={0} />;
+      case "submissionProgress":
+        return <Metric icon="check" label="Submission progress" value={`${stats.progress}%`} hint={`${stats.submitted} of ${stats.total} submitted or beyond`} accent="accent" progressValue={stats.progress} delay={0} />;
+      case "pipelineSummary":
+        return <PipelineCard pipeline={pipeline} total={stats.total} />;
+      case "upcomingDeadlines":
+        return <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} />;
+      case "documentReadiness":
+        return (
+          <DocumentsCompletenessCard
+            total={stats.total}
+            documented={documentReadiness.documented}
+            incompleteItems={documentReadiness.incompleteItems}
+            onOpenRecord={openEdit}
+          />
+        );
+      case "recentActivity":
+        return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
+      case "calendarPreview":
+        return <CalendarPreviewPanel applications={applications} onOpenRecord={openEdit} />;
+      case "interviewsFollowups":
+        return <InterviewsFollowupsPanel applications={applications} onOpenRecord={openEdit} />;
+      case "missingInformation":
+        return <MissingInformationPanel applications={applications} onOpenRecord={openEdit} />;
+      case "quickActions":
+        return <QuickActionsPanel onAddUniversity={() => openNewTracked("University", "quick_actions")} onAddJob={() => openNewTracked("Job", "quick_actions")} onImport={openImportPicker} onCalendarSync={copyCalendarUrl} />;
+      case "applicationsByStatus":
+        return <ApplicationsByStatusPanel applications={applications} />;
+      case "deadlinesNext30Days":
+        return <DeadlinesNext30DaysPanel applications={applications} />;
+      case "submissionTrend":
+        return <SubmissionTrendPanel applications={applications} />;
+      case "jobResponseRate":
+        return <JobResponseRatePanel applications={applications} />;
+      case "universityDeadlineDistribution":
+        return <UniversityDeadlineDistributionPanel applications={applications} />;
+      default:
+        return null;
+    }
+  }
+
   return (
     <div className={`${dark ? "dark" : ""} min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 dark:bg-[#09090b] dark:text-white`}>
       <div className="flex min-h-screen min-w-0">
@@ -765,6 +892,15 @@ export default function Dashboard({ session }) {
                   </AnimatePresence>
                 </div>
                 <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={importJson} />
+
+                <button
+                  type="button"
+                  onClick={openCustomizeDrawer}
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32] sm:px-3"
+                >
+                  <Icon name="filter" className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Customize</span>
+                </button>
 
                 <button
                   type="button"
@@ -894,65 +1030,28 @@ export default function Dashboard({ session }) {
                       />
                     ) : (
                       <>
-                        <FocusThisWeek
-                          overdueCount={focusThisWeek.overdueItems.length}
-                          dueSoonCount={focusThisWeek.dueSoonItems.length}
-                          interviewCount={focusThisWeek.interviewItems.length}
-                          missingDocsCount={focusThisWeek.missingDocumentItems.length}
-                          onReviewUrgent={() => openUrgentQueue("focus_layer")}
-                          onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
-                          onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
-                          onAddUniversity={() => openNewTracked("University", "focus")}
-                          onAddJob={() => openNewTracked("Job", "focus")}
-                          onImport={openImportPicker}
-                          onCalendarSync={copyCalendarUrl}
-                        />
-                        <div className="mb-5 grid auto-rows-fr grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-4">
-                          <Metric
-                            icon="dashboard"
-                            label="Applications tracked"
-                            value={stats.total}
-                            hint={`${stats.universities} university · ${stats.jobs} job`}
-                            accent="slate"
-                            delay={0}
-                          />
-                          <Metric
-                            icon="calendar"
-                            label="Due soon"
-                            value={stats.dueSoon7}
-                            hint="Records due in the next 7 days"
-                            accent="blue"
-                            delay={0.04}
-                          />
-                          <Metric
-                            icon="reset"
-                            label="Action needed"
-                            value={stats.actionNeeded}
-                            hint={stats.actionNeeded === 0 ? "All deadlines on track" : `${stats.overdue} overdue · ${stats.dueSoon7} due soon`}
-                            danger={stats.actionNeeded > 0}
-                            delay={0.08}
-                          />
-                          <Metric
-                            icon="check"
-                            label="Submission progress"
-                            value={`${stats.progress}%`}
-                            hint={`${stats.submitted} of ${stats.total} submitted or beyond`}
-                            accent="accent"
-                            progressValue={stats.progress}
-                            delay={0.12}
-                          />
-                        </div>
-                        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
-                          <PipelineCard pipeline={pipeline} total={stats.total} />
-                          <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} />
-                        </div>
-                        <div className="mt-4 grid gap-4 xl:grid-cols-[0.78fr_1.22fr]">
-                          <DocumentsCompletenessCard
-                            total={stats.total}
-                            documented={documentReadiness.documented}
-                            incompleteItems={documentReadiness.incompleteItems}
-                            onOpenRecord={openEdit}
-                          />
+                        {visibleDashboardWidgets.length > 0 ? (
+                          <div className="grid auto-rows-fr grid-cols-12 gap-4">
+                            {visibleDashboardWidgets.map((widget) => (
+                              <DashboardPanel key={widget.id} size={widget.size} editing={customizeOpen}>
+                                {renderDashboardWidget(widget)}
+                              </DashboardPanel>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border border-dashed border-[var(--applume-accent-border)] bg-white p-6 text-center shadow-sm dark:bg-[#1c1c1f]">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">No dashboard panels are visible.</p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-[#71717a]">Open Customize to restore a preset or show panels again.</p>
+                            <button
+                              type="button"
+                              onClick={openCustomizeDrawer}
+                              className="mt-4 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--applume-accent-hover)]"
+                            >
+                              Customize dashboard
+                            </button>
+                          </div>
+                        )}
+                        <div className="mt-4">
                           <OnboardingChecklist
                             userId={session?.user?.id}
                             applications={applications}
@@ -1047,6 +1146,16 @@ export default function Dashboard({ session }) {
           />
         )}
       </AnimatePresence>
+
+      <DashboardCustomizeDrawer
+        open={customizeOpen}
+        preferences={draftDashboardPreferences}
+        registry={dashboardWidgetRegistry}
+        onChange={setDraftDashboardPreferences}
+        onClose={() => setCustomizeOpen(false)}
+        onSave={saveCustomizeDrawer}
+        onReset={resetCustomizeDrawer}
+      />
 
       <AnimatePresence>
         {feedbackOpen && (
