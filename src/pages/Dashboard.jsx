@@ -199,12 +199,11 @@ export default function Dashboard({ session }) {
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const exportMenuRef = useRef(null);
-  const mobileMenuRef = useRef(null);
-  const toolsMenuRef = useRef(null);
+  const profileMenuRef = useRef(null);
+  const profileMenuCloseTimer = useRef(null);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -220,11 +219,18 @@ export default function Dashboard({ session }) {
   useEffect(() => {
     function handleClick(e) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportMenuOpen(false);
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false);
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target)) setToolsMenuOpen(false);
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) setProfileMenuOpen(false);
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setProfileMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (profileMenuCloseTimer.current) window.clearTimeout(profileMenuCloseTimer.current);
+    };
   }, []);
 
   async function fetchApplications() {
@@ -246,6 +252,46 @@ export default function Dashboard({ session }) {
   function notify(msg, kind = "success") {
     setToast(msg);
     setToastKind(kind);
+  }
+
+  function clearProfileMenuCloseTimer() {
+    if (profileMenuCloseTimer.current) {
+      window.clearTimeout(profileMenuCloseTimer.current);
+      profileMenuCloseTimer.current = null;
+    }
+  }
+
+  function canHoverProfileMenu() {
+    return typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  }
+
+  function openProfileMenu() {
+    clearProfileMenuCloseTimer();
+    setProfileMenuOpen(true);
+  }
+
+  function closeProfileMenu() {
+    clearProfileMenuCloseTimer();
+    setProfileMenuOpen(false);
+  }
+
+  function scheduleProfileMenuClose() {
+    clearProfileMenuCloseTimer();
+    profileMenuCloseTimer.current = window.setTimeout(() => setProfileMenuOpen(false), 140);
+  }
+
+  function copyCalendarUrl() {
+    if (!session?.user) return;
+    const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
+    navigator.clipboard.writeText(url);
+    notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
+  }
+
+  function copyShareUrl() {
+    if (!session?.user) return;
+    const url = `https://${window.location.host}/share/${session.user.id}`;
+    navigator.clipboard.writeText(url);
+    notify("Share link copied! Anyone with this link can view your tracker.", "success");
   }
 
   async function signOut() {
@@ -528,41 +574,6 @@ export default function Dashboard({ session }) {
             </nav>
 
           </div>
-
-          {/* Theme toggle in sidebar */}
-          <div className="px-4 pb-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={dark ? "Switch to light mode" : "Switch to dark mode"}
-              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
-            >
-              <Icon name={dark ? "sun" : "moon"} className="h-3.5 w-3.5 shrink-0" />
-              {dark ? "Light mode" : "Dark mode"}
-            </button>
-          </div>
-
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900">
-                {session?.user?.email?.[0]?.toUpperCase() || "?"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">{session?.user?.email}</p>
-                <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Signed in</p>
-              </div>
-              <button onClick={signOut} className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:text-[#71717a] dark:hover:bg-[#1c1c1f]">
-                Out
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={handleDeleteAccount}
-              className="mt-2 w-full text-left text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors px-0.5"
-            >
-              Delete account
-            </button>
-          </div>
         </aside>
 
         {/* Mobile bottom nav */}
@@ -665,29 +676,62 @@ export default function Dashboard({ session }) {
                   </AnimatePresence>
                 </div>
 
-                <div ref={toolsMenuRef} className="relative hidden md:block">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  title={dark ? "Switch to light mode" : "Switch to dark mode"}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
+                >
+                  <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
+                </button>
+
+                <div
+                  ref={profileMenuRef}
+                  className="relative"
+                  onMouseEnter={() => { if (canHoverProfileMenu()) openProfileMenu(); }}
+                  onMouseLeave={() => { if (canHoverProfileMenu()) scheduleProfileMenuClose(); }}
+                  onFocus={openProfileMenu}
+                  onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) scheduleProfileMenuClose(); }}
+                >
                   <button
                     type="button"
-                    onClick={() => setToolsMenuOpen((v) => !v)}
-                    className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
+                    aria-haspopup="menu"
+                    aria-expanded={profileMenuOpen}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      clearProfileMenuCloseTimer();
+                      if (canHoverProfileMenu()) setProfileMenuOpen(true);
+                      else setProfileMenuOpen((v) => !v);
+                    }}
+                    className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-1 text-left shadow-sm transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:hover:bg-[#2e2e32] sm:pr-2.5"
                   >
-                    <Icon name="filter" className="h-3.5 w-3.5" />
-                    Tools
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900">
+                      {session?.user?.email?.[0]?.toUpperCase() || "?"}
+                    </span>
+                    <span className="hidden max-w-[8rem] truncate text-xs font-bold text-slate-700 dark:text-[#d4d4d8] lg:block">
+                      {session?.user?.email}
+                    </span>
+                    <svg className="hidden h-3 w-3 shrink-0 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </button>
                   <AnimatePresence>
-                    {toolsMenuOpen && (
+                    {profileMenuOpen && (
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
+                        className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
+                        role="menu"
                       >
+                        <div className="border-b border-slate-100 px-4 py-3 dark:border-[#2a2a2e]">
+                          <p className="truncate text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">{session?.user?.email}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Signed in</p>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
-                            navigator.clipboard.writeText(url);
-                            notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
-                            setToolsMenuOpen(false);
+                            closeProfileMenu();
+                            copyCalendarUrl();
                           }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
                         >
@@ -696,105 +740,23 @@ export default function Dashboard({ session }) {
                         <button
                           type="button"
                           onClick={() => {
-                            const url = `https://${window.location.host}/share/${session.user.id}`;
-                            navigator.clipboard.writeText(url);
-                            notify("Share link copied! Anyone with this link can view your tracker.", "success");
-                            setToolsMenuOpen(false);
+                            closeProfileMenu();
+                            copyShareUrl();
                           }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
                         >
                           <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> Share tracker
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFeedbackOpen(true);
-                            setToolsMenuOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
-                        >
+                        <button type="button" onClick={() => { closeProfileMenu(); setFeedbackOpen(true); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
                           <Icon name="messageSquare" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> Share feedback
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            toggleTheme();
-                            setToolsMenuOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
-                        >
-                          <Icon name={dark ? "sun" : "moon"} className="h-3.5 w-3.5 text-slate-400" /> {dark ? "Light mode" : "Dark mode"}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Mobile: theme toggle + user menu */}
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  title={dark ? "Switch to light mode" : "Switch to dark mode"}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 md:hidden dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
-                >
-                  <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
-                </button>
-
-                <div ref={mobileMenuRef} className="relative md:hidden">
-                  <button
-                    type="button"
-                    onClick={() => setMobileMenuOpen((v) => !v)}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900"
-                  >
-                    {session?.user?.email?.[0]?.toUpperCase() || "?"}
-                  </button>
-                  <AnimatePresence>
-                    {mobileMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
-                      >
-                        <div className="border-b border-slate-100 px-4 py-3 dark:border-[#2a2a2e]">
-                          <p className="truncate text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">{session?.user?.email}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Signed in</p>
-                        </div>
-                        <button type="button" onClick={() => { setFeedbackOpen(true); setMobileMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="messageSquare" className="h-3.5 w-3.5 text-slate-400" /> Share feedback
-                        </button>
-                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
-                            navigator.clipboard.writeText(url);
-                            notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
-                            setMobileMenuOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
-                        >
-                          <Icon name="calendar" className="h-3.5 w-3.5 text-blue-500" /> Calendar sync
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = `https://${window.location.host}/share/${session.user.id}`;
-                            navigator.clipboard.writeText(url);
-                            notify("Share link copied! Anyone with this link can view your tracker.", "success");
-                            setMobileMenuOpen(false);
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
-                        >
-                          <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> Share tracker
-                        </button>
-                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <button type="button" onClick={signOut} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                        <button type="button" onClick={() => { closeProfileMenu(); signOut(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
                           <Icon name="reset" className="h-3.5 w-3.5" /> Sign out
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setMobileMenuOpen(false); handleDeleteAccount(); }}
+                          onClick={() => { closeProfileMenu(); handleDeleteAccount(); }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition hover:bg-rose-50/60 dark:hover:bg-rose-900/10"
                         >
                           Delete account
@@ -826,7 +788,7 @@ export default function Dashboard({ session }) {
                       <EmptyDashboard onAdd={() => openNew()} />
                     ) : (
                       <>
-                        <div className="mb-5 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-4">
+                        <div className="mb-5 grid auto-rows-fr grid-cols-1 gap-3 min-[360px]:grid-cols-2 xl:grid-cols-4">
                           <Metric
                             icon="dashboard"
                             label="Applications tracked"
