@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 
-function FocusTile({ icon, label, value, detail, tone = "slate", actionLabel, onClick }) {
+function FocusTile({ icon, label, value, detail, tone = "slate", actionLabel, onClick, ariaLabel }) {
   const toneClass = {
     danger: "bg-rose-50 text-rose-600 ring-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-800",
     warning: "bg-[var(--warning-soft)] text-[var(--warning)] ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-800",
@@ -14,19 +14,20 @@ function FocusTile({ icon, label, value, detail, tone = "slate", actionLabel, on
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-[8.25rem] min-w-0 flex-col rounded-2xl border border-slate-100 bg-slate-50 p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-[#1c1c1f]"
+      aria-label={ariaLabel}
+      className="flex min-h-[9rem] min-w-0 flex-col rounded-2xl border border-slate-100 bg-slate-50 p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31] dark:focus:ring-offset-[#1A1D22] sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 ${toneClass}`}>
           <Icon name={icon} className="h-4 w-4" />
         </span>
-        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-400 ring-1 ring-slate-200 dark:bg-[#1c1c1f] dark:text-[#71717a] dark:ring-[#2a2a2e]">
+        <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-500 ring-1 ring-slate-200 dark:bg-[#1A1D22] dark:text-[#9AA4B2] dark:ring-[rgba(255,255,255,0.09)]">
           {actionLabel}
         </span>
       </div>
-      <p className="mt-4 text-2xl font-black tabular-nums leading-none text-slate-950 dark:text-white">{value}</p>
-      <p className="mt-1 text-sm font-black text-slate-800 dark:text-[#d4d4d8]">{label}</p>
-      <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-[#71717a]">{detail}</p>
+      <p className="mt-5 text-[28px] font-black tabular-nums leading-none text-slate-950 dark:text-white">{value}</p>
+      <p className="mt-2 text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{label}</p>
+      <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{detail}</p>
     </button>
   );
 }
@@ -49,25 +50,26 @@ export function FocusThisWeek({
 
   return (
     <div className={showQuickActions ? "grid gap-4 xl:grid-cols-[1.45fr_0.55fr]" : "h-full"}>
-      <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
-        <CardContent className="p-4 sm:p-5">
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <Card className="h-full rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
+        <CardContent className="p-4 sm:p-6">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">Today focus</p>
-              <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">Action queue</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-[#71717a]">
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--applume-accent)]">Today focus</p>
+              <h2 className="mt-1 text-lg font-black leading-tight text-slate-950 dark:text-white">Action queue</h2>
+              <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">
                 Your action queue for deadlines, interviews, and setup gaps.
               </p>
             </div>
             <button
               type="button"
               onClick={onReviewUrgent}
-              className="rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)]"
+              aria-label="Review overdue and urgent applications"
+              className="rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:focus:ring-offset-[#1A1D22]"
             >
               Review queue
             </button>
           </div>
-          <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
             <FocusTile
               icon="reset"
               label="Overdue"
@@ -76,6 +78,7 @@ export function FocusThisWeek({
               tone={overdueCount > 0 ? "danger" : "slate"}
               actionLabel="Review"
               onClick={onReviewUrgent}
+              ariaLabel="Review overdue applications"
             />
             <FocusTile
               icon="calendar"
@@ -85,6 +88,7 @@ export function FocusThisWeek({
               tone={focusTone}
               actionLabel="Open"
               onClick={onReviewUrgent}
+              ariaLabel="Open applications due in the next seven days"
             />
             <FocusTile
               icon="job"
@@ -94,6 +98,7 @@ export function FocusThisWeek({
               tone="blue"
               actionLabel="Filter"
               onClick={onReviewInterviews}
+              ariaLabel="Filter interview applications"
             />
             <FocusTile
               icon="check"
@@ -103,6 +108,7 @@ export function FocusThisWeek({
               tone="accent"
               actionLabel="Fix"
               onClick={onReviewDocuments}
+              ariaLabel="Fix applications with missing document context"
             />
           </div>
         </CardContent>

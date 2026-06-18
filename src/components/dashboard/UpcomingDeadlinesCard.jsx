@@ -12,14 +12,14 @@ function toneForDeadline(info) {
 
 export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
   return (
-    <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
-      <CardContent className="p-4 sm:p-5">
+    <Card className="rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
+      <CardContent className="p-4 sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-black text-slate-950 dark:text-white">Upcoming deadlines</h2>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-[#9AA4B2]">Top records that need time-sensitive action.</p>
+            <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">Upcoming deadlines</h2>
+            <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">Top records that need time-sensitive action.</p>
           </div>
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--warning-soft)] text-[var(--warning)] ring-1 ring-orange-100">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--warning-soft)] text-[var(--warning)] ring-1 ring-orange-100 dark:bg-amber-900/20 dark:ring-amber-800/50">
             <Icon name="calendar" className="h-4 w-4" />
           </div>
         </div>
@@ -34,7 +34,7 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
               <button
                 type="button"
                 onClick={onAddDeadline}
-                className="mt-3 rounded-xl border border-[var(--applume-accent-border)] bg-white px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:bg-[#1A1D22]"
+                className="mt-3 rounded-xl border border-[var(--applume-accent-border)] bg-white px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:bg-[#1A1D22] dark:focus:ring-offset-[#1A1D22]"
               >
                 Add deadline
               </button>
@@ -50,24 +50,25 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
                   initial={{ opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.08 + i * 0.04, duration: 0.22 }}
-                  className="rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]"
+                  className="rounded-xl border border-slate-100 bg-slate-50 p-3.5 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]"
                 >
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold leading-tight text-slate-900 dark:text-white">{app.name}</p>
-                      <p className="mt-1 truncate text-xs text-slate-500 dark:text-[#9AA4B2]">{app.programRole || app.type}</p>
+                      <p className="mt-1 truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{app.programRole || app.type}</p>
                     </div>
                     <span className="shrink-0 self-start">
                       <Badge tone={toneForDeadline(info)}>{info.label}</Badge>
                     </span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-semibold text-slate-500 dark:text-[#9AA4B2]">{formatDate(app.deadline)}</p>
+                    <p className="text-[13px] font-semibold text-slate-500 dark:text-[#9AA4B2]">{formatDate(app.deadline)}</p>
                     {onOpenRecord && (
                       <button
                         type="button"
                         onClick={() => onOpenRecord(app)}
-                        className="rounded-lg px-2 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft)]"
+                        aria-label={`Open ${app.name} application`}
+                        className="rounded-lg px-2 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:focus:ring-offset-[#20242A]"
                       >
                         Open
                       </button>

@@ -12,6 +12,7 @@ import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import {
+  NextStepCoveragePanel,
   QuickActionsPanel,
   RecentActivityPanel,
 } from "@/components/dashboard/OptionalPanels";
@@ -186,24 +187,24 @@ const VIEW_META = {
 
 function DashboardLayout({ children }) {
   return (
-    <div className="grid grid-cols-1 gap-6 min-[900px]:grid-cols-12 min-[900px]:items-start">
+    <div className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-12 min-[900px]:items-start min-[900px]:gap-6">
       {children}
     </div>
   );
 }
 
-function DashboardSpan({ span = 6, kpi = false, children }) {
+function DashboardSpan({ span = 6, children }) {
   const spanClass = {
-    3: "min-[900px]:col-span-3",
     4: "min-[900px]:col-span-4",
+    5: "min-[900px]:col-span-5",
     6: "min-[900px]:col-span-6",
+    7: "min-[900px]:col-span-7",
     8: "min-[900px]:col-span-8",
-    9: "min-[900px]:col-span-9",
     12: "min-[900px]:col-span-12",
   }[span] || "min-[900px]:col-span-6";
 
   return (
-    <div className={`min-w-0 ${spanClass} ${kpi ? "min-h-[150px] max-h-[190px]" : ""}`}>
+    <div className={`min-w-0 ${spanClass}`}>
       {children}
     </div>
   );
@@ -211,29 +212,26 @@ function DashboardSpan({ span = 6, kpi = false, children }) {
 
 function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
   const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
+  const summary = `${pct}% ready · ${documented} of ${total} records include document notes · ${incompleteItems.length} need setup`;
 
   return (
-    <div className="h-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:ring-1 dark:ring-white/5 sm:p-5">
+    <div className="h-full rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:ring-1 dark:ring-white/5 sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-black text-slate-950 dark:text-white">Application readiness</h2>
-          <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-[#9AA4B2]">
+          <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">Application readiness</h2>
+          <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">
             Documents, deadlines, links, and next steps that still need setup.
           </p>
         </div>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--applume-accent-soft)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)] dark:bg-[rgba(0,153,102,0.16)]">
-          <Icon name="check" className="h-4 w-4" />
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-[#20242A] dark:text-[#9AA4B2] dark:ring-[rgba(255,255,255,0.09)]">
+          <Icon name="dashboard" className="h-4 w-4" />
         </div>
       </div>
 
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`${pct}% application readiness`}>
+      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`${pct}% application readiness`}>
         <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
       </div>
-      <div className="mt-2 grid gap-1 text-xs sm:grid-cols-2">
-        <span className="font-black text-slate-800 dark:text-[#F8FAFC]">{pct}% ready</span>
-        <span className="text-slate-500 dark:text-[#9AA4B2] sm:text-right">{documented} of {total} records include document notes.</span>
-        <span className="text-slate-500 dark:text-[#9AA4B2] sm:col-span-2">{incompleteItems.length} need setup.</span>
-      </div>
+      <p className="mt-3 text-sm font-black leading-6 text-slate-800 dark:text-[#F8FAFC]">{summary}</p>
 
       {incompleteItems.length > 0 ? (
         <div className="mt-4 space-y-2">
@@ -242,11 +240,12 @@ function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenR
               key={app.id}
               type="button"
               onClick={() => onOpenRecord?.(app)}
-              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31]"
+              aria-label={`Fix missing ${missing.join(", ")} for ${app.name}`}
+              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31] dark:focus:ring-offset-[#1A1D22]"
             >
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-800 dark:text-white">{app.name}</span>
-                <span className="block truncate text-xs text-slate-500 dark:text-[#9AA4B2]">Missing {missing.join(", ")}</span>
+                <span className="block truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">Missing {missing.join(", ")}</span>
               </span>
               <span className="shrink-0 text-xs font-black text-[var(--applume-accent-hover)]">Fix</span>
             </button>
@@ -395,12 +394,26 @@ export default function Dashboard({ session }) {
 
   function openInterviewQueue(firstItem) {
     trackEvent("dashboard_focus_card_clicked", { card: "interviews" });
-    if (firstItem) openEdit(firstItem);
+    if (firstItem) {
+      openEdit(firstItem);
+      return;
+    }
+    handleSidebarView("jobs");
+    setStatusFilter("Interview");
   }
 
   function openDocumentQueue(firstItem) {
     trackEvent("dashboard_focus_card_clicked", { card: "missing_documents" });
     if (firstItem) openEdit(firstItem);
+  }
+
+  function openNextStepQueue(firstItem) {
+    trackEvent("dashboard_next_step_coverage_clicked", { source: "dashboard" });
+    if (firstItem) {
+      openEdit(firstItem);
+      return;
+    }
+    openNewTracked("University", "next_step_coverage");
   }
 
   function clearProfileMenuCloseTimer() {
@@ -544,6 +557,14 @@ export default function Dashboard({ session }) {
     return { documented, incompleteItems };
   }, [applications]);
 
+  const nextStepCoverage = useMemo(() => {
+    const itemsMissingNextStep = applications.filter((app) => !String(app.notes || "").trim());
+    return {
+      withNextStep: applications.length - itemsMissingNextStep.length,
+      itemsMissingNextStep,
+    };
+  }, [applications]);
+
   const focusThisWeek = useMemo(() => {
     const overdueItems = applications.filter((app) => {
       if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
@@ -561,7 +582,7 @@ export default function Dashboard({ session }) {
   }, [applications]);
 
   const headerSummary = sidebarView === "dashboard"
-    ? `${stats.total} tracked - ${stats.actionNeeded} needs action - ${stats.progress}% submitted or beyond`
+    ? `${stats.total} tracked · ${stats.actionNeeded} needs action · ${stats.progress}% submitted or beyond`
     : VIEW_META[sidebarView]?.sub;
 
   function openNew(type = "University") {
@@ -781,6 +802,14 @@ export default function Dashboard({ session }) {
             onOpenRecord={openEdit}
           />
         );
+      case "nextStepCoverage":
+        return (
+          <NextStepCoveragePanel
+            total={stats.total}
+            withNextStep={nextStepCoverage.withNextStep}
+            onAddNextSteps={() => openNextStepQueue(nextStepCoverage.itemsMissingNextStep[0])}
+          />
+        );
       default:
         return null;
     }
@@ -792,9 +821,10 @@ export default function Dashboard({ session }) {
         <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
         <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
         <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-        <DashboardSpan span={6}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
-        <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-        <DashboardSpan span={12}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+        <DashboardSpan span={7}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
+        <DashboardSpan span={5}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+        <DashboardSpan span={7}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+        <DashboardSpan span={5}>{renderDashboardPanel("nextStepCoverage")}</DashboardSpan>
       </DashboardLayout>
     );
   }
