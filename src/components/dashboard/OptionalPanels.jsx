@@ -77,7 +77,9 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
   return (
     <PanelShell title="Recent activity" description="Recently added and updated applications." icon="reset">
       {recent.length === 0 ? (
-        <EmptyPanel>Activity will appear after you add or update applications.</EmptyPanel>
+        <EmptyPanel title="No recent activity yet.">
+          Updates will appear here after you add or edit applications.
+        </EmptyPanel>
       ) : (
         <div className="space-y-2.5">
           {recent.map((app) => (

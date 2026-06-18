@@ -10,7 +10,7 @@ function toneForDeadline(info) {
   return "neutral";
 }
 
-export function UpcomingDeadlinesCard({ apps, onOpenRecord }) {
+export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
   return (
     <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
       <CardContent className="p-4 sm:p-5">
@@ -25,9 +25,21 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord }) {
         </div>
 
         {apps.length === 0 ? (
-          <p className="rounded-xl bg-[var(--applume-accent-soft)] px-3 py-4 text-sm font-semibold text-[var(--applume-accent-hover)]">
-            No deadlines are waiting for action. Add deadlines to records when you want them surfaced here.
-          </p>
+          <div className="rounded-xl bg-[var(--applume-accent-soft)] px-3 py-4 dark:bg-[rgba(0,153,102,0.16)]">
+            <p className="text-sm font-black text-[var(--applume-accent-hover)] dark:text-[var(--applume-accent-muted)]">No upcoming deadlines.</p>
+            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-[#9AA4B2]">
+              Add a deadline to an application and it will appear here.
+            </p>
+            {onAddDeadline && (
+              <button
+                type="button"
+                onClick={onAddDeadline}
+                className="mt-3 rounded-xl border border-[var(--applume-accent-border)] bg-white px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:bg-[#1A1D22]"
+              >
+                Add deadline
+              </button>
+            )}
+          </div>
         ) : (
           <div className="space-y-2.5">
             {apps.map((app, i) => {

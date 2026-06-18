@@ -6,19 +6,12 @@ import { Icon } from "@/components/ui/Icon";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { Brand } from "@/components/layout/Brand";
 import { NavItem } from "@/components/layout/NavItem";
-import { Metric } from "@/components/dashboard/Metric";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
 import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
-import { DocumentsCompletenessCard } from "@/components/dashboard/DocumentsCompletenessCard";
 import {
-  ApplicationsByStatusPanel,
-  CalendarPreviewPanel,
-  InterviewsFollowupsPanel,
-  JobResponseRatePanel,
-  MissingInformationPanel,
   QuickActionsPanel,
   RecentActivityPanel,
 } from "@/components/dashboard/OptionalPanels";
@@ -35,7 +28,6 @@ import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
-import { DASHBOARD_FOCUS_MODES, loadDashboardFocusMode, saveDashboardFocusMode } from "@/utils/dashboardFocusMode";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -217,21 +209,58 @@ function DashboardSpan({ span = 6, kpi = false, children }) {
   );
 }
 
-function DashboardFocusSelector({ value, onChange }) {
+function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
+  const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
+
   return (
-    <label className="flex h-9 max-w-[13.5rem] shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] sm:max-w-none sm:px-3">
-      <span className="hidden whitespace-nowrap text-slate-400 lg:inline">Dashboard focus</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="min-w-0 max-w-[9rem] bg-transparent text-xs font-black text-slate-800 outline-none dark:text-[#F8FAFC] sm:max-w-none"
-        aria-label="Dashboard focus"
-      >
-        {DASHBOARD_FOCUS_MODES.map((mode) => (
-          <option key={mode.id} value={mode.id}>{mode.label}</option>
-        ))}
-      </select>
-    </label>
+    <div className="h-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:ring-1 dark:ring-white/5 sm:p-5">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-black text-slate-950 dark:text-white">Application readiness</h2>
+          <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-[#9AA4B2]">
+            Documents, deadlines, links, and next steps that still need setup.
+          </p>
+        </div>
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--applume-accent-soft)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)] dark:bg-[rgba(0,153,102,0.16)]">
+          <Icon name="check" className="h-4 w-4" />
+        </div>
+      </div>
+
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`${pct}% application readiness`}>
+        <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-2 grid gap-1 text-xs sm:grid-cols-2">
+        <span className="font-black text-slate-800 dark:text-[#F8FAFC]">{pct}% ready</span>
+        <span className="text-slate-500 dark:text-[#9AA4B2] sm:text-right">{documented} of {total} records include document notes.</span>
+        <span className="text-slate-500 dark:text-[#9AA4B2] sm:col-span-2">{incompleteItems.length} need setup.</span>
+      </div>
+
+      {incompleteItems.length > 0 ? (
+        <div className="mt-4 space-y-2">
+          {incompleteItems.slice(0, 5).map(({ app, missing }) => (
+            <button
+              key={app.id}
+              type="button"
+              onClick={() => onOpenRecord?.(app)}
+              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31]"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold text-slate-800 dark:text-white">{app.name}</span>
+                <span className="block truncate text-xs text-slate-500 dark:text-[#9AA4B2]">Missing {missing.join(", ")}</span>
+              </span>
+              <span className="shrink-0 text-xs font-black text-[var(--applume-accent-hover)]">Fix</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 rounded-xl bg-[var(--applume-accent-soft)] px-3 py-4 dark:bg-[rgba(0,153,102,0.16)]">
+          <p className="text-sm font-black text-[var(--applume-accent-hover)] dark:text-[var(--applume-accent-muted)]">Everything important is set up.</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-[#9AA4B2]">
+            Applications with missing documents, deadlines, links, or next steps will appear here.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -254,7 +283,6 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(false);
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [dashboardFocusMode, setDashboardFocusMode] = useState(() => loadDashboardFocusMode(session?.user?.id));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
@@ -298,6 +326,18 @@ export default function Dashboard({ session }) {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      const suffix = session?.user?.id || "anonymous";
+      localStorage.removeItem("applume.dashboard.preferences.v1");
+      localStorage.removeItem(`applume.dashboard.preferences.v1:${suffix}`);
+      localStorage.removeItem("applume.dashboard.focusMode.v1");
+      localStorage.removeItem(`applume.dashboard.focusMode.v1:${suffix}`);
+    } catch {
+      // Dashboard cleanup should never block the normal app.
+    }
+  }, [session?.user?.id]);
+
   async function fetchApplications() {
     if (!session?.user) return;
     setLoading(true);
@@ -317,12 +357,6 @@ export default function Dashboard({ session }) {
   function notify(msg, kind = "success") {
     setToast(msg);
     setToastKind(kind);
-  }
-
-  function selectDashboardFocusMode(mode) {
-    setDashboardFocusMode(mode);
-    saveDashboardFocusMode(mode, session?.user?.id);
-    notify("Dashboard focus updated.", "success");
   }
 
   function completeOnboardingWizard() {
@@ -496,7 +530,17 @@ export default function Dashboard({ session }) {
 
   const documentReadiness = useMemo(() => {
     const documented = applications.filter((app) => String(app.documents || "").trim()).length;
-    const incompleteItems = applications.filter((app) => !String(app.documents || "").trim()).slice(0, 3);
+    const incompleteItems = applications
+      .map((app) => {
+        const missing = [
+          !app.deadline && "deadline",
+          !String(app.documents || "").trim() && "documents",
+          !String(app.link || "").trim() && "link",
+          !String(app.notes || "").trim() && "next step",
+        ].filter(Boolean);
+        return { app, missing };
+      })
+      .filter((entry) => entry.missing.length > 0);
     return { documented, incompleteItems };
   }, [applications]);
 
@@ -517,7 +561,7 @@ export default function Dashboard({ session }) {
   }, [applications]);
 
   const headerSummary = sidebarView === "dashboard"
-    ? `${stats.total} tracked - ${stats.actionNeeded} action needed - ${stats.progress}% submitted or beyond`
+    ? `${stats.total} tracked - ${stats.actionNeeded} needs action - ${stats.progress}% submitted or beyond`
     : VIEW_META[sidebarView]?.sub;
 
   function openNew(type = "University") {
@@ -720,122 +764,39 @@ export default function Dashboard({ session }) {
             onCalendarSync={copyCalendarUrl}
           />
         );
-      case "applicationsTracked":
-        return <Metric icon="dashboard" label="Applications tracked" value={stats.total} hint={`${stats.universities} university - ${stats.jobs} job`} accent="slate" delay={0} />;
-      case "dueSoon":
-        return <Metric icon="calendar" label="Due soon" value={stats.dueSoon7} hint="Records due in the next 7 days" accent="blue" delay={0} />;
-      case "actionNeeded":
-        return <Metric icon="reset" label="Action needed" value={stats.actionNeeded} hint={stats.actionNeeded === 0 ? "All deadlines on track" : `${stats.overdue} overdue - ${stats.dueSoon7} due soon`} danger={stats.actionNeeded > 0} delay={0} />;
-      case "submissionProgress":
-        return <Metric icon="check" label="Submission progress" value={`${stats.progress}%`} hint={`${stats.submitted} of ${stats.total} submitted or beyond`} accent="accent" progressValue={stats.progress} delay={0} />;
       case "pipelineSummary":
         return <PipelineCard pipeline={pipeline} total={stats.total} />;
       case "upcomingDeadlines":
-        return <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} />;
-      case "documentReadiness":
+        return <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} onAddDeadline={() => openNewTracked("University", "deadline_empty")} />;
+      case "recentActivity":
+        return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
+      case "quickActions":
+        return <QuickActionsPanel onAddUniversity={() => openNewTracked("University", "quick_actions")} onAddJob={() => openNewTracked("Job", "quick_actions")} onImport={openImportPicker} onCalendarSync={copyCalendarUrl} />;
+      case "applicationReadiness":
         return (
-          <DocumentsCompletenessCard
+          <ApplicationReadinessPanel
             total={stats.total}
             documented={documentReadiness.documented}
             incompleteItems={documentReadiness.incompleteItems}
             onOpenRecord={openEdit}
           />
         );
-      case "recentActivity":
-        return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
-      case "calendarPreview":
-        return <CalendarPreviewPanel applications={applications} onOpenRecord={openEdit} onAddDeadline={() => openNewTracked("University", "calendar_empty")} />;
-      case "interviewsFollowups":
-        return <InterviewsFollowupsPanel applications={applications} onOpenRecord={openEdit} onReviewPipeline={() => handleSidebarView("jobs")} />;
-      case "missingInformation":
-        return <MissingInformationPanel applications={applications} onOpenRecord={openEdit} />;
-      case "quickActions":
-        return <QuickActionsPanel onAddUniversity={() => openNewTracked("University", "quick_actions")} onAddJob={() => openNewTracked("Job", "quick_actions")} onImport={openImportPicker} onCalendarSync={copyCalendarUrl} />;
-      case "applicationsByStatus":
-        return <ApplicationsByStatusPanel applications={applications} />;
-      case "jobResponseRate":
-        return <JobResponseRatePanel applications={applications} onAddJob={() => openNewTracked("Job", "job_response_empty")} />;
       default:
         return null;
     }
   }
 
-  function renderDashboardFocusMode() {
-    switch (dashboardFocusMode) {
-      case "deadline":
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
-            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
-            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("actionNeeded")}</DashboardSpan>
-            <DashboardSpan span={8}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-          </DashboardLayout>
-        );
-      case "documents":
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
-            <DashboardSpan span={12}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
-          </DashboardLayout>
-        );
-      case "pipeline":
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("submissionProgress")}</DashboardSpan>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("applicationsByStatus")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-          </DashboardLayout>
-        );
-      case "jobs":
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
-            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("interviewsFollowups")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("jobResponseRate")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-          </DashboardLayout>
-        );
-      case "universities":
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
-            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
-          </DashboardLayout>
-        );
-      case "calm":
-      default:
-        return (
-          <DashboardLayout>
-            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
-            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("dueSoon")}</DashboardSpan>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("actionNeeded")}</DashboardSpan>
-            <DashboardSpan span={4} kpi>{renderDashboardPanel("submissionProgress")}</DashboardSpan>
-            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
-            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-          </DashboardLayout>
-        );
-    }
+  function renderFixedDashboard() {
+    return (
+      <DashboardLayout>
+        <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
+        <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
+        <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+        <DashboardSpan span={6}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
+        <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+        <DashboardSpan span={12}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+      </DashboardLayout>
+    );
   }
 
   return (
@@ -920,10 +881,6 @@ export default function Dashboard({ session }) {
               </AnimatePresence>
 
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                {sidebarView === "dashboard" && (
-                  <DashboardFocusSelector value={dashboardFocusMode} onChange={selectDashboardFocusMode} />
-                )}
-
                 <Button
                   onClick={() => openNew(sidebarView === "jobs" ? "Job" : "University")}
                   className="h-9 rounded-xl px-2.5 text-sm sm:px-3.5"
@@ -1095,7 +1052,7 @@ export default function Dashboard({ session }) {
                       />
                     ) : (
                       <>
-                        {renderDashboardFocusMode()}
+                        {renderFixedDashboard()}
                         <div className="mt-4">
                           <OnboardingChecklist
                             userId={session?.user?.id}

@@ -53,10 +53,10 @@ export function FocusThisWeek({
         <CardContent className="p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">Focus this week</p>
-              <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">Your action queue</h2>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">Today focus</p>
+              <h2 className="mt-1 text-lg font-black text-slate-950 dark:text-white">Action queue</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-[#71717a]">
-                Prioritized by deadlines, interviews, and setup gaps.
+                Your action queue for deadlines, interviews, and setup gaps.
               </p>
             </div>
             <button
