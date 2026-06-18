@@ -13,18 +13,14 @@ import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { DocumentsCompletenessCard } from "@/components/dashboard/DocumentsCompletenessCard";
-import { DashboardCustomizeDrawer } from "@/components/dashboard/DashboardCustomizeDrawer";
 import {
   ApplicationsByStatusPanel,
   CalendarPreviewPanel,
-  DeadlinesNext30DaysPanel,
   InterviewsFollowupsPanel,
   JobResponseRatePanel,
   MissingInformationPanel,
   QuickActionsPanel,
   RecentActivityPanel,
-  SubmissionTrendPanel,
-  UniversityDeadlineDistributionPanel,
 } from "@/components/dashboard/OptionalPanels";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
@@ -39,7 +35,7 @@ import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
-import { DASHBOARD_WIDGETS, DASHBOARD_ZONES, loadDashboardPreferences, normalizeDashboardPreferences, saveDashboardPreferences } from "@/utils/dashboardPreferences";
+import { DASHBOARD_FOCUS_MODES, loadDashboardFocusMode, saveDashboardFocusMode } from "@/utils/dashboardFocusMode";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -196,45 +192,46 @@ const VIEW_META = {
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
 
-function DashboardPanel({ widget, zone, focusWidgetCount, editing, children }) {
-  const isKpi = zone === "kpis";
-  const isFocus = zone === "focus";
-  const isSoloFocus = isFocus && focusWidgetCount === 1;
-  const span = (() => {
-    if (isKpi) return "";
-    if (isFocus && isSoloFocus) return "lg:col-span-12";
-    if (isFocus && widget.id === "focusThisWeek") return "lg:col-span-8";
-    if (isFocus && widget.id === "quickActions") return "lg:col-span-4";
-    if (widget.size === "large") return "lg:col-span-12";
-    return "lg:col-span-6";
-  })();
-  const sizeClass = isKpi ? "min-h-[150px] max-h-[190px]" : "";
-
+function DashboardLayout({ children }) {
   return (
-    <div className={`min-w-0 ${span} ${sizeClass} ${editing ? "rounded-[1.25rem] outline outline-1 outline-[var(--applume-accent-border)] outline-offset-2" : ""}`}>
+    <div className="grid grid-cols-1 gap-6 min-[900px]:grid-cols-12 min-[900px]:items-start">
       {children}
     </div>
   );
 }
 
-function DashboardZone({ name, widgets, editing, renderWidget }) {
-  if (!widgets.length) return null;
-  const zoneClass = {
-    focus: "grid gap-4 lg:grid-cols-12 lg:items-stretch",
-    kpis: "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4",
-    primary: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
-    secondary: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
-    supporting: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
-  }[name];
+function DashboardSpan({ span = 6, kpi = false, children }) {
+  const spanClass = {
+    3: "min-[900px]:col-span-3",
+    4: "min-[900px]:col-span-4",
+    6: "min-[900px]:col-span-6",
+    8: "min-[900px]:col-span-8",
+    9: "min-[900px]:col-span-9",
+    12: "min-[900px]:col-span-12",
+  }[span] || "min-[900px]:col-span-6";
 
   return (
-    <section className={zoneClass} aria-label={`${name} dashboard panels`}>
-      {widgets.map((widget) => (
-        <DashboardPanel key={widget.id} widget={widget} zone={name} focusWidgetCount={widgets.length} editing={editing}>
-          {renderWidget(widget)}
-        </DashboardPanel>
-      ))}
-    </section>
+    <div className={`min-w-0 ${spanClass} ${kpi ? "min-h-[150px] max-h-[190px]" : ""}`}>
+      {children}
+    </div>
+  );
+}
+
+function DashboardFocusSelector({ value, onChange }) {
+  return (
+    <label className="flex h-9 max-w-[13.5rem] shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] sm:max-w-none sm:px-3">
+      <span className="hidden whitespace-nowrap text-slate-400 lg:inline">Dashboard focus</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-w-0 max-w-[9rem] bg-transparent text-xs font-black text-slate-800 outline-none dark:text-[#F8FAFC] sm:max-w-none"
+        aria-label="Dashboard focus"
+      >
+        {DASHBOARD_FOCUS_MODES.map((mode) => (
+          <option key={mode.id} value={mode.id}>{mode.label}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -257,9 +254,7 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(false);
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-  const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [dashboardPreferences, setDashboardPreferences] = useState(() => loadDashboardPreferences(session?.user?.id));
-  const [draftDashboardPreferences, setDraftDashboardPreferences] = useState(() => loadDashboardPreferences(session?.user?.id));
+  const [dashboardFocusMode, setDashboardFocusMode] = useState(() => loadDashboardFocusMode(session?.user?.id));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
@@ -324,26 +319,10 @@ export default function Dashboard({ session }) {
     setToastKind(kind);
   }
 
-  function openCustomizeDrawer() {
-    setDraftDashboardPreferences(dashboardPreferences);
-    setCustomizeOpen(true);
-  }
-
-  function saveCustomizeDrawer() {
-    try {
-      const nextPreferences = normalizeDashboardPreferences(draftDashboardPreferences);
-      saveDashboardPreferences(nextPreferences, session?.user?.id);
-      setDashboardPreferences(nextPreferences);
-      setDraftDashboardPreferences(nextPreferences);
-      setCustomizeOpen(false);
-      notify("Dashboard layout saved.", "success");
-    } catch {
-      notify("Could not save dashboard layout.", "error");
-    }
-  }
-
-  function resetCustomizeDrawer(nextPreferences) {
-    setDraftDashboardPreferences(nextPreferences);
+  function selectDashboardFocusMode(mode) {
+    setDashboardFocusMode(mode);
+    saveDashboardFocusMode(mode, session?.user?.id);
+    notify("Dashboard focus updated.", "success");
   }
 
   function completeOnboardingWizard() {
@@ -537,30 +516,6 @@ export default function Dashboard({ session }) {
     return { overdueItems, dueSoonItems, interviewItems, missingDocumentItems };
   }, [applications]);
 
-  const dashboardWidgetRegistry = useMemo(() => {
-    return Object.fromEntries(DASHBOARD_WIDGETS.map((widget) => [widget.id, widget]));
-  }, []);
-
-  const activeDashboardPreferences = customizeOpen ? draftDashboardPreferences : dashboardPreferences;
-
-  const visibleDashboardZones = useMemo(() => {
-    const zones = Object.fromEntries(DASHBOARD_ZONES.map((zone) => [zone, []]));
-    activeDashboardPreferences.widgets
-      .filter((widget) => widget.visible && dashboardWidgetRegistry[widget.id])
-      .forEach((widget) => {
-        const zone = DASHBOARD_ZONES.includes(widget.zone) ? widget.zone : "supporting";
-        zones[zone].push(widget);
-      });
-    DASHBOARD_ZONES.forEach((zone) => {
-      zones[zone].sort((a, b) => a.order - b.order);
-    });
-    return zones;
-  }, [activeDashboardPreferences, dashboardWidgetRegistry]);
-
-  const visibleDashboardWidgetCount = useMemo(() => {
-    return DASHBOARD_ZONES.reduce((count, zone) => count + visibleDashboardZones[zone].length, 0);
-  }, [visibleDashboardZones]);
-
   const headerSummary = sidebarView === "dashboard"
     ? `${stats.total} tracked - ${stats.actionNeeded} action needed - ${stats.progress}% submitted or beyond`
     : VIEW_META[sidebarView]?.sub;
@@ -746,12 +701,12 @@ export default function Dashboard({ session }) {
     event.target.value = "";
   }
 
-  function renderDashboardWidget(widget) {
-    switch (widget.id) {
+  function renderDashboardPanel(panelId) {
+    switch (panelId) {
       case "focusThisWeek":
         return (
           <FocusThisWeek
-            showQuickActions={!visibleDashboardZones.focus.some((entry) => entry.id === "quickActions")}
+            showQuickActions={false}
             overdueCount={focusThisWeek.overdueItems.length}
             dueSoonCount={focusThisWeek.dueSoonItems.length}
             interviewCount={focusThisWeek.interviewItems.length}
@@ -798,16 +753,88 @@ export default function Dashboard({ session }) {
         return <QuickActionsPanel onAddUniversity={() => openNewTracked("University", "quick_actions")} onAddJob={() => openNewTracked("Job", "quick_actions")} onImport={openImportPicker} onCalendarSync={copyCalendarUrl} />;
       case "applicationsByStatus":
         return <ApplicationsByStatusPanel applications={applications} />;
-      case "deadlinesNext30Days":
-        return <DeadlinesNext30DaysPanel applications={applications} />;
-      case "submissionTrend":
-        return <SubmissionTrendPanel applications={applications} />;
       case "jobResponseRate":
         return <JobResponseRatePanel applications={applications} onAddJob={() => openNewTracked("Job", "job_response_empty")} />;
-      case "universityDeadlineDistribution":
-        return <UniversityDeadlineDistributionPanel applications={applications} />;
       default:
         return null;
+    }
+  }
+
+  function renderDashboardFocusMode() {
+    switch (dashboardFocusMode) {
+      case "deadline":
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
+            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
+            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("actionNeeded")}</DashboardSpan>
+            <DashboardSpan span={8}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+          </DashboardLayout>
+        );
+      case "documents":
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
+            <DashboardSpan span={12}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
+          </DashboardLayout>
+        );
+      case "pipeline":
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("submissionProgress")}</DashboardSpan>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("applicationsByStatus")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+          </DashboardLayout>
+        );
+      case "jobs":
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
+            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("interviewsFollowups")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("jobResponseRate")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+          </DashboardLayout>
+        );
+      case "universities":
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("applicationsTracked")}</DashboardSpan>
+            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
+          </DashboardLayout>
+        );
+      case "calm":
+      default:
+        return (
+          <DashboardLayout>
+            <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
+            <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("dueSoon")}</DashboardSpan>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("actionNeeded")}</DashboardSpan>
+            <DashboardSpan span={4} kpi>{renderDashboardPanel("submissionProgress")}</DashboardSpan>
+            <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("calendarPreview")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("documentReadiness")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("missingInformation")}</DashboardSpan>
+            <DashboardSpan span={6}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+          </DashboardLayout>
+        );
     }
   }
 
@@ -893,6 +920,10 @@ export default function Dashboard({ session }) {
               </AnimatePresence>
 
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                {sidebarView === "dashboard" && (
+                  <DashboardFocusSelector value={dashboardFocusMode} onChange={selectDashboardFocusMode} />
+                )}
+
                 <Button
                   onClick={() => openNew(sidebarView === "jobs" ? "Job" : "University")}
                   className="h-9 rounded-xl px-2.5 text-sm sm:px-3.5"
@@ -935,15 +966,6 @@ export default function Dashboard({ session }) {
                   </AnimatePresence>
                 </div>
                 <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={importJson} />
-
-                <button
-                  type="button"
-                  onClick={openCustomizeDrawer}
-                  className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32] sm:px-3"
-                >
-                  <Icon name="filter" className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Customize</span>
-                </button>
 
                 <button
                   type="button"
@@ -1073,31 +1095,7 @@ export default function Dashboard({ session }) {
                       />
                     ) : (
                       <>
-                        {visibleDashboardWidgetCount > 0 ? (
-                          <div className="flex flex-col gap-7">
-                            {DASHBOARD_ZONES.map((zone) => (
-                              <DashboardZone
-                                key={zone}
-                                name={zone}
-                                widgets={visibleDashboardZones[zone]}
-                                editing={customizeOpen}
-                                renderWidget={renderDashboardWidget}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="rounded-2xl border border-dashed border-[var(--applume-accent-border)] bg-white p-6 text-center shadow-sm dark:bg-[#1c1c1f]">
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">No dashboard panels are visible.</p>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-[#71717a]">Open Customize to restore a preset or show panels again.</p>
-                            <button
-                              type="button"
-                              onClick={openCustomizeDrawer}
-                              className="mt-4 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-black text-white transition hover:bg-[var(--applume-accent-hover)]"
-                            >
-                              Customize dashboard
-                            </button>
-                          </div>
-                        )}
+                        {renderDashboardFocusMode()}
                         <div className="mt-4">
                           <OnboardingChecklist
                             userId={session?.user?.id}
@@ -1193,16 +1191,6 @@ export default function Dashboard({ session }) {
           />
         )}
       </AnimatePresence>
-
-      <DashboardCustomizeDrawer
-        open={customizeOpen}
-        preferences={draftDashboardPreferences}
-        registry={dashboardWidgetRegistry}
-        onChange={setDraftDashboardPreferences}
-        onClose={() => setCustomizeOpen(false)}
-        onSave={saveCustomizeDrawer}
-        onReset={resetCustomizeDrawer}
-      />
 
       <AnimatePresence>
         {feedbackOpen && (
