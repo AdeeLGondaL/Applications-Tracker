@@ -15,6 +15,7 @@ import {
   NextStepCoveragePanel,
   QuickActionsPanel,
   RecentActivityPanel,
+  StatusDistributionPanel,
 } from "@/components/dashboard/OptionalPanels";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
@@ -810,6 +811,8 @@ export default function Dashboard({ session }) {
             onAddNextSteps={() => openNextStepQueue(nextStepCoverage.itemsMissingNextStep[0])}
           />
         );
+      case "statusDistribution":
+        return <StatusDistributionPanel applications={applications} />;
       default:
         return null;
     }
@@ -832,6 +835,7 @@ export default function Dashboard({ session }) {
           <div className="min-w-0 space-y-6 min-[900px]:col-span-5">
             {renderDashboardPanel("pipelineSummary")}
             {renderDashboardPanel("nextStepCoverage")}
+            {renderDashboardPanel("statusDistribution")}
           </div>
         </div>
 
@@ -840,6 +844,7 @@ export default function Dashboard({ session }) {
           {renderDashboardPanel("pipelineSummary")}
           {renderDashboardPanel("recentActivity")}
           {renderDashboardPanel("nextStepCoverage")}
+          {renderDashboardPanel("statusDistribution")}
         </div>
       </div>
     );

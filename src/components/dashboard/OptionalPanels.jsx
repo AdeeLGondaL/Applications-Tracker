@@ -1,5 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
+import { STATUSES } from "@/utils/constants";
+
+const STATUS_DISTRIBUTION_COLORS = {
+  "Not Open Yet": "bg-slate-400",
+  "Open": "bg-blue-400",
+  "Applying": "bg-[var(--warning)]",
+  "Submitted": "bg-[var(--applume-accent)]",
+  "Awaiting Response": "bg-amber-400",
+  "Interview": "bg-orange-500",
+  "Accepted": "bg-emerald-500",
+  "Rejected": "bg-rose-400",
+  "Deferred": "bg-slate-500",
+};
 
 function PanelShell({ title, description, icon = "dashboard", children }) {
   return (
@@ -108,6 +121,56 @@ export function NextStepCoveragePanel({ total, withNextStep, onAddNextSteps }) {
               Add next steps
             </button>
           )}
+        </div>
+      )}
+    </PanelShell>
+  );
+}
+
+export function StatusDistributionPanel({ applications }) {
+  const total = applications.length;
+  const rows = STATUSES.map((status) => ({
+    status,
+    count: applications.filter((app) => app.status === status).length,
+    color: STATUS_DISTRIBUTION_COLORS[status] || "bg-slate-300",
+  })).filter((row) => row.count > 0);
+  const topRows = [...rows]
+    .sort((a, b) => b.count - a.count || STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status))
+    .slice(0, 5);
+
+  return (
+    <PanelShell title="Status distribution" description="Where your tracker currently stands." icon="dashboard">
+      {total === 0 ? (
+        <EmptyPanel title="No status data yet.">
+          Add applications to see how records are distributed across statuses.
+        </EmptyPanel>
+      ) : (
+        <div>
+          <div className="flex h-3.5 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`Status distribution across ${total} applications`}>
+            {rows.map(({ status, count, color }) => (
+              <div
+                key={status}
+                className={`${color} h-full`}
+                style={{ width: `${(count / total) * 100}%` }}
+                title={`${status}: ${count}`}
+              />
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-2.5">
+            {topRows.map(({ status, count, color }) => {
+              const pct = Math.round((count / total) * 100);
+              return (
+                <div key={status} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
+                    <span className="truncate text-sm font-bold text-slate-800 dark:text-[#F8FAFC]">{status}</span>
+                  </div>
+                  <span className="shrink-0 text-xs font-black text-slate-500 dark:text-[#9AA4B2]">{count} · {pct}%</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </PanelShell>
