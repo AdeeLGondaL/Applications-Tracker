@@ -817,15 +817,31 @@ export default function Dashboard({ session }) {
 
   function renderFixedDashboard() {
     return (
-      <DashboardLayout>
-        <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
-        <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
-        <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-        <DashboardSpan span={7}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
-        <DashboardSpan span={5}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-        <DashboardSpan span={7}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
-        <DashboardSpan span={5}>{renderDashboardPanel("nextStepCoverage")}</DashboardSpan>
-      </DashboardLayout>
+      <div className="space-y-4 min-[900px]:space-y-6">
+        <DashboardLayout>
+          <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
+          <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
+          <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+        </DashboardLayout>
+
+        <div className="hidden min-[900px]:grid min-[900px]:grid-cols-12 min-[900px]:items-start min-[900px]:gap-6">
+          <div className="min-w-0 space-y-6 min-[900px]:col-span-7">
+            {renderDashboardPanel("applicationReadiness")}
+            {renderDashboardPanel("recentActivity")}
+          </div>
+          <div className="min-w-0 space-y-6 min-[900px]:col-span-5">
+            {renderDashboardPanel("pipelineSummary")}
+            {renderDashboardPanel("nextStepCoverage")}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 min-[900px]:hidden">
+          {renderDashboardPanel("applicationReadiness")}
+          {renderDashboardPanel("pipelineSummary")}
+          {renderDashboardPanel("recentActivity")}
+          {renderDashboardPanel("nextStepCoverage")}
+        </div>
+      </div>
     );
   }
 
