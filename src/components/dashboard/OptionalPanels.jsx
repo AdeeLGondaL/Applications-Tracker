@@ -5,12 +5,12 @@ import { daysUntil, deadlineInfo, formatDate } from "@/utils/date";
 
 function PanelShell({ title, description, icon = "dashboard", children }) {
   return (
-    <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
+    <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
       <CardContent className="flex h-full flex-col p-4 sm:p-5">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-black text-slate-950 dark:text-white">{title}</h2>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-[#71717a]">{description}</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-[#9AA4B2]">{description}</p>
           </div>
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--applume-accent-soft)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)]">
             <Icon name={icon} className="h-4 w-4" />
@@ -22,11 +22,17 @@ function PanelShell({ title, description, icon = "dashboard", children }) {
   );
 }
 
-function EmptyPanel({ children }) {
+function EmptyPanel({ title, children, actionLabel, onAction }) {
   return (
-    <p className="rounded-xl bg-slate-50 px-3 py-4 text-sm font-semibold text-slate-500 dark:bg-[#111113] dark:text-[#71717a]">
-      {children}
-    </p>
+    <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
+      {title && <p className="text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{title}</p>}
+      <p className={`${title ? "mt-1" : ""} text-sm font-semibold leading-6 text-slate-500 dark:text-[#9AA4B2]`}>{children}</p>
+      {actionLabel && onAction && (
+        <button type="button" onClick={onAction} className="mt-3 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:border-[rgba(0,153,102,0.28)] dark:bg-[rgba(0,153,102,0.16)] dark:text-[var(--applume-accent-muted)]">
+          {actionLabel}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -38,7 +44,7 @@ function MiniBar({ label, value, total, color = "bg-[var(--applume-accent)]" }) 
         <span className="truncate font-bold text-slate-700 dark:text-[#d4d4d8]">{label}</span>
         <span className="shrink-0 text-slate-400 dark:text-[#71717a]">{value}{total > 0 ? ` - ${pct}%` : ""}</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-[#2a2a2e]">
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -48,17 +54,17 @@ function MiniBar({ label, value, total, color = "bg-[var(--applume-accent)]" }) 
 export function QuickActionsPanel({ onAddUniversity, onAddJob, onImport, onCalendarSync }) {
   return (
     <PanelShell title="Quick actions" description="Fast ways to keep your tracker moving." icon="plus">
-      <div className="grid gap-2 sm:grid-cols-2">
-        <button type="button" onClick={onAddUniversity} className="rounded-xl bg-slate-950 px-3 py-2.5 text-left text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900">
+      <div className="grid gap-2">
+        <button type="button" onClick={onAddUniversity} className="rounded-xl bg-slate-950 px-3 py-2.5 text-left text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#F8FAFC] dark:text-slate-900">
           Add university
         </button>
-        <button type="button" onClick={onAddJob} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+        <button type="button" onClick={onAddJob} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A]">
           Add job
         </button>
-        <button type="button" onClick={onImport} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+        <button type="button" onClick={onImport} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A]">
           Import backup
         </button>
-        <button type="button" onClick={onCalendarSync} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+        <button type="button" onClick={onCalendarSync} className="rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A]">
           Copy calendar URL
         </button>
       </div>
@@ -75,10 +81,10 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
       ) : (
         <div className="space-y-2.5">
           {recent.map((app) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-                <span className="block truncate text-xs text-slate-500 dark:text-[#71717a]">{app.status} - {app.lastUpdated}</span>
+                <span className="block truncate text-xs text-slate-500 dark:text-[#9AA4B2]">{app.status} - {app.lastUpdated}</span>
               </span>
               <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Open</span>
             </button>
@@ -89,7 +95,7 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
   );
 }
 
-export function CalendarPreviewPanel({ applications, onOpenRecord }) {
+export function CalendarPreviewPanel({ applications, onOpenRecord, onAddDeadline }) {
   const items = [...applications]
     .filter((app) => daysUntil(app.deadline) !== null)
     .sort((a, b) => deadlineInfo(a.deadline).sort - deadlineInfo(b.deadline).sort)
@@ -97,16 +103,18 @@ export function CalendarPreviewPanel({ applications, onOpenRecord }) {
   return (
     <PanelShell title="Calendar preview" description="Upcoming deadlines and interview-stage work." icon="calendar">
       {items.length === 0 ? (
-        <EmptyPanel>Add deadlines to records and they will appear here.</EmptyPanel>
+        <EmptyPanel title="No upcoming dates yet." actionLabel="Add deadline" onAction={onAddDeadline}>
+          Add deadlines or follow-up dates to build your calendar view.
+        </EmptyPanel>
       ) : (
         <div className="space-y-2.5">
           {items.map((app) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-                <span className="block text-xs text-slate-500 dark:text-[#71717a]">{formatDate(app.deadline)}</span>
+                <span className="block text-xs text-slate-500 dark:text-[#9AA4B2]">{formatDate(app.deadline)}</span>
               </span>
-              <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-slate-200 dark:bg-[#1c1c1f] dark:ring-[#2a2a2e]">{deadlineInfo(app.deadline).label}</span>
+              <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-slate-200 dark:bg-[#1A1D22] dark:text-[#9AA4B2] dark:ring-[rgba(255,255,255,0.09)]">{deadlineInfo(app.deadline).label}</span>
             </button>
           ))}
         </div>
@@ -115,18 +123,20 @@ export function CalendarPreviewPanel({ applications, onOpenRecord }) {
   );
 }
 
-export function InterviewsFollowupsPanel({ applications, onOpenRecord }) {
+export function InterviewsFollowupsPanel({ applications, onOpenRecord, onReviewPipeline }) {
   const items = applications.filter((app) => app.status === "Interview" || String(app.notes || "").toLowerCase().includes("follow")).slice(0, 5);
   return (
     <PanelShell title="Interviews and follow-ups" description="Interview-stage records and follow-up notes." icon="job">
       {items.length === 0 ? (
-        <EmptyPanel>Interview and follow-up records will appear when statuses or notes mention them.</EmptyPanel>
+        <EmptyPanel title="No interviews or follow-ups yet." actionLabel="Review pipeline" onAction={onReviewPipeline}>
+          When an application reaches interview stage or has a follow-up note, it will appear here.
+        </EmptyPanel>
       ) : (
         <div className="space-y-2.5">
           {items.map((app) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="block w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="block w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
               <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-              <span className="mt-1 block truncate text-xs text-slate-500 dark:text-[#71717a]">{app.notes || app.status}</span>
+              <span className="mt-1 block truncate text-xs text-slate-500 dark:text-[#9AA4B2]">{app.notes || app.status}</span>
             </button>
           ))}
         </div>
@@ -156,10 +166,10 @@ export function MissingInformationPanel({ applications, onOpenRecord }) {
       ) : (
         <div className="space-y-2.5">
           {items.map(({ app, missing }) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-                <span className="block truncate text-xs text-slate-500 dark:text-[#71717a]">Missing {missing.join(", ")}</span>
+                <span className="block truncate text-xs text-slate-500 dark:text-[#9AA4B2]">Missing {missing.join(", ")}</span>
               </span>
               <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Fix</span>
             </button>
@@ -211,12 +221,18 @@ export function SubmissionTrendPanel({ applications }) {
   );
 }
 
-export function JobResponseRatePanel({ applications }) {
+export function JobResponseRatePanel({ applications, onAddJob }) {
   const jobs = applications.filter((app) => app.type === "Job");
   const responses = jobs.filter((app) => ["Interview", "Accepted"].includes(app.status)).length;
   return (
     <PanelShell title="Job response rate" description="Job applications with interviews or positive outcomes." icon="job">
-      {jobs.length === 0 ? <EmptyPanel>Add job applications to track response rate.</EmptyPanel> : <MiniBar label="Interviews or accepted" value={responses} total={jobs.length} color="bg-[var(--info)]" />}
+      {jobs.length === 0 ? (
+        <EmptyPanel title="Not enough job data yet." actionLabel="Add job" onAction={onAddJob}>
+          Add job applications or mark responses to see your response rate.
+        </EmptyPanel>
+      ) : (
+        <MiniBar label="Interviews or accepted" value={responses} total={jobs.length} color="bg-[var(--info)]" />
+      )}
     </PanelShell>
   );
 }

@@ -32,6 +32,7 @@ function FocusTile({ icon, label, value, detail, tone = "slate", actionLabel, on
 }
 
 export function FocusThisWeek({
+  showQuickActions = true,
   overdueCount,
   dueSoonCount,
   interviewCount,
@@ -47,8 +48,8 @@ export function FocusThisWeek({
   const focusTone = overdueCount > 0 ? "danger" : dueSoonCount > 0 ? "warning" : "accent";
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.45fr_0.55fr]">
-      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
+    <div className={showQuickActions ? "grid gap-4 xl:grid-cols-[1.45fr_0.55fr]" : "h-full"}>
+      <Card className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
         <CardContent className="p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -107,7 +108,8 @@ export function FocusThisWeek({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5">
+      {showQuickActions && (
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
         <CardContent className="flex h-full flex-col p-4 sm:p-5">
           <div>
             <h2 className="text-base font-black text-slate-950 dark:text-white">Quick actions</h2>
@@ -131,6 +133,7 @@ export function FocusThisWeek({
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

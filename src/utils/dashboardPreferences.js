@@ -1,7 +1,10 @@
 export const DASHBOARD_PREFS_STORAGE_KEY = "applume.dashboard.preferences.v1";
 
+export const DASHBOARD_ZONES = ["focus", "kpis", "primary", "secondary", "supporting"];
+
 export const DASHBOARD_WIDGETS = [
   { id: "focusThisWeek", title: "Focus this week", description: "Your action queue for deadlines, interviews, and setup gaps.", defaultSize: "large", allowedSizes: ["large"], category: "focus" },
+  { id: "quickActions", title: "Quick actions", description: "Fast ways to add records, import data, and copy calendar links.", defaultSize: "medium", allowedSizes: ["medium"], category: "focus" },
   { id: "applicationsTracked", title: "Applications tracked", description: "Total university and job records in your tracker.", defaultSize: "small", allowedSizes: ["small"], category: "metrics" },
   { id: "dueSoon", title: "Due soon", description: "Applications with deadlines in the next seven days.", defaultSize: "small", allowedSizes: ["small"], category: "deadlines" },
   { id: "actionNeeded", title: "Action needed", description: "Overdue and soon-due active applications.", defaultSize: "small", allowedSizes: ["small"], category: "focus" },
@@ -13,7 +16,6 @@ export const DASHBOARD_WIDGETS = [
   { id: "calendarPreview", title: "Calendar preview", description: "Upcoming deadlines and interview-stage work.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "calendar" },
   { id: "interviewsFollowups", title: "Interviews and follow-ups", description: "Interview-stage records and follow-up notes.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "activity" },
   { id: "missingInformation", title: "Missing information", description: "Records missing deadlines, links, documents, or notes.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "documents" },
-  { id: "quickActions", title: "Quick actions", description: "Fast ways to add records, import data, and copy calendar links.", defaultSize: "medium", allowedSizes: ["medium"], category: "focus" },
   { id: "applicationsByStatus", title: "Applications by status", description: "A simple status distribution for your tracker.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "pipeline" },
   { id: "deadlinesNext30Days", title: "Deadlines next 30 days", description: "Deadline pressure over the next month.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "deadlines" },
   { id: "submissionTrend", title: "Submission trend", description: "Recent submitted-or-beyond movement.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "activity" },
@@ -21,104 +23,200 @@ export const DASHBOARD_WIDGETS = [
   { id: "universityDeadlineDistribution", title: "University deadline distribution", description: "University deadlines grouped by timing.", defaultSize: "medium", allowedSizes: ["medium", "large"], category: "deadlines" },
 ];
 
-const DEFAULT_WIDGETS = [
-  { id: "focusThisWeek", visible: true, order: 1, size: "large" },
-  { id: "applicationsTracked", visible: true, order: 2, size: "small" },
-  { id: "dueSoon", visible: true, order: 3, size: "small" },
-  { id: "actionNeeded", visible: true, order: 4, size: "small" },
-  { id: "submissionProgress", visible: true, order: 5, size: "small" },
-  { id: "pipelineSummary", visible: true, order: 6, size: "medium" },
-  { id: "upcomingDeadlines", visible: true, order: 7, size: "medium" },
-  { id: "documentReadiness", visible: true, order: 8, size: "medium" },
-  { id: "recentActivity", visible: false, order: 9, size: "medium" },
-  { id: "calendarPreview", visible: false, order: 10, size: "medium" },
-  { id: "interviewsFollowups", visible: false, order: 11, size: "medium" },
-  { id: "missingInformation", visible: false, order: 12, size: "medium" },
-  { id: "quickActions", visible: false, order: 13, size: "medium" },
-  { id: "applicationsByStatus", visible: false, order: 14, size: "medium" },
-  { id: "deadlinesNext30Days", visible: false, order: 15, size: "medium" },
-  { id: "submissionTrend", visible: false, order: 16, size: "medium" },
-  { id: "jobResponseRate", visible: false, order: 17, size: "medium" },
-  { id: "universityDeadlineDistribution", visible: false, order: 18, size: "medium" },
-];
-
-export const defaultDashboardPreferences = {
-  preset: "calm",
-  updatedAt: new Date().toISOString(),
-  widgets: DEFAULT_WIDGETS,
-};
-
 export const DASHBOARD_PRESETS = [
   {
     id: "calm",
     title: "Calm overview",
     description: "A balanced view of your applications, deadlines, and progress.",
-    widgets: ["focusThisWeek", "applicationsTracked", "dueSoon", "actionNeeded", "submissionProgress", "pipelineSummary", "upcomingDeadlines", "documentReadiness"],
+    zones: {
+      focus: ["focusThisWeek", "quickActions"],
+      kpis: ["applicationsTracked", "dueSoon", "actionNeeded", "submissionProgress"],
+      primary: ["pipelineSummary", "upcomingDeadlines"],
+      secondary: ["documentReadiness", "recentActivity"],
+      supporting: [],
+    },
   },
   {
     id: "deadline",
     title: "Deadline focus",
     description: "Prioritize urgent applications, deadlines, and next steps.",
-    widgets: ["focusThisWeek", "upcomingDeadlines", "actionNeeded", "calendarPreview", "documentReadiness", "pipelineSummary"],
+    zones: {
+      focus: ["focusThisWeek", "quickActions"],
+      kpis: ["dueSoon", "actionNeeded", "submissionProgress"],
+      primary: ["upcomingDeadlines"],
+      secondary: ["calendarPreview", "documentReadiness"],
+      supporting: ["missingInformation", "pipelineSummary"],
+    },
   },
   {
     id: "pipeline",
     title: "Pipeline focus",
     description: "See where every application stands and what is moving forward.",
-    widgets: ["pipelineSummary", "submissionProgress", "applicationsByStatus", "recentActivity", "upcomingDeadlines"],
+    zones: {
+      focus: [],
+      kpis: ["submissionProgress", "applicationsTracked"],
+      primary: ["pipelineSummary", "applicationsByStatus"],
+      secondary: ["recentActivity", "upcomingDeadlines"],
+      supporting: [],
+    },
   },
   {
     id: "documents",
     title: "Document readiness",
     description: "Focus on missing documents, notes, and application requirements.",
-    widgets: ["documentReadiness", "missingInformation", "upcomingDeadlines", "applicationsTracked", "pipelineSummary"],
+    zones: {
+      focus: [],
+      kpis: ["applicationsTracked"],
+      primary: ["documentReadiness"],
+      secondary: ["missingInformation", "upcomingDeadlines"],
+      supporting: ["pipelineSummary", "calendarPreview"],
+    },
   },
   {
     id: "jobs",
     title: "Job search mode",
     description: "Track follow-ups, interviews, responses, and job application movement.",
-    widgets: ["focusThisWeek", "interviewsFollowups", "pipelineSummary", "recentActivity", "jobResponseRate", "upcomingDeadlines"],
+    zones: {
+      focus: ["focusThisWeek", "quickActions"],
+      kpis: [],
+      primary: ["interviewsFollowups", "pipelineSummary"],
+      secondary: ["recentActivity", "jobResponseRate"],
+      supporting: ["upcomingDeadlines"],
+    },
   },
   {
     id: "universities",
     title: "University mode",
     description: "Stay on top of deadlines, documents, portals, and university requirements.",
-    widgets: ["upcomingDeadlines", "documentReadiness", "missingInformation", "pipelineSummary", "applicationsTracked", "calendarPreview"],
+    zones: {
+      focus: [],
+      kpis: ["applicationsTracked"],
+      primary: ["upcomingDeadlines"],
+      secondary: ["documentReadiness", "missingInformation"],
+      supporting: ["pipelineSummary", "calendarPreview"],
+    },
   },
 ];
 
 const WIDGET_IDS = new Set(DASHBOARD_WIDGETS.map((widget) => widget.id));
+const ZONE_IDS = new Set(DASHBOARD_ZONES);
+const DEFAULT_PRESET_ID = "calm";
+
+const FALLBACK_ZONE_BY_ID = {
+  focusThisWeek: "focus",
+  quickActions: "focus",
+  applicationsTracked: "kpis",
+  dueSoon: "kpis",
+  actionNeeded: "kpis",
+  submissionProgress: "kpis",
+  pipelineSummary: "primary",
+  upcomingDeadlines: "primary",
+  documentReadiness: "secondary",
+  recentActivity: "secondary",
+  calendarPreview: "supporting",
+  interviewsFollowups: "primary",
+  missingInformation: "secondary",
+  applicationsByStatus: "primary",
+  deadlinesNext30Days: "supporting",
+  submissionTrend: "supporting",
+  jobResponseRate: "secondary",
+  universityDeadlineDistribution: "supporting",
+};
+
+const PRESET_SIZE_OVERRIDES = {
+  deadline: { upcomingDeadlines: "large" },
+  documents: { documentReadiness: "large" },
+  universities: { upcomingDeadlines: "large" },
+};
+
+function findPreset(presetId) {
+  return DASHBOARD_PRESETS.find((preset) => preset.id === presetId) || DASHBOARD_PRESETS[0];
+}
+
+function widgetDefinition(id) {
+  return DASHBOARD_WIDGETS.find((widget) => widget.id === id);
+}
+
+function zoneForPresetWidget(preset, id) {
+  return DASHBOARD_ZONES.find((zone) => preset.zones[zone]?.includes(id));
+}
+
+function orderForPresetWidget(preset, zone, id) {
+  const index = preset.zones[zone]?.indexOf(id) ?? -1;
+  return index >= 0 ? index + 1 : 999;
+}
+
+function sizeForPresetWidget(presetId, zone, id) {
+  const definition = widgetDefinition(id);
+  const override = PRESET_SIZE_OVERRIDES[presetId]?.[id];
+  if (override && definition?.allowedSizes.includes(override)) return override;
+  if (zone === "kpis") return "small";
+  if (zone === "focus" && id === "focusThisWeek") return "large";
+  if (zone === "primary" && findPreset(presetId).zones.primary.length === 1 && definition?.allowedSizes.includes("large")) return "large";
+  return definition?.defaultSize || "medium";
+}
+
+function buildPresetWidgets(presetId = DEFAULT_PRESET_ID) {
+  const preset = findPreset(presetId);
+  const visibleIds = new Set(DASHBOARD_ZONES.flatMap((zone) => preset.zones[zone] || []));
+  return DASHBOARD_WIDGETS.map((definition) => {
+    const zone = zoneForPresetWidget(preset, definition.id) || FALLBACK_ZONE_BY_ID[definition.id] || "supporting";
+    return {
+      id: definition.id,
+      visible: visibleIds.has(definition.id),
+      zone,
+      order: orderForPresetWidget(preset, zone, definition.id),
+      size: sizeForPresetWidget(preset.id, zone, definition.id),
+    };
+  });
+}
 
 function cloneDefault() {
   return {
-    ...defaultDashboardPreferences,
+    preset: DEFAULT_PRESET_ID,
     updatedAt: new Date().toISOString(),
-    widgets: defaultDashboardPreferences.widgets.map((widget) => ({ ...widget })),
+    widgets: buildPresetWidgets(DEFAULT_PRESET_ID),
   };
 }
+
+export const defaultDashboardPreferences = cloneDefault();
 
 export function normalizeDashboardPreferences(preferences) {
   const fallback = cloneDefault();
   if (!preferences || !Array.isArray(preferences.widgets)) return fallback;
 
-  const byId = new Map(preferences.widgets.filter((widget) => WIDGET_IDS.has(widget.id)).map((widget) => [widget.id, widget]));
-  const widgets = fallback.widgets.map((defaultWidget) => {
-    const saved = byId.get(defaultWidget.id);
-    const definition = DASHBOARD_WIDGETS.find((widget) => widget.id === defaultWidget.id);
-    const savedSize = definition?.allowedSizes.includes(saved?.size) ? saved.size : defaultWidget.size;
+  const preset = findPreset(preferences.preset || DEFAULT_PRESET_ID);
+  const savedById = new Map(preferences.widgets.filter((widget) => WIDGET_IDS.has(widget.id)).map((widget) => [widget.id, widget]));
+  const presetWidgets = buildPresetWidgets(preset.id);
+  const presetById = new Map(presetWidgets.map((widget) => [widget.id, widget]));
+
+  const widgets = DASHBOARD_WIDGETS.map((definition) => {
+    const saved = savedById.get(definition.id);
+    const presetWidget = presetById.get(definition.id);
+    const savedZone = ZONE_IDS.has(saved?.zone) ? saved.zone : null;
+    const zone = savedZone || presetWidget?.zone || FALLBACK_ZONE_BY_ID[definition.id] || "supporting";
+    const savedSize = definition.allowedSizes.includes(saved?.size) ? saved.size : null;
+    const size = savedSize || presetWidget?.size || sizeForPresetWidget(preset.id, zone, definition.id);
     return {
-      ...defaultWidget,
-      ...saved,
-      visible: typeof saved?.visible === "boolean" ? saved.visible : defaultWidget.visible,
-      order: Number.isFinite(saved?.order) ? saved.order : defaultWidget.order,
-      size: savedSize,
+      id: definition.id,
+      visible: typeof saved?.visible === "boolean" ? saved.visible : Boolean(presetWidget?.visible),
+      zone,
+      order: Number.isFinite(saved?.order) ? saved.order : presetWidget?.order || 999,
+      size,
     };
   });
 
+  const normalizedWidgets = DASHBOARD_ZONES.flatMap((zone) => (
+    widgets
+      .filter((widget) => widget.zone === zone)
+      .sort((a, b) => a.order - b.order)
+      .map((widget, index) => ({ ...widget, order: index + 1 }))
+  ));
+
   return {
-    preset: preferences.preset || "calm",
+    preset: preferences.preset || DEFAULT_PRESET_ID,
     updatedAt: preferences.updatedAt || new Date().toISOString(),
-    widgets: widgets.sort((a, b) => a.order - b.order).map((widget, index) => ({ ...widget, order: index + 1 })),
+    widgets: normalizedWidgets,
   };
 }
 
@@ -139,27 +237,17 @@ export function saveDashboardPreferences(preferences, userId) {
 }
 
 export function applyDashboardPreset(currentPreferences, presetId) {
-  const preset = DASHBOARD_PRESETS.find((entry) => entry.id === presetId) || DASHBOARD_PRESETS[0];
-  const sizeById = {
-    focusThisWeek: "large",
-    pipelineSummary: presetId === "pipeline" ? "large" : "medium",
-    upcomingDeadlines: presetId === "deadline" || presetId === "universities" ? "large" : "medium",
-    documentReadiness: presetId === "documents" ? "large" : "medium",
-  };
-  const visibleIds = new Set(preset.widgets);
-  const orderMap = new Map(preset.widgets.map((id, index) => [id, index + 1]));
-  const hiddenStart = preset.widgets.length + 1;
-
+  const preset = findPreset(presetId);
+  const presetWidgets = buildPresetWidgets(preset.id);
+  const presetById = new Map(presetWidgets.map((widget) => [widget.id, widget]));
   return normalizeDashboardPreferences({
     ...currentPreferences,
     preset: preset.id,
     updatedAt: new Date().toISOString(),
-    widgets: currentPreferences.widgets.map((widget) => ({
-      ...widget,
-      visible: visibleIds.has(widget.id),
-      order: orderMap.get(widget.id) || hiddenStart + widget.order,
-      size: sizeById[widget.id] || widget.size,
-    })),
+    widgets: currentPreferences.widgets.map((widget) => {
+      const presetWidget = presetById.get(widget.id);
+      return presetWidget ? { ...widget, ...presetWidget } : widget;
+    }),
   });
 }
 

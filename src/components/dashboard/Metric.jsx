@@ -14,8 +14,8 @@ const ACCENT = {
 export function Metric({ icon, label, value, hint, accent = "slate", danger = false, delay = 0, progressValue = null }) {
   const a = ACCENT[danger ? "rose" : accent] || ACCENT.slate;
   return (
-    <motion.div data-kpi-card className="h-full" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, delay }}>
-      <Card className="h-full min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 dark:hover:bg-[#242428]">
+    <motion.div data-kpi-card className="h-full min-h-[150px] max-h-[190px]" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, delay }}>
+      <Card className="h-full min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5 dark:hover:bg-[#20242A]">
         <CardContent className="flex h-full flex-col p-4 sm:p-5">
           <div className="mb-4 flex min-w-0 items-start justify-between gap-2">
             <div className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${a.icon} ${a.ring}`}>

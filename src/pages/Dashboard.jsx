@@ -39,7 +39,7 @@ import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
-import { DASHBOARD_WIDGETS, loadDashboardPreferences, normalizeDashboardPreferences, saveDashboardPreferences } from "@/utils/dashboardPreferences";
+import { DASHBOARD_WIDGETS, DASHBOARD_ZONES, loadDashboardPreferences, normalizeDashboardPreferences, saveDashboardPreferences } from "@/utils/dashboardPreferences";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -196,17 +196,45 @@ const VIEW_META = {
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
 
-function DashboardPanel({ size, editing, children }) {
-  const span = {
-    small: "lg:col-span-3 md:col-span-6",
-    medium: "lg:col-span-6 md:col-span-6",
-    large: "lg:col-span-12 md:col-span-12",
-  }[size] || "lg:col-span-6 md:col-span-6";
+function DashboardPanel({ widget, zone, focusWidgetCount, editing, children }) {
+  const isKpi = zone === "kpis";
+  const isFocus = zone === "focus";
+  const isSoloFocus = isFocus && focusWidgetCount === 1;
+  const span = (() => {
+    if (isKpi) return "";
+    if (isFocus && isSoloFocus) return "lg:col-span-12";
+    if (isFocus && widget.id === "focusThisWeek") return "lg:col-span-8";
+    if (isFocus && widget.id === "quickActions") return "lg:col-span-4";
+    if (widget.size === "large") return "lg:col-span-12";
+    return "lg:col-span-6";
+  })();
+  const sizeClass = isKpi ? "min-h-[150px] max-h-[190px]" : "";
 
   return (
-    <div className={`col-span-12 min-w-0 ${span} ${editing ? "rounded-[1.25rem] outline outline-1 outline-[var(--applume-accent-border)] outline-offset-2" : ""}`}>
+    <div className={`min-w-0 ${span} ${sizeClass} ${editing ? "rounded-[1.25rem] outline outline-1 outline-[var(--applume-accent-border)] outline-offset-2" : ""}`}>
       {children}
     </div>
+  );
+}
+
+function DashboardZone({ name, widgets, editing, renderWidget }) {
+  if (!widgets.length) return null;
+  const zoneClass = {
+    focus: "grid gap-4 lg:grid-cols-12 lg:items-stretch",
+    kpis: "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4",
+    primary: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
+    secondary: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
+    supporting: "grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start",
+  }[name];
+
+  return (
+    <section className={zoneClass} aria-label={`${name} dashboard panels`}>
+      {widgets.map((widget) => (
+        <DashboardPanel key={widget.id} widget={widget} zone={name} focusWidgetCount={widgets.length} editing={editing}>
+          {renderWidget(widget)}
+        </DashboardPanel>
+      ))}
+    </section>
   );
 }
 
@@ -513,11 +541,25 @@ export default function Dashboard({ session }) {
     return Object.fromEntries(DASHBOARD_WIDGETS.map((widget) => [widget.id, widget]));
   }, []);
 
-  const visibleDashboardWidgets = useMemo(() => {
-    return dashboardPreferences.widgets
+  const activeDashboardPreferences = customizeOpen ? draftDashboardPreferences : dashboardPreferences;
+
+  const visibleDashboardZones = useMemo(() => {
+    const zones = Object.fromEntries(DASHBOARD_ZONES.map((zone) => [zone, []]));
+    activeDashboardPreferences.widgets
       .filter((widget) => widget.visible && dashboardWidgetRegistry[widget.id])
-      .sort((a, b) => a.order - b.order);
-  }, [dashboardPreferences, dashboardWidgetRegistry]);
+      .forEach((widget) => {
+        const zone = DASHBOARD_ZONES.includes(widget.zone) ? widget.zone : "supporting";
+        zones[zone].push(widget);
+      });
+    DASHBOARD_ZONES.forEach((zone) => {
+      zones[zone].sort((a, b) => a.order - b.order);
+    });
+    return zones;
+  }, [activeDashboardPreferences, dashboardWidgetRegistry]);
+
+  const visibleDashboardWidgetCount = useMemo(() => {
+    return DASHBOARD_ZONES.reduce((count, zone) => count + visibleDashboardZones[zone].length, 0);
+  }, [visibleDashboardZones]);
 
   const headerSummary = sidebarView === "dashboard"
     ? `${stats.total} tracked - ${stats.actionNeeded} action needed - ${stats.progress}% submitted or beyond`
@@ -709,6 +751,7 @@ export default function Dashboard({ session }) {
       case "focusThisWeek":
         return (
           <FocusThisWeek
+            showQuickActions={!visibleDashboardZones.focus.some((entry) => entry.id === "quickActions")}
             overdueCount={focusThisWeek.overdueItems.length}
             dueSoonCount={focusThisWeek.dueSoonItems.length}
             interviewCount={focusThisWeek.interviewItems.length}
@@ -746,9 +789,9 @@ export default function Dashboard({ session }) {
       case "recentActivity":
         return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
       case "calendarPreview":
-        return <CalendarPreviewPanel applications={applications} onOpenRecord={openEdit} />;
+        return <CalendarPreviewPanel applications={applications} onOpenRecord={openEdit} onAddDeadline={() => openNewTracked("University", "calendar_empty")} />;
       case "interviewsFollowups":
-        return <InterviewsFollowupsPanel applications={applications} onOpenRecord={openEdit} />;
+        return <InterviewsFollowupsPanel applications={applications} onOpenRecord={openEdit} onReviewPipeline={() => handleSidebarView("jobs")} />;
       case "missingInformation":
         return <MissingInformationPanel applications={applications} onOpenRecord={openEdit} />;
       case "quickActions":
@@ -760,7 +803,7 @@ export default function Dashboard({ session }) {
       case "submissionTrend":
         return <SubmissionTrendPanel applications={applications} />;
       case "jobResponseRate":
-        return <JobResponseRatePanel applications={applications} />;
+        return <JobResponseRatePanel applications={applications} onAddJob={() => openNewTracked("Job", "job_response_empty")} />;
       case "universityDeadlineDistribution":
         return <UniversityDeadlineDistributionPanel applications={applications} />;
       default:
@@ -769,12 +812,12 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className={`${dark ? "dark" : ""} min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 dark:bg-[#09090b] dark:text-white`}>
+    <div className={`${dark ? "dark" : ""} min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 dark:bg-[#0F1115] dark:text-[#F8FAFC]`}>
       <div className="flex min-h-screen min-w-0">
 
         {/* Sidebar */}
-        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[#1f1f23] dark:bg-[#0d0d0f]">
-          <div className="border-b border-slate-100 px-4 py-4 dark:border-[#1f1f23]">
+        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]">
+          <div className="border-b border-slate-100 px-4 py-4 dark:border-[rgba(255,255,255,0.09)]">
             <Brand dark={dark} />
           </div>
 
@@ -794,7 +837,7 @@ export default function Dashboard({ session }) {
         </aside>
 
         {/* Mobile bottom nav */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[#1f1f23] dark:bg-[#0d0d0f]/95">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/95">
           <div className="flex items-stretch">
             {[
               { view: "dashboard",    icon: "dashboard",  label: "Home"  },
@@ -840,7 +883,7 @@ export default function Dashboard({ session }) {
         <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
 
           {/* Header */}
-          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[#1f1f23] dark:bg-[#111113]/90">
+          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/90">
             <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
               <AnimatePresence mode="wait">
                 <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
@@ -1030,12 +1073,16 @@ export default function Dashboard({ session }) {
                       />
                     ) : (
                       <>
-                        {visibleDashboardWidgets.length > 0 ? (
-                          <div className="grid auto-rows-fr grid-cols-12 gap-4">
-                            {visibleDashboardWidgets.map((widget) => (
-                              <DashboardPanel key={widget.id} size={widget.size} editing={customizeOpen}>
-                                {renderDashboardWidget(widget)}
-                              </DashboardPanel>
+                        {visibleDashboardWidgetCount > 0 ? (
+                          <div className="flex flex-col gap-7">
+                            {DASHBOARD_ZONES.map((zone) => (
+                              <DashboardZone
+                                key={zone}
+                                name={zone}
+                                widgets={visibleDashboardZones[zone]}
+                                editing={customizeOpen}
+                                renderWidget={renderDashboardWidget}
+                              />
                             ))}
                           </div>
                         ) : (
@@ -1166,6 +1213,8 @@ export default function Dashboard({ session }) {
       <AnimatePresence>
         {toast && (
           <motion.div
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
