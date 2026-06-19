@@ -28,91 +28,6 @@ function getByPath(source, path) {
   return path.split(".").reduce((current, part) => current?.[part], source);
 }
 
-const ATTRIBUTE_NAMES = ["placeholder", "title", "aria-label", "alt"];
-const originalText = new WeakMap();
-let translationObserver = null;
-let isTranslating = false;
-
-function shouldSkipNode(node) {
-  const parent = node.parentElement;
-  if (!parent) return true;
-  return !!parent.closest("script, style, code, pre, textarea, input, [data-i18n-ignore]");
-}
-
-function translateTextValue(value, dictionary) {
-  const trimmed = String(value).replace(/\s+/g, " ").trim();
-  if (!trimmed) return value;
-  if (dictionary[trimmed]) return String(value).replace(trimmed, dictionary[trimmed]);
-
-  const selectedMatch = trimmed.match(/^(\d+) selected$/);
-  if (selectedMatch && dictionary["{count} selected"]) return dictionary["{count} selected"].replace("{count}", selectedMatch[1]);
-
-  const showingMatch = trimmed.match(/^Showing (\d+) of (\d+)$/);
-  if (showingMatch && dictionary["Showing {showing} of {total}"]) {
-    return dictionary["Showing {showing} of {total}"]
-      .replace("{showing}", showingMatch[1])
-      .replace("{total}", showingMatch[2]);
-  }
-
-  return value;
-}
-
-function translateElementAttributes(element, dictionary) {
-  ATTRIBUTE_NAMES.forEach((name) => {
-    if (!element.hasAttribute?.(name)) return;
-    const originalName = `data-i18n-original-${name}`;
-    if (!element.hasAttribute(originalName)) element.setAttribute(originalName, element.getAttribute(name) || "");
-    const original = element.getAttribute(originalName) || "";
-    const translated = translateTextValue(original, dictionary);
-    if (element.getAttribute(name) !== translated) element.setAttribute(name, translated);
-  });
-}
-
-function translateNode(node, dictionary) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    if (shouldSkipNode(node)) return;
-    if (!originalText.has(node)) originalText.set(node, node.nodeValue || "");
-    node.nodeValue = translateTextValue(originalText.get(node), dictionary);
-    return;
-  }
-
-  if (node.nodeType !== Node.ELEMENT_NODE) return;
-  translateElementAttributes(node, dictionary);
-  node.childNodes.forEach((child) => translateNode(child, dictionary));
-}
-
-function applyDomTranslations(lang) {
-  if (typeof document === "undefined" || !document.body) return;
-  const dictionary = translations[lang]?.phrases || {};
-  isTranslating = true;
-  translateNode(document.body, dictionary);
-  isTranslating = false;
-}
-
-function observeDomTranslations(lang) {
-  if (typeof document === "undefined" || !document.body || typeof MutationObserver === "undefined") return undefined;
-  translationObserver?.disconnect();
-  translationObserver = new MutationObserver((mutations) => {
-    if (isTranslating) return;
-    const dictionary = translations[lang]?.phrases || {};
-    isTranslating = true;
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => translateNode(node, dictionary));
-      if (mutation.type === "characterData") translateNode(mutation.target, dictionary);
-      if (mutation.type === "attributes") translateElementAttributes(mutation.target, dictionary);
-    });
-    isTranslating = false;
-  });
-  translationObserver.observe(document.body, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: ATTRIBUTE_NAMES,
-  });
-  return () => translationObserver?.disconnect();
-}
-
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(getStoredLanguage);
 
@@ -127,8 +42,6 @@ export function LanguageProvider({ children }) {
     } catch {
       // Preference persistence is nice-to-have.
     }
-    window.setTimeout(() => applyDomTranslations(lang), 0);
-    return observeDomTranslations(lang);
   }, [dir, lang]);
 
   const t = useCallback((key, params = {}) => {
