@@ -3,9 +3,10 @@ import { Icon } from "@/components/ui/Icon";
 import { Badge, Priority, IconButton } from "@/components/ui/Badge";
 import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { EmptyState } from "@/components/applications/EmptyState";
-import { deadlineInfo, formatDate } from "@/utils/date";
+import { useLanguage } from "@/i18n";
 
 function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
+  const { deadlineInfo, formatDate, t } = useLanguage();
   const info = deadlineInfo(app.deadline);
   return (
     <tr className={`transition-colors hover:bg-slate-50 dark:hover:bg-[#1c1c1f] ${selected ? "bg-emerald-50/60 dark:bg-emerald-900/20" : ""}`}>
@@ -38,7 +39,7 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
                 rel="noreferrer"
                 className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-950 dark:text-[#a1a1aa] dark:hover:text-white"
               >
-                <Icon name="link" className="h-3 w-3" /> Open link
+                <Icon name="link" className="h-3 w-3" /> {t("phrases.Open link")}
               </a>
             )}
           </div>
@@ -60,9 +61,9 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
       <td className="px-4 py-4 align-top text-slate-500 dark:text-[#71717a]">{formatDate(app.lastUpdated)}</td>
       <td className="px-5 py-4 align-top">
         <div className="flex justify-end gap-2">
-          <IconButton label="Duplicate" icon="copy" onClick={() => onDuplicate(app)} />
-          <IconButton label="Edit" icon="edit" onClick={() => onEdit(app)} />
-          <IconButton label="Delete" icon="trash" danger onClick={() => onDelete(app.id)} />
+          <IconButton label={t("phrases.Duplicate")} icon="copy" onClick={() => onDuplicate(app)} />
+          <IconButton label={t("phrases.Edit")} icon="edit" onClick={() => onEdit(app)} />
+          <IconButton label={t("phrases.Delete")} icon="trash" danger onClick={() => onDelete(app.id)} />
         </div>
       </td>
     </tr>
@@ -70,6 +71,7 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
 }
 
 export function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatusChange, selectedIds, onToggleSelect, onSelectAll }) {
+  const { t } = useLanguage();
   if (!apps.length) return <EmptyState />;
   const allSelected = apps.length > 0 && apps.every((a) => selectedIds.has(a.id));
   return (
@@ -87,13 +89,13 @@ export function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatus
                     onChange={() => onSelectAll(apps.map((a) => a.id))}
                   />
                 </th>
-                <th className="px-5 py-4">Application</th>
-                <th className="px-4 py-4">Status</th>
-                <th className="px-4 py-4">Deadline</th>
-                <th className="px-4 py-4">Priority</th>
-                <th className="px-4 py-4">Documents</th>
-                <th className="px-4 py-4">Updated</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+                <th className="px-5 py-4">{t("phrases.Application")}</th>
+                <th className="px-4 py-4">{t("phrases.Status")}</th>
+                <th className="px-4 py-4">{t("phrases.Deadline")}</th>
+                <th className="px-4 py-4">{t("phrases.Priority")}</th>
+                <th className="px-4 py-4">{t("phrases.Documents")}</th>
+                <th className="px-4 py-4">{t("phrases.Updated")}</th>
+                <th className="px-5 py-4 text-right">{t("phrases.Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-[#1c1c1f]">

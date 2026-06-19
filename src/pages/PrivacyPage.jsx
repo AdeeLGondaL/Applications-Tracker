@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white text-slate-950">
@@ -5,7 +7,8 @@ export default function PrivacyPage() {
 
         {/* Header */}
         <header className="mb-12 border-b border-slate-200 pb-10">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <img
               src="/Logo.png"
               alt="Applume logo"
@@ -18,6 +21,8 @@ export default function PrivacyPage() {
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">Privacy Policy</p>
             </div>
+          </div>
+          <LanguageSwitcher compact />
           </div>
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Last updated: June 2026</p>
         </header>

@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { Brand } from "@/components/layout/Brand";
 import { NavItem } from "@/components/layout/NavItem";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
 import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
@@ -30,6 +31,7 @@ import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
+import { useLanguage } from "@/i18n";
 
 function FeedbackModal({ session, onClose }) {
   const [type, setType] = useState("bug");
@@ -265,6 +267,7 @@ function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenR
 }
 
 export default function Dashboard({ session }) {
+  const { label, t } = useLanguage();
   const { dark, toggle: toggleTheme } = useTheme();
   const [applications, setApplications] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -879,10 +882,10 @@ export default function Dashboard({ session }) {
         <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/95">
           <div className="flex items-stretch">
             {[
-              { view: "dashboard",    icon: "dashboard",  label: "Home"  },
-              { view: "universities", icon: "university", label: "Uni"   },
-              { view: "jobs",         icon: "job",        label: "Jobs"  },
-              { view: "urgent",       icon: "calendar",   label: "Urgent"},
+              { view: "dashboard",    icon: "dashboard",  label: label("view", "Home")  },
+              { view: "universities", icon: "university", label: label("view", "Uni")   },
+              { view: "jobs",         icon: "job",        label: label("view", "Jobs")  },
+              { view: "urgent",       icon: "calendar",   label: label("view", "Urgent")},
             ].map(({ view, icon, label }) => {
               const isActive = sidebarView === view;
               const badge = view === "urgent" ? stats.actionNeeded : 0;
@@ -912,7 +915,7 @@ export default function Dashboard({ session }) {
                 className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-[var(--applume-accent)]" : "text-slate-400 dark:text-[#71717a]"}`}
               >
                 <Icon name="shield" className="h-5 w-5" />
-                <span className="text-[10px] font-bold">Admin</span>
+                <span className="text-[10px] font-bold">{label("view", "Admin")}</span>
               </button>
             )}
           </div>
@@ -927,7 +930,7 @@ export default function Dashboard({ session }) {
               <AnimatePresence mode="wait">
                 <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-slate-500 dark:text-[#a1a1aa]">{headerSummary}</p>
-                  <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{VIEW_META[sidebarView]?.title}</h1>
+                  <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
                 </motion.div>
               </AnimatePresence>
 
@@ -937,8 +940,8 @@ export default function Dashboard({ session }) {
                   className="h-9 rounded-xl px-2.5 text-sm sm:px-3.5"
                 >
                   <Icon name="plus" className="sm:mr-1.5" />
-                  <span className="hidden sm:inline">Add application</span>
-                  <span className="hidden min-[380px]:inline sm:hidden">Add</span>
+                  <span className="hidden sm:inline">{t("phrases.Add application")}</span>
+                  <span className="hidden min-[380px]:inline sm:hidden">{t("phrases.Add")}</span>
                 </Button>
 
                 <div ref={exportMenuRef} className="relative">
@@ -947,7 +950,7 @@ export default function Dashboard({ session }) {
                     className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32] sm:px-3"
                   >
                     <Icon name="download" className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Export</span>
+                    <span className="hidden sm:inline">{t("phrases.Export")}</span>
                     <svg className="hidden h-3 w-3 text-slate-400 min-[380px]:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -960,20 +963,22 @@ export default function Dashboard({ session }) {
                         className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
                       >
                         <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Export CSV
+                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Export CSV")}
                         </button>
                         <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> Download backup
+                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Download backup")}
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
                         <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import backup
+                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Import backup")}
                         </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
                 <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={importJson} />
+
+                <LanguageSwitcher compact />
 
                 <button
                   type="button"
@@ -1024,7 +1029,7 @@ export default function Dashboard({ session }) {
                       >
                         <div className="border-b border-slate-100 px-4 py-3 dark:border-[#2a2a2e]">
                           <p className="truncate text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">{session?.user?.email}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-[#71717a]">Signed in</p>
+                          <p className="text-[10px] text-slate-400 dark:text-[#71717a]">{t("phrases.Signed in")}</p>
                         </div>
                         <button
                           type="button"
@@ -1034,7 +1039,7 @@ export default function Dashboard({ session }) {
                           }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
                         >
-                          <Icon name="calendar" className="h-3.5 w-3.5 text-[var(--info)]" /> Calendar sync
+                          <Icon name="calendar" className="h-3.5 w-3.5 text-[var(--info)]" /> {t("phrases.Calendar sync")}
                         </button>
                         <button
                           type="button"
@@ -1044,21 +1049,21 @@ export default function Dashboard({ session }) {
                           }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
                         >
-                          <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> Share tracker
+                          <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share tracker")}
                         </button>
                         <button type="button" onClick={() => { closeProfileMenu(); setFeedbackOpen(true); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="messageSquare" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> Share feedback
+                          <Icon name="messageSquare" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share feedback")}
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
                         <button type="button" onClick={() => { closeProfileMenu(); signOut(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-                          <Icon name="reset" className="h-3.5 w-3.5" /> Sign out
+                          <Icon name="reset" className="h-3.5 w-3.5" /> {t("phrases.Sign out")}
                         </button>
                         <button
                           type="button"
                           onClick={() => { closeProfileMenu(); handleDeleteAccount(); }}
                           className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition hover:bg-rose-50/60 dark:hover:bg-rose-900/10"
                         >
-                          Delete account
+                          {t("phrases.Delete account")}
                         </button>
                       </motion.div>
                     )}

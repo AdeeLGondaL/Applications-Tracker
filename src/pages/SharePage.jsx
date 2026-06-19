@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Badge } from "@/components/ui/Badge";
 import { statusTone } from "@/utils/statusTone";
-import { formatDate, deadlineInfo } from "@/utils/date";
+import { useLanguage } from "@/i18n";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 function DeadlineBadge({ deadline }) {
-  if (!deadline) return <span className="text-xs text-slate-400">No deadline</span>;
+  const { deadlineInfo, formatDate, t } = useLanguage();
+  if (!deadline) return <span className="text-xs text-slate-400">{t("deadline.none")}</span>;
   const info = deadlineInfo(deadline);
   const toneClass = {
     danger:  "text-rose-600 bg-rose-50 border border-rose-200",
@@ -23,11 +25,13 @@ function DeadlineBadge({ deadline }) {
 }
 
 function PriorityDot({ priority }) {
+  const { label, t } = useLanguage();
   const colorClass = priority === "High" ? "bg-rose-500" : priority === "Medium" ? "bg-amber-400" : "bg-slate-300";
-  return <span className={`inline-block h-2 w-2 rounded-full ${colorClass}`} title={`${priority} priority`} />;
+  return <span className={`inline-block h-2 w-2 rounded-full ${colorClass}`} title={`${label("priority", priority)} ${t("phrases.Priority").toLowerCase()}`} />;
 }
 
 function AppCard({ app }) {
+  const { label } = useLanguage();
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3.5 shadow-sm">
       <div className="mt-0.5 flex-shrink-0">
@@ -41,7 +45,7 @@ function AppCard({ app }) {
               <p className="mt-0.5 truncate text-xs text-slate-500">{app.programRole}</p>
             )}
           </div>
-          <Badge tone={statusTone(app.status)}>{app.status}</Badge>
+          <Badge tone={statusTone(app.status)}>{label("status", app.status)}</Badge>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <DeadlineBadge deadline={app.deadline} />
@@ -61,6 +65,7 @@ function AppCard({ app }) {
 }
 
 function GroupSection({ title, icon, apps, accent }) {
+  const { t } = useLanguage();
   if (!apps.length) return null;
   const accentClass = {
     blue:   "text-blue-600 bg-blue-50",
@@ -73,7 +78,7 @@ function GroupSection({ title, icon, apps, accent }) {
         <span className={`grid h-7 w-7 place-items-center rounded-xl ${accentClass}`}>
           <Icon name={icon} className="h-4 w-4" />
         </span>
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">{title}</h2>
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">{t(`phrases.${title}`)}</h2>
         <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-500">{apps.length}</span>
       </div>
       <div className="space-y-2">
@@ -86,6 +91,7 @@ function GroupSection({ title, icon, apps, accent }) {
 }
 
 export default function SharePage({ token }) {
+  const { label, t } = useLanguage();
   const [apps, setApps] = useState([]);
   const [status, setStatus] = useState(token ? "loading" : "error"); // "loading" | "ok" | "error"
   const [error, setError] = useState(token ? "" : "No token provided.");
@@ -123,7 +129,7 @@ export default function SharePage({ token }) {
             </div>
             <div>
               <p className="text-sm font-black text-slate-900">Applume</p>
-              <p className="text-[10px] text-slate-400">Shared Application Tracker</p>
+              <p className="text-[10px] text-slate-400">{t("phrases.Shared Application Tracker")}</p>
             </div>
           </div>
           {status === "ok" && (
@@ -131,6 +137,7 @@ export default function SharePage({ token }) {
               {apps.length} application{apps.length !== 1 ? "s" : ""}
             </span>
           )}
+          <LanguageSwitcher compact />
         </div>
       </header>
 
@@ -141,7 +148,7 @@ export default function SharePage({ token }) {
             <svg className="h-6 w-6 animate-spin text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
             </svg>
-            <span className="ml-3 text-sm text-slate-400">Loading applications...</span>
+            <span className="ml-3 text-sm text-slate-400">{t("phrases.Loading applications...")}</span>
           </div>
         )}
 
@@ -150,7 +157,7 @@ export default function SharePage({ token }) {
             <div className="mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-rose-50">
               <Icon name="close" className="h-7 w-7 text-rose-500" />
             </div>
-            <h2 className="text-lg font-black text-slate-900">Link unavailable</h2>
+            <h2 className="text-lg font-black text-slate-900">{t("phrases.Link unavailable")}</h2>
             <p className="mt-2 max-w-sm text-sm text-slate-500">
               {error || "This share link is invalid or the user has no applications."}
             </p>
@@ -162,8 +169,8 @@ export default function SharePage({ token }) {
             <div className="mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-slate-100">
               <Icon name="dashboard" className="h-7 w-7 text-slate-400" />
             </div>
-            <h2 className="text-lg font-black text-slate-900">No applications yet</h2>
-            <p className="mt-2 text-sm text-slate-500">This tracker is empty.</p>
+            <h2 className="text-lg font-black text-slate-900">{t("phrases.No applications yet")}</h2>
+            <p className="mt-2 text-sm text-slate-500">{t("phrases.This tracker is empty.")}</p>
           </div>
         )}
 
@@ -174,13 +181,13 @@ export default function SharePage({ token }) {
               {universities.length > 0 && (
                 <div className="flex items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-3.5 py-2">
                   <Icon name="university" className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-bold text-blue-700">{universities.length} Universit{universities.length !== 1 ? "ies" : "y"}</span>
+                  <span className="text-sm font-bold text-blue-700">{universities.length} {label("type", "University")}</span>
                 </div>
               )}
               {jobs.length > 0 && (
                 <div className="flex items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50 px-3.5 py-2">
                   <Icon name="job" className="h-4 w-4 text-violet-600" />
-                  <span className="text-sm font-bold text-violet-700">{jobs.length} Job{jobs.length !== 1 ? "s" : ""}</span>
+                  <span className="text-sm font-bold text-violet-700">{jobs.length} {label("type", "Job")}</span>
                 </div>
               )}
             </div>
@@ -193,8 +200,8 @@ export default function SharePage({ token }) {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8 text-center">
-        <p className="text-sm font-semibold text-slate-600">Track your own applications for free</p>
-        <p className="mt-1 text-xs text-slate-400">Structured tracker - Export anytime - Private by default</p>
+        <p className="text-sm font-semibold text-slate-600">{t("phrases.Track your own applications for free")}</p>
+        <p className="mt-1 text-xs text-slate-400">{t("phrases.Structured tracker - Export anytime - Private by default")}</p>
         <a
           href={appUrl}
           className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600"
@@ -202,7 +209,7 @@ export default function SharePage({ token }) {
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" />
           </svg>
-          Start tracking with Applume
+          {t("phrases.Start tracking with Applume")}
         </a>
       </footer>
     </div>

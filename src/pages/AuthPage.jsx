@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
@@ -162,17 +163,20 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
-        <motion.button
-          type="button"
-          onClick={onClose}
-          className="mb-6 flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
-          initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          Back to home
-        </motion.button>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <motion.button
+            type="button"
+            onClick={onClose}
+            className="flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Back to home
+          </motion.button>
+          <LanguageSwitcher compact />
+        </div>
 
         <div className="my-auto grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
 

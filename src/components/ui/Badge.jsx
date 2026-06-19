@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/Icon";
+import { useLanguage } from "@/i18n";
 
 function badgeClass(tone) {
   const map = {
@@ -23,8 +24,9 @@ export function Badge({ children, tone = "neutral" }) {
 }
 
 export function Priority({ priority }) {
+  const { label } = useLanguage();
   const tone = priority === "High" ? "danger" : priority === "Medium" ? "notice" : "neutral";
-  return <Badge tone={tone}>{priority}</Badge>;
+  return <Badge tone={tone}>{label("priority", priority)}</Badge>;
 }
 
 export function IconButton({ icon, label, onClick, danger = false }) {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { STATUSES } from "@/utils/constants";
+import { useLanguage } from "@/i18n";
 
 const STATUS_COLOR = {
   "Not Open Yet":      "bg-slate-300",
@@ -23,6 +24,7 @@ const PHASES = [
 ];
 
 export function PipelineCard({ pipeline, total }) {
+  const { label, t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   const rows = STATUSES.map((status) => ({
     status,
@@ -45,8 +47,8 @@ export function PipelineCard({ pipeline, total }) {
       <CardContent className="p-4 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">Pipeline summary</h2>
-            <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">Your applications grouped into clear progress stages.</p>
+            <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">{t("phrases.Pipeline summary")}</h2>
+            <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{t("phrases.Your applications grouped into clear progress stages.")}</p>
           </div>
           {activeRows.length > 0 && (
             <button
@@ -55,21 +57,21 @@ export function PipelineCard({ pipeline, total }) {
               aria-expanded={expanded}
               className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:text-[#9AA4B2] dark:focus:ring-offset-[#1A1D22]"
             >
-              {expanded ? "Hide detail" : "Details"}
+              {expanded ? t("phrases.Hide detail") : t("phrases.Details")}
             </button>
           )}
         </div>
 
         {total === 0 ? (
           <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
-            <p className="text-sm font-black text-slate-800 dark:text-[#F8FAFC]">No pipeline data yet.</p>
+            <p className="text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{t("phrases.No pipeline data yet.")}</p>
             <p className="mt-1 text-sm font-semibold leading-6 text-slate-500 dark:text-[#9AA4B2]">Add your first application to start tracking progress.</p>
           </div>
         ) : (
           <div>
             <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
-              <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--applume-accent)]">Submitted or beyond</p>
-              <p className="mt-1 text-lg font-black text-slate-950 dark:text-white">{submittedOrBeyond} of {total} applications</p>
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--applume-accent)]">{t("phrases.Submitted or beyond")}</p>
+              <p className="mt-1 text-lg font-black text-slate-950 dark:text-white">{submittedOrBeyond} {t("common.of")} {total} {t("phrases.applications")}</p>
               <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{insight}</p>
             </div>
 
@@ -97,7 +99,7 @@ export function PipelineCard({ pipeline, total }) {
                   <div key={label} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
                     <div className="flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${color}`} />
-                      <span className="text-xs font-bold text-slate-700 dark:text-[#d4d4d8]">{label}</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-[#d4d4d8]">{t(`phrases.${label}`)}</span>
                     </div>
                     <p className="mt-2 text-[13px] text-slate-500 dark:text-[#9AA4B2]">
                       <span className="font-black text-slate-900 dark:text-white">{count}</span>
@@ -123,7 +125,7 @@ export function PipelineCard({ pipeline, total }) {
               return (
                 <div key={status} className="sm:flex sm:items-center sm:gap-3">
                   <div className="mb-1.5 flex min-w-0 items-center justify-between gap-3 sm:mb-0 sm:w-36 sm:shrink-0">
-                    <div className="min-w-0 truncate text-[13px] font-semibold text-slate-500 dark:text-[#9AA4B2]">{status}</div>
+                    <div className="min-w-0 truncate text-[13px] font-semibold text-slate-500 dark:text-[#9AA4B2]">{label("status", status)}</div>
                     <div className="shrink-0 text-right text-[13px] sm:hidden">
                       <span className="font-black text-slate-800 dark:text-white">{count}</span>
                       {pct > 0 && <span className="ml-1 text-slate-400 dark:text-[#9AA4B2]">{pct}%</span>}

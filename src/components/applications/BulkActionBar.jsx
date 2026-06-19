@@ -4,8 +4,10 @@ import { Icon } from "@/components/ui/Icon";
 import { Badge, Priority } from "@/components/ui/Badge";
 import { statusTone } from "@/utils/statusTone";
 import { STATUSES, PRIORITIES } from "@/utils/constants";
+import { useLanguage } from "@/i18n";
 
 export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelete, onClear }) {
+  const { label, t } = useLanguage();
   const [statusOpen, setStatusOpen] = useState(false);
   const [priorityOpen, setPriorityOpen] = useState(false);
   const ref = useRef(null);
@@ -36,7 +38,7 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
             ref={ref}
             className="flex max-w-full flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-slate-950 px-3 py-3 shadow-2xl shadow-slate-900/50 sm:px-4"
           >
-            <span className="text-sm font-bold text-white">{count} selected</span>
+            <span className="text-sm font-bold text-white">{t("common.selected", { count })}</span>
             <div className="h-4 w-px bg-white/20" />
 
             {/* Set status */}
@@ -46,7 +48,7 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
                 onClick={() => { setStatusOpen((v) => !v); setPriorityOpen(false); }}
                 className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
               >
-                Set status
+                {t("phrases.Set status")}
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -67,7 +69,7 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
                         onClick={() => { onStatusChange(s); setStatusOpen(false); }}
                         className="flex w-full items-center px-3 py-2 transition hover:bg-slate-50 dark:hover:bg-[#242428]"
                       >
-                        <Badge tone={statusTone(s)}>{s}</Badge>
+                        <Badge tone={statusTone(s)}>{label("status", s)}</Badge>
                       </button>
                     ))}
                   </motion.div>
@@ -82,7 +84,7 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
                 onClick={() => { setPriorityOpen((v) => !v); setStatusOpen(false); }}
                 className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
               >
-                Set priority
+                {t("phrases.Set priority")}
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -117,7 +119,7 @@ export function BulkActionBar({ count, onStatusChange, onPriorityChange, onDelet
               onClick={onDelete}
               className="flex items-center gap-1.5 rounded-xl bg-rose-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-rose-600"
             >
-              <Icon name="trash" className="h-3 w-3" /> Delete
+              <Icon name="trash" className="h-3 w-3" /> {t("phrases.Delete")}
             </button>
             <button
               type="button"

@@ -6,9 +6,10 @@ import { Badge, Priority } from "@/components/ui/Badge";
 import { Info } from "@/components/ui/PasswordStrength";
 import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { EmptyState } from "@/components/applications/EmptyState";
-import { deadlineInfo, formatDate } from "@/utils/date";
+import { useLanguage } from "@/i18n";
 
 export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
+  const { deadlineInfo, formatDate, t } = useLanguage();
   const info = deadlineInfo(app.deadline);
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -43,8 +44,8 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
             <Priority priority={app.priority} />
           </div>
           <div className="mt-4 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
-            <Info label="City" value={app.city || "—"} />
-            <Info label="Deadline" value={formatDate(app.deadline)} />
+            <Info label={t("phrases.City")} value={app.city || "—"} />
+            <Info label={t("phrases.Deadline")} value={formatDate(app.deadline)} />
           </div>
           {app.notes && (
             <p className="mt-4 line-clamp-3 rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600 dark:bg-[#2a2a2e] dark:text-[#a1a1aa]">
@@ -55,7 +56,7 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
             {app.link && (
               <a className="flex-1" href={app.link} target="_blank" rel="noreferrer">
                 <Button variant="outline" className="w-full rounded-2xl">
-                  <Icon name="link" className="mr-2" /> Link
+                  <Icon name="link" className="mr-2" /> {t("phrases.Link")}
                 </Button>
               </a>
             )}

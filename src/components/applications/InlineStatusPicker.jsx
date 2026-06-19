@@ -4,8 +4,10 @@ import { Icon } from "@/components/ui/Icon";
 import { Badge } from "@/components/ui/Badge";
 import { statusTone } from "@/utils/statusTone";
 import { STATUSES } from "@/utils/constants";
+import { useLanguage } from "@/i18n";
 
 export function InlineStatusPicker({ status, onStatusChange }) {
+  const { label } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -26,7 +28,7 @@ export function InlineStatusPicker({ status, onStatusChange }) {
         className="group flex items-center gap-1 rounded-full transition"
         title="Change status"
       >
-        <Badge tone={statusTone(status)}>{status}</Badge>
+        <Badge tone={statusTone(status)}>{label("status", status)}</Badge>
         <Icon name="edit" className="h-2.5 w-2.5 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-[#52525b]" />
       </button>
 
@@ -46,7 +48,7 @@ export function InlineStatusPicker({ status, onStatusChange }) {
                 onClick={() => { onStatusChange(s); setOpen(false); }}
                 className="flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-[#242428]"
               >
-                <Badge tone={statusTone(s)}>{s}</Badge>
+                <Badge tone={statusTone(s)}>{label("status", s)}</Badge>
                 {s === status && <Icon name="check" className="h-3 w-3 text-emerald-500" />}
               </button>
             ))}

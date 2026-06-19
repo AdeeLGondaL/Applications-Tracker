@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { statusTone } from "@/utils/statusTone";
 import { Icon } from "@/components/ui/Icon";
 import { STATUSES } from "@/utils/constants";
-import { deadlineInfo } from "@/utils/date";
+import { useLanguage } from "@/i18n";
 
 const COLUMN_BORDER = {
   "Not Open Yet":      "border-l-slate-300",
@@ -32,6 +32,7 @@ const DEADLINE_TONE_CLASS = {
 };
 
 function KanbanCard({ app, onEdit, onDelete }) {
+  const { deadlineInfo, label, t } = useLanguage();
   const info = deadlineInfo(app.deadline);
   const [hovered, setHovered] = useState(false);
 
@@ -56,10 +57,10 @@ function KanbanCard({ app, onEdit, onDelete }) {
             : "border-violet-200 bg-violet-50 text-violet-700"
         }`}>
           <Icon name={app.type === "University" ? "university" : "job"} className="h-2.5 w-2.5" />
-          {app.type}
+          {label("type", app.type)}
         </span>
         <span
-          title={`Priority: ${app.priority}`}
+          title={`${t("phrases.Priority")}: ${label("priority", app.priority)}`}
           className={`h-2.5 w-2.5 rounded-full ${PRIORITY_COLOR[app.priority] || "bg-slate-300"}`}
         />
       </div>
@@ -85,7 +86,7 @@ function KanbanCard({ app, onEdit, onDelete }) {
         <div className="absolute right-2 top-2 flex gap-1">
           <button
             type="button"
-            title="Edit"
+            title={t("phrases.Edit")}
             onClick={(e) => { e.stopPropagation(); onEdit(app); }}
             className="grid h-6 w-6 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#a1a1aa] dark:hover:bg-[#2a2a2e] dark:hover:text-white"
           >
@@ -93,7 +94,7 @@ function KanbanCard({ app, onEdit, onDelete }) {
           </button>
           <button
             type="button"
-            title="Delete"
+            title={t("phrases.Delete")}
             onClick={(e) => { e.stopPropagation(); onDelete(app.id); }}
             className="grid h-6 w-6 place-items-center rounded-lg border border-slate-200 bg-white text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-700 dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-rose-950/40"
           >
@@ -106,6 +107,7 @@ function KanbanCard({ app, onEdit, onDelete }) {
 }
 
 function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
+  const { label, t } = useLanguage();
   const [dragOver, setDragOver] = useState(false);
 
   function handleDragOver(e) {
@@ -141,7 +143,7 @@ function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
       {/* Column header */}
       <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3.5 py-3 dark:border-[#2a2a2e] dark:bg-[#1c1c1f]">
         <div className="flex items-center gap-2">
-          <Badge tone={tone}>{status}</Badge>
+          <Badge tone={tone}>{label("status", status)}</Badge>
         </div>
         <span className="text-xs font-black text-slate-400 dark:text-[#71717a]">{apps.length}</span>
       </div>
@@ -150,7 +152,7 @@ function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-2.5" style={{ minHeight: 80 }}>
         {apps.length === 0 ? (
           <div className="flex flex-1 items-center justify-center rounded-xl border-2 border-dashed border-slate-200 px-3 py-6 dark:border-[#2a2a2e]">
-            <p className="text-center text-xs text-slate-400 dark:text-[#52525b]">Drop here</p>
+            <p className="text-center text-xs text-slate-400 dark:text-[#52525b]">{t("phrases.Drop here")}</p>
           </div>
         ) : (
           apps.map((app) => (

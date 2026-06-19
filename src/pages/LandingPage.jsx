@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Icon } from "@/components/ui/Icon";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -837,6 +838,7 @@ export default function LandingPage({ onGetStarted }) {
             <a href="#how-it-works" className="transition hover:text-[#17312E]">How it works</a>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher compact />
             <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#667A75] transition hover:bg-white hover:text-[#17312E] sm:block">
               Sign in
             </button>

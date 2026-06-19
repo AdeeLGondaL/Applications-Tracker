@@ -5,8 +5,10 @@ import { Icon } from "@/components/ui/Icon";
 import { DrawerSection, Field, Input, Textarea, Select } from "@/components/ui/Field";
 import { TYPES, STATUSES, PRIORITIES } from "@/utils/constants";
 import { callGeminiExtract } from "@/utils/ai";
+import { useLanguage } from "@/i18n";
 
 export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, onClose, applications }) {
+  const { label, t } = useLanguage();
   const isUni = form.type === "University";
   const hasAiKey = !!import.meta.env.VITE_GROQ_API_KEY;
 
@@ -70,10 +72,10 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-[#2a2a2e]">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-[#71717a]">
-              {editingId ? "Edit record" : "New record"}
+              {editingId ? t("phrases.Edit record") : t("phrases.New record")}
             </p>
             <h2 className="mt-1 text-2xl font-black">
-              {editingId ? "Update application" : "Add application"}
+              {editingId ? t("phrases.Update application") : t("phrases.Add application")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-[#a1a1aa]">
               Fill only what you know now. You can update anything later.
@@ -112,7 +114,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   }`}
                 >
                   <Icon name={t === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
-                  {t}
+                  {label("type", t)}
                 </span>
               </button>
             ))}
@@ -127,7 +129,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
             >
               <span className="flex items-center gap-2 text-sm font-black text-emerald-800 dark:text-emerald-300">
                 <Icon name="sparkles" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                Auto-fill from URL or description
+                {t("phrases.Auto-fill from URL or description")}
               </span>
               <svg
                 className={`h-4 w-4 text-emerald-500 transition-transform ${afOpen ? "rotate-180" : ""}`}
@@ -156,7 +158,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       value={afInput}
                       onChange={(e) => setAfInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
-                      placeholder="Paste a URL or description here..."
+                      placeholder={t("phrases.Paste a URL or description here...")}
                       rows={afIsUrl ? 2 : 5}
                       className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b]"
                     />
@@ -182,7 +184,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       ) : (
                         <>
                           <Icon name="sparkles" className="h-3.5 w-3.5" />
-                          {afIsUrl ? "Read & fill with AI" : "Extract with AI"}
+                          {afIsUrl ? t("phrases.Read & fill with AI") : t("phrases.Extract with AI")}
                         </>
                       )}
                     </button>
@@ -203,7 +205,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                           transition={{ duration: 0.15 }}
                           className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400"
                         >
-                          <Icon name="check" className="h-3 w-3" />Fields populated. Review and save.
+                          <Icon name="check" className="h-3 w-3" />{t("phrases.Fields populated. Review and save.")}
                         </motion.p>
                       )}
                     </AnimatePresence>
@@ -224,7 +226,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 className="overflow-hidden"
               >
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
-                  <p className="text-xs font-black text-amber-800 dark:text-amber-300">Possible duplicate</p>
+                  <p className="text-xs font-black text-amber-800 dark:text-amber-300">{t("phrases.Possible duplicate")}</p>
                   <p className="mt-0.5 text-xs leading-5 text-amber-700 dark:text-amber-400">
                     You already have <span className="font-bold">{duplicate.name}</span> tracked as a{" "}
                     {duplicate.type} - currently <span className="font-semibold">{duplicate.status}</span>.
@@ -236,30 +238,30 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
           </AnimatePresence>
 
           {/* Section: Institution / Company */}
-          <DrawerSection label={isUni ? "Institution" : "Company"}>
+          <DrawerSection label={isUni ? t("phrases.Institution") : t("phrases.Company")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={isUni ? "University name" : "Company name"} required>
+              <Field label={isUni ? t("phrases.University name") : t("phrases.Company name")} required>
                 <Input
                   value={form.name}
                   onChange={(e) => onChange("name", e.target.value)}
                   placeholder={isUni ? "e.g., TU Munich, Saarland University" : "e.g., Siemens, BMW, Bosch"}
                 />
               </Field>
-              <Field label={isUni ? "Program / Course" : "Role / Job title"} required>
+              <Field label={isUni ? t("phrases.Program / Course") : t("phrases.Role / Job title")} required>
                 <Input
                   value={form.programRole}
                   onChange={(e) => onChange("programRole", e.target.value)}
                   placeholder={isUni ? "e.g., M.Sc. Computer Science" : "e.g., Software Engineer Intern"}
                 />
               </Field>
-              <Field label={isUni ? "City / Campus" : "Location"}>
+              <Field label={isUni ? t("phrases.City / Campus") : t("phrases.Location")}>
                 <Input
                   value={form.city}
                   onChange={(e) => onChange("city", e.target.value)}
                   placeholder={isUni ? "e.g., Berlin, Munich, Stuttgart" : "e.g., Stuttgart / Remote / Hybrid"}
                 />
               </Field>
-              <Field label={isUni ? "Application portal URL" : "Job listing URL"}>
+              <Field label={isUni ? t("phrases.Application portal URL") : t("phrases.Job listing URL")}>
                 <Input
                   value={form.link}
                   onChange={(e) => onChange("link", e.target.value)}
@@ -267,7 +269,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 />
               </Field>
               {isUni ? (
-                <Field label="Teaching language">
+                <Field label={t("phrases.Teaching language")}>
                   <Select
                     value={form.language}
                     onChange={(e) => onChange("language", e.target.value)}
@@ -281,7 +283,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 </Field>
               ) : (
                 <>
-                  <Field label="Employment type">
+                  <Field label={t("phrases.Employment type")}>
                     <Select
                       value={form.employmentType}
                       onChange={(e) => onChange("employmentType", e.target.value)}
@@ -295,7 +297,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       ]}
                     />
                   </Field>
-                  <Field label="Work mode">
+                  <Field label={t("phrases.Work mode")}>
                     <Select
                       value={form.workMode}
                       onChange={(e) => onChange("workMode", e.target.value)}
@@ -313,21 +315,21 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
           </DrawerSection>
 
           {/* Section: Timeline */}
-          <DrawerSection label="Timeline">
+          <DrawerSection label={t("phrases.Timeline")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={isUni ? "Portal opens" : "Date posted"}>
+              <Field label={isUni ? t("phrases.Portal opens") : t("phrases.Date posted")}>
                 <Input type="date" value={form.openingDate} onChange={(e) => onChange("openingDate", e.target.value)} />
               </Field>
-              <Field label="Application deadline">
+              <Field label={t("phrases.Application deadline")}>
                 <Input type="date" value={form.deadline} onChange={(e) => onChange("deadline", e.target.value)} />
               </Field>
             </div>
           </DrawerSection>
 
           {/* Section: Application */}
-          <DrawerSection label="Application">
+          <DrawerSection label={t("phrases.Application")}>
             <div className="grid gap-4">
-              <Field label="How to apply">
+              <Field label={t("phrases.How to apply")}>
                 <Input
                   value={form.applicationType}
                   onChange={(e) => onChange("applicationType", e.target.value)}
@@ -338,7 +340,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   }
                 />
               </Field>
-              <Field label={isUni ? "Documents required" : "Documents to prepare"}>
+              <Field label={isUni ? t("phrases.Documents required") : t("phrases.Documents to prepare")}>
                 <Textarea
                   value={form.documents}
                   onChange={(e) => onChange("documents", e.target.value)}
@@ -353,27 +355,27 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
           </DrawerSection>
 
           {/* Section: Tracking */}
-          <DrawerSection label="Tracking">
+          <DrawerSection label={t("phrases.Tracking")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Status">
+              <Field label={t("phrases.Status")}>
                 <Select
                   value={form.status}
                   onChange={(e) => onChange("status", e.target.value)}
-                  options={STATUSES}
+                  options={STATUSES.map((value) => ({ label: label("status", value), value }))}
                 />
               </Field>
-              <Field label="Priority">
+              <Field label={t("phrases.Priority")}>
                 <Select
                   value={form.priority}
                   onChange={(e) => onChange("priority", e.target.value)}
-                  options={PRIORITIES}
+                  options={PRIORITIES.map((value) => ({ label: label("priority", value), value }))}
                 />
               </Field>
             </div>
           </DrawerSection>
 
           {/* Section: Notes */}
-          <DrawerSection label="Notes & next action">
+          <DrawerSection label={t("phrases.Notes & next action")}>
             <Textarea
               value={form.notes}
               onChange={(e) => onChange("notes", e.target.value)}
@@ -390,11 +392,11 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         {/* Footer */}
         <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5 dark:border-[#2a2a2e] dark:bg-[#0d0d0f]">
           <Button variant="outline" onClick={onClose} className="rounded-2xl">
-            Cancel
+            {t("phrases.Cancel")}
           </Button>
           <Button onClick={onSave} className="rounded-2xl">
             <Icon name={editingId ? "edit" : "plus"} className="mr-2" />
-            {editingId ? "Save changes" : "Create application"}
+            {editingId ? t("phrases.Save changes") : t("phrases.Create application")}
           </Button>
         </div>
 

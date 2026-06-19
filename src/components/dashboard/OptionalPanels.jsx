@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { STATUSES } from "@/utils/constants";
+import { useLanguage } from "@/i18n";
 
 const STATUS_DISTRIBUTION_COLORS = {
   "Not Open Yet": "bg-slate-400",
@@ -50,20 +51,21 @@ function EmptyPanel({ title, children, actionLabel, onAction }) {
 }
 
 export function QuickActionsPanel({ onAddUniversity, onAddJob, onImport, onCalendarSync }) {
+  const { t } = useLanguage();
   return (
-    <PanelShell title="Quick actions" description="Fast ways to keep your tracker moving." icon={null}>
+    <PanelShell title={t("phrases.Quick actions")} description={t("phrases.Fast ways to keep your tracker moving.")} icon={null}>
       <div className="grid gap-2.5">
         <button type="button" onClick={onAddUniversity} className="flex h-11 items-center gap-2.5 rounded-xl bg-slate-950 px-3.5 text-left text-sm font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:bg-[#F8FAFC] dark:text-slate-900 dark:focus:ring-offset-[#1A1D22]">
-          <Icon name="university" className="h-4 w-4" /> Add university
+          <Icon name="university" className="h-4 w-4" /> {t("phrases.Add university")}
         </button>
         <button type="button" onClick={onAddJob} className="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 px-3.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A] dark:focus:ring-offset-[#1A1D22]">
-          <Icon name="job" className="h-4 w-4" /> Add job
+          <Icon name="job" className="h-4 w-4" /> {t("phrases.Add job")}
         </button>
         <button type="button" onClick={onImport} className="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 px-3.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A] dark:focus:ring-offset-[#1A1D22]">
-          <Icon name="upload" className="h-4 w-4" /> Import backup
+          <Icon name="upload" className="h-4 w-4" /> {t("phrases.Import backup")}
         </button>
         <button type="button" onClick={onCalendarSync} className="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 px-3.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:text-[#F8FAFC] dark:hover:bg-[#20242A] dark:focus:ring-offset-[#1A1D22]">
-          <Icon name="calendar" className="h-4 w-4" /> Copy calendar URL
+          <Icon name="calendar" className="h-4 w-4" /> {t("phrases.Copy calendar URL")}
         </button>
       </div>
     </PanelShell>
@@ -71,9 +73,10 @@ export function QuickActionsPanel({ onAddUniversity, onAddJob, onImport, onCalen
 }
 
 export function RecentActivityPanel({ applications, onOpenRecord }) {
+  const { formatDate, label, t } = useLanguage();
   const recent = [...applications].sort((a, b) => String(b.lastUpdated).localeCompare(String(a.lastUpdated))).slice(0, 5);
   return (
-    <PanelShell title="Recent activity" description="Recently added and updated applications." icon="reset">
+    <PanelShell title={t("phrases.Recent activity")} description={t("phrases.Recently added and updated applications.")} icon="reset">
       {recent.length === 0 ? (
         <EmptyPanel title="No recent activity yet.">
           Updates will appear here after you add or edit applications.
@@ -84,9 +87,9 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
             <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} aria-label={`Open ${app.name} application`} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:focus:ring-offset-[#1A1D22]">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-                <span className="block truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{app.status} - {app.lastUpdated}</span>
+              <span className="block truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{label("status", app.status)} - {formatDate(app.lastUpdated)}</span>
               </span>
-              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Open</span>
+              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">{t("phrases.Open")}</span>
             </button>
           ))}
         </div>
@@ -96,13 +99,14 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
 }
 
 export function NextStepCoveragePanel({ total, withNextStep, onAddNextSteps }) {
+  const { t } = useLanguage();
   const missing = Math.max(total - withNextStep, 0);
   const pct = total > 0 ? Math.round((withNextStep / total) * 100) : 0;
 
   return (
-    <PanelShell title="Next step coverage" description="How many records have an actionable next step." icon="check">
+    <PanelShell title={t("phrases.Next step coverage")} description={t("phrases.How many records have an actionable next step.")} icon="check">
       {total === 0 ? (
-        <EmptyPanel title="No next steps yet." actionLabel="Add application" onAction={onAddNextSteps}>
+        <EmptyPanel title={t("phrases.No next steps yet.")} actionLabel={t("phrases.Add application")} onAction={onAddNextSteps}>
           Add your first application to start planning what happens next.
         </EmptyPanel>
       ) : (
@@ -110,7 +114,7 @@ export function NextStepCoveragePanel({ total, withNextStep, onAddNextSteps }) {
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
             <p className="text-3xl font-black leading-none text-slate-950 dark:text-white">{withNextStep} of {total}</p>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-600 dark:text-[#9AA4B2]">
-              applications have a next step. {missing} need setup.
+              {t("phrases.applications have a next step.")} {missing} {t("phrases.need setup.")}
             </p>
             <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200/70 dark:bg-[#111318]" aria-label={`${pct}% next step coverage`}>
               <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
@@ -118,7 +122,7 @@ export function NextStepCoveragePanel({ total, withNextStep, onAddNextSteps }) {
           </div>
           {missing > 0 && (
             <button type="button" onClick={onAddNextSteps} className="mt-3 w-full rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2.5 text-sm font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(0,153,102,0.28)] dark:bg-[rgba(0,153,102,0.16)] dark:text-[var(--applume-accent-muted)] dark:focus:ring-offset-[#1A1D22]">
-              Add next steps
+              {t("phrases.Add next steps")}
             </button>
           )}
         </div>
@@ -128,6 +132,7 @@ export function NextStepCoveragePanel({ total, withNextStep, onAddNextSteps }) {
 }
 
 export function StatusDistributionPanel({ applications }) {
+  const { label, t } = useLanguage();
   const total = applications.length;
   const rows = STATUSES.map((status) => ({
     status,
@@ -139,7 +144,7 @@ export function StatusDistributionPanel({ applications }) {
     .slice(0, 5);
 
   return (
-    <PanelShell title="Status distribution" description="Where your tracker currently stands." icon="dashboard">
+    <PanelShell title={t("phrases.Status distribution")} description={t("phrases.Where your tracker currently stands.")} icon="dashboard">
       {total === 0 ? (
         <EmptyPanel title="No status data yet.">
           Add applications to see how records are distributed across statuses.
@@ -164,7 +169,7 @@ export function StatusDistributionPanel({ applications }) {
                 <div key={status} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
-                    <span className="truncate text-sm font-bold text-slate-800 dark:text-[#F8FAFC]">{status}</span>
+                    <span className="truncate text-sm font-bold text-slate-800 dark:text-[#F8FAFC]">{label("status", status)}</span>
                   </div>
                   <span className="shrink-0 text-xs font-black text-slate-500 dark:text-[#9AA4B2]">{count} · {pct}%</span>
                 </div>
