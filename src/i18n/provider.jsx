@@ -82,7 +82,7 @@ function translateNode(node, dictionary) {
 }
 
 function applyDomTranslations(lang) {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined" || !document.body) return;
   const dictionary = translations[lang]?.phrases || {};
   isTranslating = true;
   translateNode(document.body, dictionary);
@@ -90,7 +90,7 @@ function applyDomTranslations(lang) {
 }
 
 function observeDomTranslations(lang) {
-  if (typeof document === "undefined") return undefined;
+  if (typeof document === "undefined" || !document.body || typeof MutationObserver === "undefined") return undefined;
   translationObserver?.disconnect();
   translationObserver = new MutationObserver((mutations) => {
     if (isTranslating) return;

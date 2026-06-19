@@ -19,19 +19,31 @@ function AuthedApp() {
     let subscription;
     let active = true;
 
+    const authTimeout = window.setTimeout(() => {
+      if (active) setSession((current) => current === undefined ? null : current);
+    }, 5000);
+
     import("@/lib/supabaseClient").then(({ supabase }) => {
       if (!active) return;
       supabase.auth.getSession().then(({ data }) => {
+        window.clearTimeout(authTimeout);
         if (active) setSession(data.session ?? null);
+      }).catch(() => {
+        window.clearTimeout(authTimeout);
+        if (active) setSession(null);
       });
       const authState = supabase.auth.onAuthStateChange((_, nextSession) => {
         if (active) setSession(nextSession);
       });
       subscription = authState.data.subscription;
+    }).catch(() => {
+      window.clearTimeout(authTimeout);
+      if (active) setSession(null);
     });
 
     return () => {
       active = false;
+      window.clearTimeout(authTimeout);
       subscription?.unsubscribe();
     };
   }, []);
