@@ -259,18 +259,20 @@ function useGsapReveal(ref, {
       const targets = selector ? gsap.utils.toArray(selector, root) : [root];
       if (!targets.length) return;
 
-      const fromVars = { autoAlpha: 0, y };
+      // opacity (not autoAlpha): visibility:hidden would remove below-fold
+      // content from the accessibility tree until scrolled into view
+      const fromVars = { opacity: 0, y };
       if (scale !== 1) fromVars.scale = scale;
 
       const tweenVars = {
-        autoAlpha: 1,
+        opacity: 1,
         y: 0,
         scale: 1,
         duration,
         delay,
         stagger,
         ease: "power2.out",
-        clearProps: "transform,opacity,visibility",
+        clearProps: "transform,opacity",
       };
 
       if (!immediate) {
@@ -293,7 +295,7 @@ function ToneIcon({ icon, tone = "emerald" }) {
     emerald: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]",
     amber: "border-[#D58A55]/25 bg-[#D58A55]/10 text-[#8A4E27]",
     blue: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
-    slate: "border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] text-[#667A75]",
+    slate: "border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] text-[#5A6B66]",
   }[tone];
 
   return (
@@ -328,7 +330,7 @@ function LandingFooter() {
   return (
     <footer className="border-t border-[rgba(23,49,46,0.08)] bg-white px-6 py-10 text-center">
       <p className="text-sm font-black text-[#17312E]">Know someone still managing applications in a spreadsheet?</p>
-      <p className="mt-1 text-xs text-[#667A75]">Share Applume as their structured tracker.</p>
+      <p className="mt-1 text-xs text-[#5A6B66]">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-4 py-2.5 text-sm font-bold text-[var(--applume-accent-hover)] transition hover:border-[rgba(0,153,102,0.35)] hover:bg-[var(--applume-accent-muted)]">
@@ -340,15 +342,15 @@ function LandingFooter() {
           {copied ? "Copied" : "Copy link"}
         </button>
         {socials.map(({ label, href }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-2.5 text-sm font-bold text-[#667A75] transition hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA] hover:text-[var(--applume-accent-hover)]">
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-2.5 text-sm font-bold text-[#5A6B66] transition hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA] hover:text-[var(--applume-accent-hover)]">
             {label}
           </a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-[#667A75]">
+      <p className="mt-8 text-xs text-[#5A6B66]">
         &copy; {new Date().getFullYear()} Applume - Structured application tracking
         {" - "}
-        <a href="/privacy" className="text-[#667A75] transition-colors hover:text-[#17312E]">Privacy Policy</a>
+        <a href="/privacy" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Privacy Policy</a>
       </p>
     </footer>
   );
@@ -381,7 +383,7 @@ function ProductDemo() {
             <span className="h-2.5 w-2.5 rounded-full bg-[#D58A55]/45" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#C7DDD9]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[var(--applume-accent)]" />
-            <span className="ml-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#667A75] sm:ml-2 sm:text-[10px] sm:tracking-[0.2em]">Product demo</span>
+            <span className="ml-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#5A6B66] sm:ml-2 sm:text-[10px] sm:tracking-[0.2em]">Product demo</span>
           </div>
           <div className="grid w-full grid-cols-2 rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-1 sm:w-auto">
             {Object.entries(demoSets).map(([key, value]) => (
@@ -389,7 +391,7 @@ function ProductDemo() {
                 key={key}
                 type="button"
                 onClick={() => switchMode(key)}
-                className={`rounded-xl px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-[var(--applume-accent)] text-white shadow-sm shadow-[var(--applume-accent-shadow)]" : "text-[#667A75] hover:bg-white hover:text-[var(--applume-accent-hover)]"}`}
+                className={`rounded-xl px-2 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs ${mode === key ? "bg-[var(--applume-accent)] text-white shadow-sm shadow-[var(--applume-accent-shadow)]" : "text-[#5A6B66] hover:bg-white hover:text-[var(--applume-accent-hover)]"}`}
               >
                 {value.label}
               </button>
@@ -437,7 +439,7 @@ function ProductDemo() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-black">{record.name}</p>
-                          <p className={`mt-0.5 truncate text-xs font-semibold ${activeRecord ? "text-[#667A75]" : "text-[#BFD3CF]"}`}>{record.detail}</p>
+                          <p className={`mt-0.5 truncate text-xs font-semibold ${activeRecord ? "text-[#5A6B66]" : "text-[#BFD3CF]"}`}>{record.detail}</p>
                         </div>
                         <span className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-black ${activeRecord ? toneClass : "bg-white/10 text-slate-300"}`}>{record.status}</span>
                       </div>
@@ -453,7 +455,7 @@ function ProductDemo() {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">{active.context}</p>
                 <h3 className="mt-2 text-2xl font-black tracking-tight text-[#17312E]">{selected.name}</h3>
-                <p className="mt-1 text-sm font-semibold text-[#667A75]">{selected.detail}</p>
+                <p className="mt-1 text-sm font-semibold text-[#5A6B66]">{selected.detail}</p>
               </div>
               <div className="rounded-2xl border border-[#D58A55]/25 bg-[#D58A55]/10 px-3 py-2 text-right">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8A4E27]">Deadline</p>
@@ -464,7 +466,7 @@ function ProductDemo() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {selected.fields.map(([label, value]) => (
                 <div key={label} className="rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-3 shadow-sm shadow-[#17312E]/[0.03]">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">{label}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#5A6B66]">{label}</p>
                   <p className="mt-2 text-sm font-black text-[#17312E]">{value}</p>
                 </div>
               ))}
@@ -472,7 +474,7 @@ function ProductDemo() {
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.78fr]">
               <div className="rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-4 shadow-sm shadow-[#17312E]/[0.03]">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">Document checklist</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#5A6B66]">Document checklist</p>
                 <div className="mt-3 space-y-2">
                   {selected.checklist.map((item) => {
                     const done = !item.toLowerCase().includes("pending");
@@ -515,7 +517,7 @@ function TransformationStrip() {
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#17312E] sm:text-5xl">
             From spreadsheet chaos to application clarity.
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#667A75]">
+          <p className="mt-4 text-base leading-7 text-[#5A6B66]">
             Applume turns scattered rows into application records with deadlines, status, documents, and next steps in one place.
           </p>
         </div>
@@ -523,12 +525,12 @@ function TransformationStrip() {
         <div className="mt-12 grid gap-5 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
           <div className="js-transform-card-reveal overflow-hidden rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] shadow-sm shadow-[#17312E]/[0.03]">
             <div className="border-b border-[rgba(23,49,46,0.08)] bg-white px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">Before</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#5A6B66]">Before</p>
               <p className="mt-1 text-lg font-black text-[#17312E]">Spreadsheet rows with hidden context</p>
             </div>
             <div className="overflow-x-auto p-3">
-              <div className="min-w-[34rem] rounded-xl border border-[rgba(23,49,46,0.08)] bg-white text-left text-xs font-semibold text-[#667A75]">
-                <div className="grid grid-cols-[1.2fr_0.9fr_1.1fr] border-b border-[rgba(23,49,46,0.08)] bg-[var(--applume-accent-soft)] text-[10px] font-black uppercase tracking-[0.14em] text-[#667A75]">
+              <div className="min-w-[34rem] rounded-xl border border-[rgba(23,49,46,0.08)] bg-white text-left text-xs font-semibold text-[#5A6B66]">
+                <div className="grid grid-cols-[1.2fr_0.9fr_1.1fr] border-b border-[rgba(23,49,46,0.08)] bg-[var(--applume-accent-soft)] text-[10px] font-black uppercase tracking-[0.14em] text-[#5A6B66]">
                   <span className="px-3 py-2">Application</span>
                   <span className="px-3 py-2">Status</span>
                   <span className="px-3 py-2">Notes</span>
@@ -572,11 +574,11 @@ function TransformationStrip() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-black text-[#17312E]">{card.name}</p>
-                        <p className="mt-1 truncate text-xs font-semibold text-[#667A75]">{card.detail}</p>
+                        <p className="mt-1 truncate text-xs font-semibold text-[#5A6B66]">{card.detail}</p>
                       </div>
                       <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-black ${toneClass}`}>{card.status}</span>
                     </div>
-                    <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#F6FBFA] px-3 py-2 text-xs font-bold text-[#667A75]">
+                    <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#F6FBFA] px-3 py-2 text-xs font-bold text-[#5A6B66]">
                       <Icon name={card.tone === "amber" ? "calendar" : "check"} className={`h-3.5 w-3.5 ${card.tone === "amber" ? "text-[#8A4E27]" : "text-[var(--applume-accent)]"}`} />
                       {card.meta}
                     </div>
@@ -604,7 +606,7 @@ function ProblemSection() {
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             It is not the tracking that is hard. It is keeping the context alive.
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#667A75]">
+          <p className="mt-4 text-base leading-7 text-[#5A6B66]">
             Applications become stressful when dates, documents, links, notes, and next steps live in different places. Applume is built around that exact moment.
           </p>
         </div>
@@ -615,7 +617,7 @@ function ProblemSection() {
                 <ToneIcon icon={item.icon} tone={item.tone} />
               </div>
               <h3 className="text-base font-black">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#667A75]">{item.copy}</p>
+              <p className="mt-2 text-sm leading-6 text-[#5A6B66]">{item.copy}</p>
             </div>
           ))}
         </div>
@@ -638,7 +640,7 @@ function FeatureSection() {
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
               Not another list. A place for the whole application.
             </h2>
-            <p className="mt-4 text-base leading-7 text-[#667A75]">
+            <p className="mt-4 text-base leading-7 text-[#5A6B66]">
               Each record keeps the practical pieces together: status, deadline, documents, links, notes, next action, and exportable data.
             </p>
           </div>
@@ -682,10 +684,10 @@ function AudienceSection() {
             <div key={card.title} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-6 shadow-sm shadow-[#17312E]/[0.03]">
               <ToneIcon icon={card.icon} tone={index === 0 ? "emerald" : "blue"} />
               <h3 className="mt-5 text-2xl font-black text-[#17312E]">{card.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#667A75]">{card.copy}</p>
+              <p className="mt-3 text-sm leading-6 text-[#5A6B66]">{card.copy}</p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {card.items.map((item) => (
-                  <span key={item} className="rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-3 py-2 text-xs font-black text-[#667A75]">{item}</span>
+                  <span key={item} className="rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-3 py-2 text-xs font-black text-[#5A6B66]">{item}</span>
                 ))}
               </div>
             </div>
@@ -704,7 +706,7 @@ function ApplicationPipeline() {
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Application pipeline</p>
           <h3 className="mt-2 text-2xl font-black leading-tight text-[#17312E] sm:text-3xl">Saved to offer, every step stays visible.</h3>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-[#667A75]">
+        <p className="max-w-sm text-sm leading-6 text-[#5A6B66]">
           A quiet path keeps progress visible without adding another stressful dashboard.
         </p>
       </div>
@@ -720,9 +722,9 @@ function ApplicationPipeline() {
               <span className="absolute left-4 top-4 grid h-4 w-4 place-items-center rounded-full border border-[rgba(204,239,227,0.60)] bg-[var(--applume-accent)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
               </span>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#667A75]">Step {index + 1}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#5A6B66]">Step {index + 1}</p>
               <h4 className="mt-2 text-base font-black text-[#17312E]">{step.label}</h4>
-              <p className="mt-2 text-xs leading-5 text-[#667A75]">{step.copy}</p>
+              <p className="mt-2 text-xs leading-5 text-[#5A6B66]">{step.copy}</p>
             </div>
           ))}
         </div>
@@ -744,7 +746,7 @@ function HowItWorksSection() {
           <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-5xl">
             Make logging an application feel lighter than filling a row.
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#667A75]">
+          <p className="mt-4 text-base leading-7 text-[#5A6B66]">
             The product should reduce friction, not add another chore. Applume keeps manual control while making the first draft faster.
           </p>
         </div>
@@ -753,7 +755,7 @@ function HowItWorksSection() {
             <div key={step.label} className="js-gsap-card rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white p-6 shadow-sm shadow-[#17312E]/[0.03]">
               <div className="inline-flex rounded-xl bg-[var(--applume-accent-soft)] px-3 py-1.5 text-xs font-black text-[var(--applume-accent-hover)]">{step.label}</div>
               <h3 className="mt-5 text-xl font-black">{step.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#667A75]">{step.copy}</p>
+              <p className="mt-3 text-sm leading-6 text-[#5A6B66]">{step.copy}</p>
             </div>
           ))}
         </div>
@@ -763,7 +765,7 @@ function HowItWorksSection() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Grounded trust</p>
               <h3 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">Private by default. Export whenever you want.</h3>
-              <p className="mt-3 text-sm leading-6 text-[#667A75]">
+              <p className="mt-3 text-sm leading-6 text-[#5A6B66]">
                 Sign in with Google or email. Your records belong to your account, and shared tracker links are intentional.
               </p>
             </div>
@@ -775,7 +777,7 @@ function HowItWorksSection() {
               ].map(([value, label]) => (
                 <div key={value} className="rounded-2xl border border-[rgba(23,49,46,0.08)] bg-[#F6FBFA] p-4">
                   <p className="text-sm font-black">{value}</p>
-                  <p className="mt-1 text-xs font-semibold text-[#667A75]">{label}</p>
+                  <p className="mt-1 text-xs font-semibold text-[#5A6B66]">{label}</p>
                 </div>
               ))}
             </div>
@@ -798,7 +800,7 @@ function FounderNote({ onGetStarted }) {
           <p className="mt-5 text-xl font-black leading-8 text-[#17312E]">
             Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
           </p>
-          <p className="mt-4 text-sm leading-6 text-[#667A75]">
+          <p className="mt-4 text-sm leading-6 text-[#5A6B66]">
             The goal is simple: keep the speed people like about spreadsheets, then add the structure that deadlines, documents, links, and interviews actually need.
           </p>
         </div>
@@ -829,6 +831,12 @@ export default function LandingPage({ onGetStarted }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F6FBFA] text-[#17312E]">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-xl focus:bg-[var(--applume-accent)] focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+      >
+        Skip to content
+      </a>
       <header className="sticky top-0 z-50 border-b border-[rgba(23,49,46,0.08)] bg-[#F6FBFA]/92 backdrop-blur-xl">
         <nav aria-label="Primary" className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <a href="/" className="flex min-h-11 items-center gap-2.5">
@@ -837,14 +845,14 @@ export default function LandingPage({ onGetStarted }) {
               <span className="text-[#17312E]">App</span><span className="text-[var(--applume-accent)]">lume</span>
             </span>
           </a>
-          <div className="hidden items-center gap-7 text-sm font-semibold text-[#667A75] sm:flex">
+          <div className="hidden items-center gap-7 text-sm font-semibold text-[#5A6B66] sm:flex">
             <a href="#why-applume" className="transition hover:text-[#17312E]">Why Applume</a>
             <a href="#features" className="transition hover:text-[#17312E]">Features</a>
             <a href="#how-it-works" className="transition hover:text-[#17312E]">How it works</a>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher compact />
-            <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#667A75] transition hover:bg-white hover:text-[#17312E] sm:block">
+            <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#5A6B66] transition hover:bg-white hover:text-[#17312E] sm:block">
               Sign in
             </button>
             <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
@@ -854,7 +862,7 @@ export default function LandingPage({ onGetStarted }) {
         </nav>
       </header>
 
-      <main>
+      <main id="main">
       <section ref={heroRef} className="relative overflow-hidden px-4 pb-16 pt-10 text-center sm:px-6 sm:pt-14 lg:pb-20 lg:pt-16">
         <div className="relative z-10 mx-auto max-w-4xl">
           <span
@@ -876,15 +884,15 @@ export default function LandingPage({ onGetStarted }) {
           </h1>
 
           <p
-            className="js-hero-reveal mx-auto mt-5 max-w-[21rem] text-base leading-7 text-[#667A75] sm:max-w-2xl sm:text-lg sm:leading-8"
+            className="js-hero-reveal mx-auto mt-5 max-w-[21rem] text-base leading-7 text-[#5A6B66] sm:max-w-2xl sm:text-lg sm:leading-8"
           >
             Applume turns job and university applications into calm, structured records with deadlines, documents, links, notes, statuses, and next steps.
           </p>
 
           <div
-            className="js-hero-reveal mx-auto mt-6 grid w-full max-w-sm gap-2 text-xs font-bold text-[#667A75] sm:max-w-2xl sm:grid-cols-3"
+            className="js-hero-reveal mx-auto mt-6 grid w-full max-w-sm gap-2 text-xs font-bold text-[#5A6B66] sm:max-w-2xl sm:grid-cols-3"
           >
-            {["University + job workflows", "Manual control", "Export anytime"].map((item) => (
+            {["University + job workflows", "Private by default", "Export anytime"].map((item) => (
               <span key={item} className="rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/90 px-3 py-2.5 text-center shadow-sm shadow-[#17312E]/[0.03]">
                 {item}
               </span>
@@ -903,7 +911,7 @@ export default function LandingPage({ onGetStarted }) {
           </div>
 
           <p
-            className="js-hero-reveal mx-auto mt-4 max-w-[17rem] text-xs leading-5 text-[#667A75] sm:max-w-xl"
+            className="js-hero-reveal mx-auto mt-4 max-w-[17rem] text-xs leading-5 text-[#5A6B66] sm:max-w-xl"
           >
             For students, graduates, and job seekers managing multiple applications at once.
           </p>

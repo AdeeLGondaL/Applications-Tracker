@@ -32,7 +32,7 @@ function LandingFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
       <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Share Applume as their structured tracker.</p>
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Share Applume as their structured tracker.</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {typeof navigator !== "undefined" && !!navigator.share && (
           <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -60,13 +60,13 @@ function mapAuthError(error) {
   const msg = (error?.message || "").toLowerCase();
   if (msg.includes("invalid login credentials") || msg.includes("invalid credentials")) return "Incorrect email or password. Please try again.";
   if (msg.includes("email not confirmed")) return "Please confirm your email first - check your inbox for the confirmation link.";
-  if (msg.includes("provider") && (msg.includes("not enabled") || msg.includes("unsupported"))) return "Google sign-in is not enabled yet. Enable the Google provider in Supabase Auth.";
+  if (msg.includes("provider") && (msg.includes("not enabled") || msg.includes("unsupported"))) return "Google sign-in isn't available right now. Please use your email instead.";
   if (msg.includes("already registered") || msg.includes("user already registered")) return "An account with this email already exists.";
   if (msg.includes("password") && (msg.includes("6") || msg.includes("characters") || msg.includes("weak") || msg.includes("short"))) return "Password must be at least 6 characters long.";
   if (msg.includes("invalid email") || msg.includes("unable to validate")) return "Enter a valid email address.";
   if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("over_email_send_rate_limit")) return "Too many attempts - please wait a minute and try again.";
   if (msg.includes("network") || msg.includes("failed to fetch") || msg.includes("load failed")) return "Connection error - check your internet and try again.";
-  if (msg.includes("signup is disabled") || msg.includes("signups not allowed")) return "New sign-ups are currently disabled. Contact the administrator.";
+  if (msg.includes("signup is disabled") || msg.includes("signups not allowed")) return "New sign-ups are temporarily closed. Please check back soon.";
   return error?.message || "Something went wrong. Please try again.";
 }
 
@@ -192,7 +192,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
           <motion.button
             type="button"
             onClick={onClose}
-            className="flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+            className="flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -205,8 +205,8 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
 
         <div className="my-auto grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
 
-          {/* Left hero */}
-          <motion.div className="space-y-8" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
+          {/* Left hero — below the form on mobile so the form comes first */}
+          <motion.div className="order-2 space-y-8 lg:order-1" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
 
             {/* Brand wordmark */}
             <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.45 }}>
@@ -216,7 +216,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
                     <span className="text-slate-950 dark:text-slate-50">App</span><span className="text-emerald-600">lume</span>
                   </h1>
-                  <p className="mt-2 text-base font-semibold text-slate-500 dark:text-slate-400">Your application sheet, rebuilt as a workspace.</p>
+                  <p className="mt-2 text-base font-semibold text-slate-600 dark:text-slate-400">Your application sheet, rebuilt as a workspace.</p>
                 </div>
               </div>
             </motion.div>
@@ -229,7 +229,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 Spreadsheet replacement
               </motion.span>
               <motion.p
-                className="max-w-md text-base leading-7 text-slate-500 dark:text-slate-400"
+                className="max-w-md text-base leading-7 text-slate-600 dark:text-slate-400"
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, duration: 0.35 }}
               >
                 Bring university and job applications out of fragile rows. Applume keeps deadlines, statuses, links, documents, notes, and next steps attached to each record.
@@ -253,16 +253,16 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.title}</p>
-                    <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{item.desc}</p>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-400">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
-          {/* Right form card */}
+          {/* Right form card — first on mobile */}
           <motion.div
-            className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
+            className="order-1 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 lg:order-2 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
             initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}
           >
             <AnimatePresence mode="wait">
@@ -273,9 +273,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     <Icon name="mail" className="h-7 w-7 text-emerald-600" />
                   </motion.div>
                   <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">Check your inbox</h2>
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">We sent a confirmation link to</p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We sent a confirmation link to</p>
                   <p className="mt-1 break-all font-bold text-slate-800 dark:text-slate-100">{authEmail}</p>
-                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">
                     Click the link in your email to activate your account, then return here to sign in.
                   </p>
                   <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left dark:border-amber-800 dark:bg-amber-900/30">
@@ -296,9 +296,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     <Icon name="mail" className="h-7 w-7 text-emerald-600" />
                   </motion.div>
                   <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">Check your inbox</h2>
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">We sent a password reset link to</p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We sent a password reset link to</p>
                   <p className="mt-1 break-all font-bold text-slate-800 dark:text-slate-100">{authEmail}</p>
-                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">
                     Click the link in your email to choose a new password.
                   </p>
                   <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left dark:border-amber-800 dark:bg-amber-900/30">
@@ -347,7 +347,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
                       <div className="mb-6">
                         <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account"}</h2>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : authMode === "reset" ? "Enter your email and we'll send you a link to choose a new password." : "Start with one record. Grow it into your full tracker."}</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : authMode === "reset" ? "Enter your email and we'll send you a link to choose a new password." : "Start with one record. Grow it into your full tracker."}</p>
                       </div>
 
                       {authMode !== "reset" && (
@@ -521,7 +521,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       </div>
                       <div>
                         <p className="text-sm font-black text-emerald-900 dark:text-emerald-300">Your data stays private</p>
-                        <p className="mt-1 text-xs leading-5 text-emerald-700/70 dark:text-emerald-400/70">Each account is isolated in Supabase. Your application records are only visible to you unless you choose to share a tracker link.</p>
+                        <p className="mt-1 text-xs leading-5 text-emerald-800/80 dark:text-emerald-400/70">Your applications are private to your account. Export or delete your data anytime — nothing is visible to anyone else unless you share a tracker link yourself.</p>
                       </div>
                     </div>
                   </div>

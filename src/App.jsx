@@ -9,7 +9,16 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 
 function RouteLoader() {
-  return <div className="min-h-screen bg-[#F6FBFA]" aria-label="Loading" />;
+  return (
+    <div className="grid min-h-screen place-items-center bg-[#F6FBFA]" role="status" aria-label="Loading Applume">
+      <div className="flex animate-pulse items-center gap-3">
+        <img src="/Logo.png" alt="" className="h-12 w-12 object-contain" style={{ mixBlendMode: "multiply" }} />
+        <span className="text-2xl font-black tracking-tight">
+          <span className="text-[#17312E]">App</span><span className="text-[#009966]">lume</span>
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function AuthedApp() {
@@ -50,7 +59,7 @@ function AuthedApp() {
     };
   }, []);
 
-  if (session === undefined) return null; // loading splash
+  if (session === undefined) return <RouteLoader />;
 
   if (session) return <Dashboard session={session} />;
   if (showAuth) {

@@ -9,16 +9,9 @@ const PATHS = [
   { id: "both", label: "Both", icon: "dashboard", copy: "One calm workspace for every application." },
 ];
 
-const CONTEXTS = [
-  { id: "deadlines", label: "Deadline control" },
-  { id: "documents", label: "Document readiness" },
-  { id: "status", label: "Status movement" },
-];
-
 export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
   const [step, setStep] = useState(0);
   const [path, setPath] = useState("both");
-  const [context, setContext] = useState("deadlines");
 
   useEffect(() => {
     trackEvent("onboarding_started", { userId });
@@ -30,12 +23,12 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
   }
 
   function finishWithStart(type) {
-    trackEvent("import_method_selected", { method: "manual", path, context });
+    trackEvent("import_method_selected", { method: "manual", path });
     onStart(type);
   }
 
   function finishWithImport() {
-    trackEvent("import_method_selected", { method: "backup", path, context });
+    trackEvent("import_method_selected", { method: "backup", path });
     onImport();
   }
 
@@ -53,10 +46,10 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--applume-accent)]">First setup</p>
               <h2 id="onboarding-title" className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
-                Build your first managed pipeline
+                Add your first application
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-[#a1a1aa]">
-                Start with one real application. You can import more later, but one complete record is enough to make Applume useful today.
+                One real application is enough to see how Applume works. You can add the rest anytime.
               </p>
             </div>
             <button
@@ -68,7 +61,7 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
             </button>
           </div>
           <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-[#2a2a2e]">
-            <div className="h-full rounded-full bg-[var(--applume-accent)] transition-all duration-300" style={{ width: `${((step + 1) / 3) * 100}%` }} />
+            <div className="h-full rounded-full bg-[var(--applume-accent)] transition-all duration-300" style={{ width: `${((step + 1) / 2) * 100}%` }} />
           </div>
         </div>
 
@@ -104,37 +97,6 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
 
           {step === 1 && (
             <div>
-              <h3 className="text-lg font-black text-slate-950 dark:text-white">What would make this feel under control?</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-[#71717a]">We will use this to emphasize the right checklist prompts.</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                {CONTEXTS.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setContext(item.id)}
-                    className={`rounded-2xl border px-4 py-3 text-sm font-bold transition ${
-                      context === item.id
-                        ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-[#2a2a2e] dark:bg-[#111113]">
-                <p className="text-sm font-bold text-slate-800 dark:text-[#d4d4d8]">
-                  Start small: one application, one deadline or next step, and one status.
-                </p>
-                <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-[#71717a]">
-                  That is enough to turn a blank workspace into a managed pipeline.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div>
               <h3 className="text-lg font-black text-slate-950 dark:text-white">How do you want to start?</h3>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <button type="button" onClick={() => finishWithStart(path === "jobs" ? "Job" : "University")} className="rounded-2xl bg-slate-950 p-4 text-left text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
@@ -166,10 +128,10 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
           >
             Back
           </button>
-          {step < 2 && (
+          {step < 1 && (
             <button
               type="button"
-              onClick={() => setStep((current) => Math.min(2, current + 1))}
+              onClick={() => setStep((current) => Math.min(1, current + 1))}
               className="rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)]"
             >
               Continue
