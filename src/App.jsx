@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import LandingPage from "@/pages/LandingPage";
+import { trackEvent } from "@/utils/analytics";
 
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const SharePage = lazy(() => import("@/pages/SharePage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 
 function RouteLoader() {
   return <div className="min-h-screen bg-[#F6FBFA]" aria-label="Loading" />;
@@ -61,7 +63,7 @@ function AuthedApp() {
       />
     );
   }
-  return <LandingPage onGetStarted={() => { setShowAuth(true); setAuthMode("signin"); }} />;
+  return <LandingPage onGetStarted={() => { trackEvent("cta_get_started_clicked"); setShowAuth(true); setAuthMode("signup"); }} />;
 }
 
 export default function App() {
@@ -72,6 +74,8 @@ export default function App() {
         <SharePage token={path.replace("/share/", "").replace(/\/$/, "")} />
       ) : path === "/privacy" || path === "/privacy/" ? (
         <PrivacyPage />
+      ) : path === "/reset" || path === "/reset/" ? (
+        <ResetPasswordPage />
       ) : (
         <AuthedApp />
       )}

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
+import { trackEvent } from "@/utils/analytics";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
@@ -95,14 +96,20 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+
+  useEffect(() => {
+    trackEvent("auth_view", { mode: initialMode || "signin" });
+  }, [initialMode]);
 
   function switchAuthMode(mode) {
     setAuthMode(mode);
-    if (onModeChange) onModeChange(mode);
+    if (onModeChange && mode !== "reset") onModeChange(mode);
     setAuthError("");
     setFieldErrors({ email: "", password: "" });
     setSignupSent(false);
+    setResetSent(false);
     setAgreedToPrivacy(false);
   }
 
@@ -110,8 +117,10 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     const errors = { email: "", password: "" };
     if (!authEmail.trim()) errors.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) errors.email = "Enter a valid email address.";
-    if (!authPassword) errors.password = "Password is required.";
-    else if (authMode === "signup" && authPassword.length < 6) errors.password = "Password must be at least 6 characters.";
+    if (authMode !== "reset") {
+      if (!authPassword) errors.password = "Password is required.";
+      else if (authMode === "signup" && authPassword.length < 6) errors.password = "Password must be at least 6 characters.";
+    }
     setFieldErrors(errors);
     return !errors.email && !errors.password;
   }
@@ -119,7 +128,21 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   function handleAuthSubmit() {
     if (authLoading || oauthLoading) return;
     if (authMode === "signin") signIn();
+    else if (authMode === "reset") sendReset();
     else signUp();
+  }
+
+  async function sendReset() {
+    if (!validateAuth()) return;
+    setAuthError("");
+    setAuthLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+      redirectTo: `${window.location.origin}/reset`,
+    });
+    setAuthLoading(false);
+    if (error) { setAuthError(mapAuthError(error)); return; }
+    trackEvent("password_reset_requested");
+    setResetSent(true);
   }
 
   async function signIn() {
@@ -139,6 +162,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
     setAuthLoading(false);
     if (error) { setAuthError(mapAuthError(error)); return; }
+    trackEvent("signup_submitted");
     setSignupSent(true);
   }
 
@@ -148,6 +172,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     setFieldErrors({ email: "", password: "" });
     setSignupSent(false);
     setOauthLoading(true);
+    trackEvent("google_signin_clicked", { mode: authMode });
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -264,11 +289,35 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     Back to sign in
                   </button>
                 </motion.div>
+              ) : resetSent ? (
+                /* Password reset email sent screen */
+                <motion.div key="reset-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.25 }} className="py-2 text-center">
+                  <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
+                    <Icon name="mail" className="h-7 w-7 text-emerald-600" />
+                  </motion.div>
+                  <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">Check your inbox</h2>
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">We sent a password reset link to</p>
+                  <p className="mt-1 break-all font-bold text-slate-800 dark:text-slate-100">{authEmail}</p>
+                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-500 dark:text-slate-400">
+                    Click the link in your email to choose a new password.
+                  </p>
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left dark:border-amber-800 dark:bg-amber-900/30">
+                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Not in your inbox? Check your spam folder. The email may take a minute to arrive.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => switchAuthMode("signin")}
+                    className="mt-6 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
+                  >
+                    Back to sign in
+                  </button>
+                </motion.div>
               ) : (
                 /* Sign in / Sign up form */
                 <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
 
                   {/* Sliding tab switcher */}
+                  {authMode !== "reset" && (
                   <div className="mb-8 flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-700">
                     {[{ id: "signin", label: "Sign in" }, { id: "signup", label: "Sign up" }].map(({ id, label }) => (
                       <button key={id} type="button" onClick={() => switchAuthMode(id)} className="relative flex-1 rounded-xl py-2.5 text-sm font-bold">
@@ -279,14 +328,29 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       </button>
                     ))}
                   </div>
+                  )}
+
+                  {authMode === "reset" && (
+                    <button
+                      type="button"
+                      onClick={() => switchAuthMode("signin")}
+                      className="mb-6 flex items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m15 18-6-6 6-6" />
+                      </svg>
+                      Back to sign in
+                    </button>
+                  )}
 
                   <AnimatePresence mode="wait">
                     <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
                       <div className="mb-6">
-                        <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : "Create your account"}</h2>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : "Start with one record. Grow it into your full tracker."}</p>
+                        <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account"}</h2>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : authMode === "reset" ? "Enter your email and we'll send you a link to choose a new password." : "Start with one record. Grow it into your full tracker."}</p>
                       </div>
 
+                      {authMode !== "reset" && (
                       <div className="mb-5 space-y-3">
                         <button
                           type="button"
@@ -321,6 +385,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
                         </div>
                       </div>
+                      )}
 
                       <div className="space-y-4">
                         {/* Email field */}
@@ -345,6 +410,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                         </div>
 
                         {/* Password field */}
+                        {authMode !== "reset" && (
                         <div className="grid gap-1.5">
                           <label className="text-sm font-bold text-slate-700 dark:text-slate-200">Password</label>
                           <div className="relative">
@@ -377,7 +443,17 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           {authMode === "signup" && authPassword.length > 0 && !fieldErrors.password && (
                             <PasswordStrength password={authPassword} />
                           )}
+                          {authMode === "signin" && (
+                            <button
+                              type="button"
+                              onClick={() => switchAuthMode("reset")}
+                              className="justify-self-end text-xs font-bold text-emerald-600 hover:underline dark:text-emerald-400"
+                            >
+                              Forgot password?
+                            </button>
+                          )}
                         </div>
+                        )}
 
                         {/* General auth error */}
                         <AnimatePresence>
@@ -430,9 +506,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                 <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                               </svg>
-                              {authMode === "signin" ? "Signing in..." : "Creating account..."}
+                              {authMode === "signin" ? "Signing in..." : authMode === "reset" ? "Sending link..." : "Creating account..."}
                             </span>
-                          ) : authMode === "signin" ? "Sign in to account" : "Create free account"}
+                          ) : authMode === "signin" ? "Sign in to account" : authMode === "reset" ? "Send reset link" : "Create free account"}
                         </Button>
                       </div>
                     </motion.div>

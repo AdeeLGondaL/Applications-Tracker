@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { DrawerSection, Field, Input, Textarea, Select } from "@/components/ui/Field";
 import { TYPES, STATUSES, PRIORITIES } from "@/utils/constants";
-import { callGeminiExtract } from "@/utils/ai";
+import { callAiExtract } from "@/utils/ai";
 import { useLanguage } from "@/i18n";
 
 export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, onSave, onClose, applications }) {
   const { label, t } = useLanguage();
   const isUni = form.type === "University";
-  const hasAiKey = !!import.meta.env.VITE_GROQ_API_KEY;
 
   const [afOpen, setAfOpen] = useState(false);
   const [afInput, setAfInput] = useState("");
@@ -44,7 +43,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
     if (!afInput.trim()) return;
     setAfLoading(true); setAfError(""); setAfDone(false);
     try {
-      const extracted = await callGeminiExtract(afInput.trim());
+      const extracted = await callAiExtract(afInput.trim());
       applyExtracted(extracted);
       try { localStorage.setItem("onboarding_ai_used", "true"); } catch { /* ignore storage failures */ }
     } catch (err) {
@@ -162,16 +161,10 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       rows={afIsUrl ? 2 : 5}
                       className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b]"
                     />
-                    {!hasAiKey && (
-                      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                        Add <code className="font-mono font-bold">VITE_GROQ_API_KEY</code> to your{" "}
-                        <code className="font-mono font-bold">.env</code> to enable AI extraction.
-                      </p>
-                    )}
                     <button
                       type="button"
                       onClick={handleExtract}
-                      disabled={afLoading || !afInput.trim() || !hasAiKey}
+                      disabled={afLoading || !afInput.trim()}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
                     >
                       {afLoading ? (

@@ -1,25 +1,40 @@
-const STORAGE_KEY = "applume_analytics_events";
-const MAX_EVENTS = 200;
+const SESSION_KEY = "applume_session_id";
+
+function getSessionId() {
+  try {
+    let id = sessionStorage.getItem(SESSION_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem(SESSION_KEY, id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+}
 
 export function trackEvent(name, properties = {}) {
   if (!name || typeof window === "undefined") return;
 
-  const event = {
-    name,
-    properties,
-    timestamp: new Date().toISOString(),
-  };
-
-  try {
-    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    const next = Array.isArray(existing) ? [...existing, event].slice(-MAX_EVENTS) : [event];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // Analytics should never interrupt the user's workflow.
+  if (import.meta.env.DEV) {
+    console.info("[Applume analytics]", name, properties);
+    return; // Pages Functions don't run under `vite dev`
   }
 
-  if (import.meta.env.DEV) {
-    console.info("[Applume analytics]", event);
+  try {
+    const payload = JSON.stringify({ name, properties, sessionId: getSessionId() });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // Analytics should never interrupt the user's workflow.
   }
 }
 

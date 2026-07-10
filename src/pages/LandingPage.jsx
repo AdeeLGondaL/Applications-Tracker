@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { trackEvent } from "@/utils/analytics";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -821,6 +822,10 @@ function FounderNote({ onGetStarted }) {
 export default function LandingPage({ onGetStarted }) {
   const heroRef = useRef(null);
   useGsapReveal(heroRef, { selector: ".js-hero-reveal", y: 16, duration: 0.7, stagger: 0.08, immediate: true });
+
+  useEffect(() => {
+    trackEvent("landing_view");
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F6FBFA] text-[#17312E]">
