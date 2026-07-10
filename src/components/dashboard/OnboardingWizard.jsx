@@ -9,7 +9,7 @@ const PATHS = [
   { id: "both", label: "Both", icon: "dashboard", copy: "One calm workspace for every application." },
 ];
 
-export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
+export function OnboardingWizard({ userId, onStart, onImport, onImportCsv, onSkip }) {
   const [step, setStep] = useState(0);
   const [path, setPath] = useState("both");
 
@@ -99,20 +99,20 @@ export function OnboardingWizard({ userId, onStart, onImport, onSkip }) {
             <div>
               <h3 className="text-lg font-black text-slate-950 dark:text-white">How do you want to start?</h3>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
-                <button type="button" onClick={() => finishWithStart(path === "jobs" ? "Job" : "University")} className="rounded-2xl bg-slate-950 p-4 text-left text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
-                  <Icon name="plus" className="h-4 w-4" />
-                  <span className="mt-4 block text-base font-black">Add first record</span>
-                  <span className="mt-1 block text-sm leading-6 opacity-75">Create one real application manually.</span>
+                <button type="button" onClick={onImportCsv} className="rounded-2xl bg-slate-950 p-4 text-left text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
+                  <Icon name="upload" className="h-4 w-4" />
+                  <span className="mt-4 block text-base font-black">Bring your spreadsheet</span>
+                  <span className="mt-1 block text-sm leading-6 opacity-75">Import your existing sheet as CSV in one step.</span>
+                </button>
+                <button type="button" onClick={() => finishWithStart(path === "jobs" ? "Job" : "University")} className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-[#242428]">
+                  <Icon name="plus" className="h-4 w-4 text-[var(--applume-accent)]" />
+                  <span className="mt-4 block text-base font-black text-slate-950 dark:text-white">Add one manually</span>
+                  <span className="mt-1 block text-sm leading-6 text-slate-500 dark:text-[#71717a]">Start fresh with one real application.</span>
                 </button>
                 <button type="button" onClick={finishWithImport} className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-[#242428]">
-                  <Icon name="upload" className="h-4 w-4 text-[var(--applume-accent)]" />
-                  <span className="mt-4 block text-base font-black text-slate-950 dark:text-white">Import backup</span>
+                  <Icon name="download" className="h-4 w-4 text-[var(--info)]" />
+                  <span className="mt-4 block text-base font-black text-slate-950 dark:text-white">Restore a backup</span>
                   <span className="mt-1 block text-sm leading-6 text-slate-500 dark:text-[#71717a]">Bring existing Applume JSON data back in.</span>
-                </button>
-                <button type="button" onClick={() => finishWithStart("Job")} className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-[#242428]">
-                  <Icon name="job" className="h-4 w-4 text-[var(--info)]" />
-                  <span className="mt-4 block text-base font-black text-slate-950 dark:text-white">Start with a job</span>
-                  <span className="mt-1 block text-sm leading-6 text-slate-500 dark:text-[#71717a]">Use recruiter, interview, and follow-up context.</span>
                 </button>
               </div>
             </div>

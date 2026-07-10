@@ -47,10 +47,14 @@ function LandingFooter() {
           <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 ${hover}`}>{label}</a>
         ))}
       </div>
-      <p className="mt-8 text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-8 text-xs text-slate-500 dark:text-slate-500">
         &copy; {new Date().getFullYear()} Applume - Structured application tracking
         {" - "}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
+        {" - "}
+        <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">Terms</a>
+        {" - "}
+        <a href="mailto:hello@applume.app" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">hello@applume.app</a>
       </p>
     </footer>
   );
@@ -87,7 +91,10 @@ function GoogleMark() {
 }
 
 export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
-  const [authMode, setAuthMode] = useState(initialMode || "signin");
+  // The URL (/signin | /signup) is the source of truth for the mode;
+  // the reset flow is a local sub-state layered on top of /signin.
+  const [isReset, setIsReset] = useState(false);
+  const authMode = isReset ? "reset" : initialMode === "signup" ? "signup" : "signin";
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
@@ -104,7 +111,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   }, [initialMode]);
 
   function switchAuthMode(mode) {
-    setAuthMode(mode);
+    setIsReset(mode === "reset");
     if (onModeChange && mode !== "reset") onModeChange(mode);
     setAuthError("");
     setFieldErrors({ email: "", password: "" });
@@ -343,8 +350,11 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                     </button>
                   )}
 
-                  <AnimatePresence mode="wait">
-                    <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
+                  {/* Keyed remount (no AnimatePresence): exit transitions on this
+                      block fail to swap when the re-render comes from a router
+                      store update (framer-motion 12 + React 19), leaving stale
+                      form content on a conversion-critical screen. */}
+                  <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
                       <div className="mb-6">
                         <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account"}</h2>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : authMode === "reset" ? "Enter your email and we'll send you a link to choose a new password." : "Start with one record. Grow it into your full tracker."}</p>
@@ -512,7 +522,6 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                         </Button>
                       </div>
                     </motion.div>
-                  </AnimatePresence>
 
                   <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-900/20">
                     <div className="flex items-start gap-3">

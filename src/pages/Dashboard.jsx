@@ -23,6 +23,7 @@ import { ApplicationTable } from "@/components/applications/ApplicationTable";
 import { ApplicationGrid } from "@/components/applications/ApplicationCard";
 import { KanbanBoard } from "@/components/applications/KanbanBoard";
 import { ApplicationDrawer } from "@/components/applications/ApplicationDrawer";
+import { ImportCsvModal } from "@/components/applications/ImportCsvModal";
 import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
@@ -287,6 +288,7 @@ export default function Dashboard({ session }) {
   const [toastKind, setToastKind] = useState("success");
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
     try {
@@ -744,6 +746,25 @@ export default function Dashboard({ session }) {
     URL.revokeObjectURL(url);
   }
 
+  async function importCsvRows(apps) {
+    if (!session?.user) { notify("Please sign in to import data.", "error"); return false; }
+    const today = todayIso();
+    const rows = apps.map((app) => normalize({
+      ...app,
+      id: makeId(),
+      user_id: session.user.id,
+      lastUpdated: today,
+    }));
+    const { error } = await supabase.from("applications").insert(rows);
+    if (error) { notify(error.message, "error"); return false; }
+    setApplications((old) => [...rows, ...old]);
+    trackEvent("import_method_selected", { method: "csv", count: rows.length });
+    if (rows.length > 0) trackOnce("first_record_created", { type: rows[0].type, source: "csv" });
+    completeOnboardingWizard();
+    notify(`${rows.length} application${rows.length === 1 ? "" : "s"} imported.`);
+    return true;
+  }
+
   function importJson(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -969,6 +990,9 @@ export default function Dashboard({ session }) {
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Download backup")}
                         </button>
                         <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
+                        <button type="button" onClick={() => { setCsvImportOpen(true); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import CSV
+                        </button>
                         <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
                           <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Import backup")}
                         </button>
@@ -1099,6 +1123,10 @@ export default function Dashboard({ session }) {
                           completeOnboardingWizard();
                           openImportPicker();
                         }}
+                        onImportCsv={() => {
+                          trackEvent("import_method_selected", { method: "csv_opened", source: "onboarding_wizard" });
+                          setCsvImportOpen(true);
+                        }}
                         onSkip={skipOnboardingWizard}
                       />
                     ) : applications.length === 0 ? (
@@ -1208,6 +1236,12 @@ export default function Dashboard({ session }) {
       <AnimatePresence>
         {feedbackOpen && (
           <FeedbackModal session={session} onClose={() => setFeedbackOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {csvImportOpen && (
+          <ImportCsvModal onClose={() => setCsvImportOpen(false)} onImport={importCsvRows} />
         )}
       </AnimatePresence>
 

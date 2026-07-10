@@ -256,6 +256,10 @@ function useGsapReveal(ref, {
     const mm = gsap.matchMedia(root);
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // On prerendered pages the hero is already visible as static HTML;
+      // re-hiding it to replay the entrance would flash the content away.
+      if (immediate && window.__APPLUME_PRERENDERED) return;
+
       const targets = selector ? gsap.utils.toArray(selector, root) : [root];
       if (!targets.length) return;
 
@@ -351,6 +355,10 @@ function LandingFooter() {
         &copy; {new Date().getFullYear()} Applume - Structured application tracking
         {" - "}
         <a href="/privacy" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Privacy Policy</a>
+        {" - "}
+        <a href="/terms" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Terms</a>
+        {" - "}
+        <a href="mailto:hello@applume.app" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">hello@applume.app</a>
       </p>
     </footer>
   );
@@ -788,6 +796,56 @@ function HowItWorksSection() {
   );
 }
 
+const FAQ_ITEMS = [
+  {
+    q: "Is Applume really free?",
+    a: "Yes. The tracker is free to use - no credit card, no trial countdown, no locked core features. If paid extras ever arrive, your tracker and your data stay free.",
+  },
+  {
+    q: "Who can see my applications?",
+    a: "Only you. Your records are private to your account. The single exception is a share link you create yourself - and you can turn it off at any time.",
+  },
+  {
+    q: "Can I get my data out again?",
+    a: "Anytime. Export everything as CSV or JSON with one click, and deleting your account permanently removes your data.",
+  },
+  {
+    q: "I already track things in a spreadsheet. Do I have to start over?",
+    a: "No. Import your existing sheet as a CSV and Applume matches your columns automatically - names, deadlines, statuses, links, and notes come along.",
+  },
+];
+
+function FaqSection() {
+  const sectionRef = useRef(null);
+  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
+
+  return (
+    <section ref={sectionRef} aria-labelledby="faq-title" className="px-4 py-20 sm:px-6 lg:py-24">
+      <div className="mx-auto max-w-3xl">
+        <div className="js-gsap-card text-center">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Fair questions</p>
+          <h2 id="faq-title" className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#17312E] sm:text-4xl">
+            Before you trust us with your applications.
+          </h2>
+        </div>
+        <div className="mt-10 space-y-3">
+          {FAQ_ITEMS.map((item) => (
+            <details key={item.q} className="js-gsap-card group rounded-2xl border border-[rgba(23,49,46,0.08)] bg-white px-6 py-5 shadow-sm shadow-[#17312E]/[0.03]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-black text-[#17312E] [&::-webkit-details-marker]:hidden">
+                {item.q}
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#F6FBFA] text-[#5A6B66] transition group-open:rotate-45">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                </span>
+              </summary>
+              <p className="mt-3 text-sm leading-7 text-[#5A6B66]">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FounderNote({ onGetStarted }) {
   const sectionRef = useRef(null);
   useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
@@ -801,8 +859,15 @@ function FounderNote({ onGetStarted }) {
             Applume exists because application tracking should feel like control, not another spreadsheet you slowly abandon.
           </p>
           <p className="mt-4 text-sm leading-6 text-[#5A6B66]">
-            The goal is simple: keep the speed people like about spreadsheets, then add the structure that deadlines, documents, links, and interviews actually need.
+            I built Applume to track my own university and job applications after my spreadsheet fell apart mid-season. The goal is simple: keep the speed of a spreadsheet, add the structure that deadlines, documents, links, and interviews actually need.
           </p>
+          <div className="mt-6 flex items-center gap-3 border-t border-[rgba(23,49,46,0.08)] pt-5">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-[var(--applume-accent-soft)] text-sm font-black text-[var(--applume-accent)]">AA</div>
+            <div>
+              <p className="text-sm font-black text-[#17312E]">Adeel Ahmed</p>
+              <p className="text-xs text-[#5A6B66]">Builder of Applume - <a href="mailto:hello@applume.app" className="font-semibold text-[var(--applume-accent)] hover:underline">hello@applume.app</a></p>
+            </div>
+          </div>
         </div>
         <div className="js-gsap-card rounded-2xl border border-[#17312E]/10 bg-[#17312E] p-8 text-white shadow-lg shadow-[#17312E]/[0.08]">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent-muted)]">Bring order to the list</p>
@@ -925,6 +990,7 @@ export default function LandingPage({ onGetStarted }) {
       <FeatureSection />
       <AudienceSection />
       <HowItWorksSection />
+      <FaqSection />
       <FounderNote onGetStarted={onGetStarted} />
       </main>
       <LandingFooter />

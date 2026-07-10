@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import LandingPage from "@/pages/LandingPage";
 import { trackEvent } from "@/utils/analytics";
 
@@ -7,6 +8,7 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const SharePage = lazy(() => import("@/pages/SharePage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
 
 function RouteLoader() {
   return (
@@ -21,10 +23,24 @@ function RouteLoader() {
   );
 }
 
-function AuthedApp() {
-  const [session, setSession] = useState(undefined); // undefined = loading
-  const [showAuth, setShowAuth] = useState(false);
-  const [authMode, setAuthMode] = useState("signin");
+// Synchronous first guess so anonymous visitors get the landing page
+// immediately (and the server renders it during prerendering) instead of
+// waiting up to 5 s for the auth check. A stored Supabase token means
+// "probably signed in" -> show the splash while the session is verified.
+function initialSessionState() {
+  if (typeof window === "undefined") return null; // prerender as signed-out
+  try {
+    const hasToken = Object.keys(window.localStorage).some(
+      (key) => key.startsWith("sb-") && key.includes("-auth-token")
+    );
+    return hasToken ? undefined : null;
+  } catch {
+    return undefined;
+  }
+}
+
+function useSession() {
+  const [session, setSession] = useState(initialSessionState); // undefined = loading
 
   useEffect(() => {
     let subscription;
@@ -59,35 +75,59 @@ function AuthedApp() {
     };
   }, []);
 
-  if (session === undefined) return <RouteLoader />;
+  return session;
+}
 
-  if (session) return <Dashboard session={session} />;
-  if (showAuth) {
-    return (
-      <AuthPage
-        mode={authMode}
-        onModeChange={setAuthMode}
-        onClose={() => setShowAuth(false)}
-        onSuccess={() => setShowAuth(false)}
-      />
-    );
-  }
-  return <LandingPage onGetStarted={() => { trackEvent("cta_get_started_clicked"); setShowAuth(true); setAuthMode("signup"); }} />;
+function AuthRoute({ mode, session }) {
+  const [, navigate] = useLocation();
+  if (session === undefined) return <RouteLoader />;
+  if (session) return <Redirect to="/app" replace />;
+  return (
+    <AuthPage
+      mode={mode}
+      onModeChange={(next) => navigate(next === "signup" ? "/signup" : "/signin", { replace: true })}
+      onClose={() => navigate("/")}
+    />
+  );
 }
 
 export default function App() {
-  const path = window.location.pathname;
+  const session = useSession();
+  const [location, navigate] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
   return (
     <Suspense fallback={<RouteLoader />}>
-      {path.startsWith("/share/") ? (
-        <SharePage token={path.replace("/share/", "").replace(/\/$/, "")} />
-      ) : path === "/privacy" || path === "/privacy/" ? (
-        <PrivacyPage />
-      ) : path === "/reset" || path === "/reset/" ? (
-        <ResetPasswordPage />
-      ) : (
-        <AuthedApp />
-      )}
+      <Switch>
+        <Route path="/share/:token">{(params) => <SharePage token={params.token} />}</Route>
+        <Route path="/privacy"><PrivacyPage /></Route>
+        <Route path="/terms"><TermsPage /></Route>
+        <Route path="/reset"><ResetPasswordPage /></Route>
+        <Route path="/signin"><AuthRoute mode="signin" session={session} /></Route>
+        <Route path="/signup"><AuthRoute mode="signup" session={session} /></Route>
+        <Route path="/app">
+          {session === undefined ? (
+            <RouteLoader />
+          ) : session ? (
+            <Dashboard session={session} />
+          ) : (
+            <Redirect to="/signin" replace />
+          )}
+        </Route>
+        <Route path="/">
+          {session === undefined ? (
+            <RouteLoader />
+          ) : session ? (
+            <Redirect to="/app" replace />
+          ) : (
+            <LandingPage onGetStarted={() => { trackEvent("cta_get_started_clicked"); navigate("/signup"); }} />
+          )}
+        </Route>
+        <Route><Redirect to="/" replace /></Route>
+      </Switch>
     </Suspense>
   );
 }
