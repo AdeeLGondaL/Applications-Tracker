@@ -6,7 +6,32 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://applume.app/signup</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://applume.app/university-application-tracker</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://applume.app/huntr-alternative</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://applume.app/teal-alternative</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://applume.app/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://applume.app/terms</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

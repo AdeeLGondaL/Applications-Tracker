@@ -18,6 +18,24 @@ const pages = [
   { route: "/", out: "dist/index.html", title: null },
   { route: "/privacy", out: "dist/privacy/index.html", title: "Privacy Policy - Applume" },
   { route: "/terms", out: "dist/terms/index.html", title: "Terms of Service - Applume" },
+  {
+    route: "/huntr-alternative",
+    out: "dist/huntr-alternative/index.html",
+    title: "Free Huntr Alternative for Students - Applume",
+    description: "Applume is a free Huntr alternative that tracks university admissions and job applications together - unlimited records, CSV import, no paid plan required.",
+  },
+  {
+    route: "/teal-alternative",
+    out: "dist/teal-alternative/index.html",
+    title: "Free Teal Alternative with University Tracking - Applume",
+    description: "Applume is a free Teal alternative for students: track university and job applications in one workspace with deadlines, documents, and CSV import.",
+  },
+  {
+    route: "/university-application-tracker",
+    out: "dist/university-application-tracker/index.html",
+    title: "University Application Tracker - Free Spreadsheet Replacement | Applume",
+    description: "Track university applications with deadlines, documents, portals, and statuses in one free workspace. Import your existing spreadsheet as CSV.",
+  },
 ];
 
 for (const page of pages) {
@@ -27,7 +45,22 @@ for (const page of pages) {
   }
   let out = template.replace(ROOT_DIV, `<div id="root">${html}</div>`);
   if (page.title) {
-    out = out.replace(/<title>[\s\S]*?<\/title>/, `<title>${page.title}</title>`);
+    out = out
+      .replace(/<title>[\s\S]*?<\/title>/, `<title>${page.title}</title>`)
+      .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${page.title}$2`)
+      .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${page.title}$2`);
+  }
+  if (page.description) {
+    out = out
+      .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${page.description}$2`)
+      .replace(/(<meta\s+property="og:description"\s+content=")[^"]*(")/, `$1${page.description}$2`)
+      .replace(/(<meta\s+name="twitter:description"\s+content=")[^"]*(")/, `$1${page.description}$2`);
+  }
+  if (page.route !== "/") {
+    const url = `https://applume.app${page.route}`;
+    out = out
+      .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`)
+      .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`);
   }
   const target = resolve(root, page.out);
   mkdirSync(dirname(target), { recursive: true });

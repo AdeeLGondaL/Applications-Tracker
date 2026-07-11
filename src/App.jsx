@@ -9,6 +9,7 @@ const SharePage = lazy(() => import("@/pages/SharePage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
+const SeoPage = lazy(() => import("@/pages/SeoPage"));
 
 function RouteLoader() {
   return (
@@ -105,6 +106,9 @@ export default function App() {
         <Route path="/share/:token">{(params) => <SharePage token={params.token} />}</Route>
         <Route path="/privacy"><PrivacyPage /></Route>
         <Route path="/terms"><TermsPage /></Route>
+        <Route path="/huntr-alternative"><SeoPage slug="huntr-alternative" /></Route>
+        <Route path="/teal-alternative"><SeoPage slug="teal-alternative" /></Route>
+        <Route path="/university-application-tracker"><SeoPage slug="university-application-tracker" /></Route>
         <Route path="/reset"><ResetPasswordPage /></Route>
         <Route path="/signin"><AuthRoute mode="signin" session={session} /></Route>
         <Route path="/signup"><AuthRoute mode="signup" session={session} /></Route>

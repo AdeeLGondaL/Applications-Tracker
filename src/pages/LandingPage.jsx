@@ -357,6 +357,14 @@ function LandingFooter() {
         ))}
       </div>
       <p className="mt-8 text-xs text-[#5A6B66]">
+        Compare:{" "}
+        <a href="/university-application-tracker" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">University tracker</a>
+        {" - "}
+        <a href="/huntr-alternative" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">Huntr alternative</a>
+        {" - "}
+        <a href="/teal-alternative" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">Teal alternative</a>
+      </p>
+      <p className="mt-3 text-xs text-[#5A6B66]">
         &copy; {new Date().getFullYear()} Applume - Structured application tracking
         {" - "}
         <a href="/privacy" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Privacy Policy</a>
