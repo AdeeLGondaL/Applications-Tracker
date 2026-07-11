@@ -57,7 +57,9 @@ for (const page of pages) {
       .replace(/(<meta\s+name="twitter:description"\s+content=")[^"]*(")/, `$1${page.description}$2`);
   }
   if (page.route !== "/") {
-    const url = `https://applume.app${page.route}`;
+    // Trailing slash: Cloudflare Pages 308-redirects /page -> /page/ for
+    // directory-index assets, so the canonical must match the served URL.
+    const url = `https://applume.app${page.route}/`;
     out = out
       .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`)
       .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`);

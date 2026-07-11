@@ -104,13 +104,14 @@ function FeedbackModal({ session, onClose }) {
               </div>
 
               {/* Type pill switcher */}
-              <div className="mb-5 flex rounded-2xl bg-slate-100 p-1 dark:bg-[#2a2a2e]">
+              <div className="relative mb-5 flex rounded-2xl bg-slate-100 p-1 dark:bg-[#2a2a2e]">
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-[#1c1c1f] ${type === "feature" ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
+                />
                 {[{ id: "bug", label: "Bug report" }, { id: "feature", label: "Feature request" }].map(({ id, label }) => (
-                  <button key={id} type="button" onClick={() => setType(id)} className="relative flex-1 rounded-xl py-2 text-sm font-bold">
-                    {type === id && (
-                      <motion.span layoutId="feedback-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-[#1c1c1f]" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
-                    )}
-                    <span className={`relative z-10 transition-colors ${type === id ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"}`}>{label}</span>
+                  <button key={id} type="button" onClick={() => setType(id)} className="relative z-10 flex-1 rounded-xl py-2 text-sm font-bold">
+                    <span className={`transition-colors ${type === id ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"}`}>{label}</span>
                   </button>
                 ))}
               </div>
@@ -948,12 +949,10 @@ export default function Dashboard({ session }) {
           {/* Header */}
           <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/90">
             <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
-              <AnimatePresence mode="wait">
-                <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-slate-500 dark:text-[#a1a1aa]">{headerSummary}</p>
-                  <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
-                </motion.div>
-              </AnimatePresence>
+              <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-500 dark:text-[#a1a1aa]">{headerSummary}</p>
+                <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
+              </motion.div>
 
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                 <Button
@@ -1100,8 +1099,7 @@ export default function Dashboard({ session }) {
 
           {/* Content */}
           <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
-            <AnimatePresence mode="wait">
-              <motion.div key={sidebarView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+            <motion.div key={sidebarView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
 
                 {sidebarView === "dashboard" && (
                   <>
@@ -1196,7 +1194,6 @@ export default function Dashboard({ session }) {
                 )}
 
               </motion.div>
-            </AnimatePresence>
           </div>
         </main>
       </div>

@@ -92,23 +92,20 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         <div className="flex-1 space-y-7 overflow-y-auto p-6">
 
           {/* Type pill switcher */}
-          <div className="flex rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
+          <div className="relative flex rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
+            <span
+              aria-hidden="true"
+              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-[#2a2a2e] ${form.type === TYPES[1] ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
+            />
             {TYPES.map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => onChange("type", t)}
-                className="relative flex-1 rounded-xl py-2.5 text-sm font-bold"
+                className="relative z-10 flex-1 rounded-xl py-2.5 text-sm font-bold"
               >
-                {form.type === t && (
-                  <motion.span
-                    layoutId="drawer-type-pill"
-                    className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-[#2a2a2e]"
-                    transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                  />
-                )}
                 <span
-                  className={`relative z-10 flex items-center justify-center gap-2 transition-colors ${
+                  className={`flex items-center justify-center gap-2 transition-colors ${
                     form.type === t ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"
                   }`}
                 >

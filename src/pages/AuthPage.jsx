@@ -195,7 +195,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <motion.button
@@ -274,10 +274,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
             className="order-1 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 lg:order-2 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
             initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}
           >
-            <AnimatePresence mode="wait">
-              {signupSent ? (
+            {signupSent ? (
                 /* Email confirmation success screen */
-                <motion.div key="signup-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.25 }} className="py-2 text-center">
+                <motion.div key="signup-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="py-2 text-center">
                   <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
                     <Icon name="mail" className="h-7 w-7 text-emerald-600" />
                   </motion.div>
@@ -300,7 +299,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 </motion.div>
               ) : resetSent ? (
                 /* Password reset email sent screen */
-                <motion.div key="reset-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.25 }} className="py-2 text-center">
+                <motion.div key="reset-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="py-2 text-center">
                   <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
                     <Icon name="mail" className="h-7 w-7 text-emerald-600" />
                   </motion.div>
@@ -323,7 +322,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 </motion.div>
               ) : (
                 /* Sign in / Sign up form */
-                <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+                <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
 
                   {/* Sliding tab switcher — CSS transform pill; framer layoutId
                       breaks when the mode change arrives via a route update */}
@@ -540,7 +539,6 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
           </motion.div>
 
         </div>
