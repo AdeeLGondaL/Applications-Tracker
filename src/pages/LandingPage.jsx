@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { trackEvent } from "@/utils/analytics";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const demoSets = {
   university: {
@@ -238,10 +234,11 @@ const transformationCards = [
   },
 ];
 
-function useGsapReveal(ref, {
+// Entrance reveals via IntersectionObserver + the Web Animations API — no
+// animation library needed. Animates opacity/transform only, so content is
+// never removed from the accessibility tree.
+function useScrollReveal(ref, {
   selector = null,
-  trigger = null,
-  start = "top 82%",
   y = 16,
   scale = 1,
   duration = 0.55,
@@ -252,46 +249,54 @@ function useGsapReveal(ref, {
   useEffect(() => {
     const root = ref.current;
     if (!root) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    // Prerendered hero is already visible as static HTML; re-hiding it to
+    // replay the entrance would flash the content away.
+    if (immediate && window.__APPLUME_PRERENDERED) return undefined;
 
-    const mm = gsap.matchMedia(root);
+    const targets = selector ? Array.from(root.querySelectorAll(selector)) : [root];
+    if (!targets.length) return undefined;
 
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      // On prerendered pages the hero is already visible as static HTML;
-      // re-hiding it to replay the entrance would flash the content away.
-      if (immediate && window.__APPLUME_PRERENDERED) return;
+    const animations = [];
+    const play = () => {
+      targets.forEach((el, i) => {
+        el.style.opacity = "";
+        const from = `translateY(${y}px)${scale !== 1 ? ` scale(${scale})` : ""}`;
+        animations.push(el.animate(
+          [
+            { opacity: 0, transform: from },
+            { opacity: 1, transform: "translateY(0)" },
+          ],
+          {
+            duration: duration * 1000,
+            delay: (delay + i * stagger) * 1000,
+            easing: "cubic-bezier(0.33, 1, 0.68, 1)",
+            fill: "backwards",
+          }
+        ));
+      });
+    };
 
-      const targets = selector ? gsap.utils.toArray(selector, root) : [root];
-      if (!targets.length) return;
+    if (immediate || !("IntersectionObserver" in window)) {
+      play();
+      return () => animations.forEach((animation) => animation.cancel());
+    }
 
-      // opacity (not autoAlpha): visibility:hidden would remove below-fold
-      // content from the accessibility tree until scrolled into view
-      const fromVars = { opacity: 0, y };
-      if (scale !== 1) fromVars.scale = scale;
-
-      const tweenVars = {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration,
-        delay,
-        stagger,
-        ease: "power2.out",
-        clearProps: "transform,opacity",
-      };
-
-      if (!immediate) {
-        tweenVars.scrollTrigger = {
-          trigger: trigger ? root.querySelector(trigger) || root : root,
-          start,
-          once: true,
-        };
+    targets.forEach((el) => { el.style.opacity = "0"; });
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        play();
       }
+    }, { rootMargin: "0px 0px -15% 0px" });
+    observer.observe(root);
 
-      gsap.fromTo(targets, fromVars, tweenVars);
-    });
-
-    return () => mm.revert();
-  }, [delay, duration, immediate, ref, scale, selector, stagger, start, trigger, y]);
+    return () => {
+      observer.disconnect();
+      targets.forEach((el) => { el.style.opacity = ""; });
+      animations.forEach((animation) => animation.cancel());
+    };
+  }, [delay, duration, immediate, ref, scale, selector, stagger, y]);
 }
 
 function ToneIcon({ icon, tone = "emerald" }) {
@@ -370,7 +375,7 @@ function ProductDemo() {
   const [selectedId, setSelectedId] = useState(demoSets.university.records[0].id);
   const active = demoSets[mode];
   const selected = active.records.find((record) => record.id === selectedId) || active.records[0];
-  useGsapReveal(demoRef, { selector: ".js-hero-demo", y: 14, scale: 0.985, duration: 0.9, stagger: 0, start: "top 88%" });
+  useScrollReveal(demoRef, { selector: ".js-hero-demo", y: 14, scale: 0.985, duration: 0.9, stagger: 0 });
 
   function switchMode(nextMode) {
     setMode(nextMode);
@@ -514,8 +519,8 @@ function ProductDemo() {
 
 function TransformationStrip() {
   const ref = useRef(null);
-  useGsapReveal(ref, { selector: ".js-transform-heading", duration: 0.7, stagger: 0 });
-  useGsapReveal(ref, { selector: ".js-transform-card-reveal", duration: 0.55, stagger: 0.06, start: "top 78%" });
+  useScrollReveal(ref, { selector: ".js-transform-heading", duration: 0.7, stagger: 0 });
+  useScrollReveal(ref, { selector: ".js-transform-card-reveal", duration: 0.55, stagger: 0.06 });
 
   return (
     <section ref={ref} className="border-y border-[rgba(23,49,46,0.08)] bg-white px-4 py-24 sm:px-6 lg:py-28">
@@ -603,8 +608,8 @@ function TransformationStrip() {
 
 function ProblemSection() {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06 });
 
   return (
     <section ref={sectionRef} id="why-applume" className="scroll-mt-24 bg-white px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
@@ -636,8 +641,8 @@ function ProblemSection() {
 
 function FeatureSection() {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06 });
 
   return (
     <section ref={sectionRef} id="features" className="scroll-mt-24 bg-[#F6FBFA] px-4 py-20 sm:px-6 lg:py-24">
@@ -675,8 +680,8 @@ function FeatureSection() {
 
 function AudienceSection() {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06 });
 
   return (
     <section ref={sectionRef} className="bg-white px-4 py-20 sm:px-6 lg:py-24">
@@ -743,8 +748,8 @@ function ApplicationPipeline() {
 
 function HowItWorksSection() {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06, start: "top 78%" });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-heading", duration: 0.7 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", duration: 0.55, stagger: 0.06 });
 
   return (
     <section ref={sectionRef} id="how-it-works" className="scroll-mt-24 bg-[#F6FBFA] px-4 py-20 text-[#17312E] sm:px-6 lg:py-24">
@@ -817,10 +822,10 @@ const FAQ_ITEMS = [
 
 function FaqSection() {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
 
   return (
-    <section ref={sectionRef} aria-labelledby="faq-title" className="px-4 py-20 sm:px-6 lg:py-24">
+    <section ref={sectionRef} id="faq" aria-labelledby="faq-title" className="scroll-mt-24 px-4 py-20 sm:px-6 lg:py-24">
       <div className="mx-auto max-w-3xl">
         <div className="js-gsap-card text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--applume-accent)]">Fair questions</p>
@@ -848,7 +853,7 @@ function FaqSection() {
 
 function FounderNote({ onGetStarted }) {
   const sectionRef = useRef(null);
-  useGsapReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
+  useScrollReveal(sectionRef, { selector: ".js-gsap-card", y: 18, duration: 0.7, stagger: 0.06 });
 
   return (
     <section ref={sectionRef} aria-labelledby="final-cta-title" className="bg-white px-4 py-20 sm:px-6 lg:py-24">
@@ -888,7 +893,7 @@ function FounderNote({ onGetStarted }) {
 
 export default function LandingPage({ onGetStarted }) {
   const heroRef = useRef(null);
-  useGsapReveal(heroRef, { selector: ".js-hero-reveal", y: 16, duration: 0.7, stagger: 0.08, immediate: true });
+  useScrollReveal(heroRef, { selector: ".js-hero-reveal", y: 16, duration: 0.7, stagger: 0.08, immediate: true });
 
   useEffect(() => {
     trackEvent("landing_view");
@@ -914,6 +919,7 @@ export default function LandingPage({ onGetStarted }) {
             <a href="#why-applume" className="transition hover:text-[#17312E]">Why Applume</a>
             <a href="#features" className="transition hover:text-[#17312E]">Features</a>
             <a href="#how-it-works" className="transition hover:text-[#17312E]">How it works</a>
+            <a href="#faq" className="transition hover:text-[#17312E]">FAQ</a>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher compact />
