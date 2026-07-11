@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLanguage } from "@/i18n";
 
 function LandingFooter() {
   const [copied, setCopied] = useState(false);
@@ -91,6 +92,7 @@ function GoogleMark() {
 }
 
 export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
+  const { t } = useLanguage();
   // The URL (/signin | /signup) is the source of truth for the mode;
   // the reset flow is a local sub-state layered on top of /signin.
   const [isReset, setIsReset] = useState(false);
@@ -205,7 +207,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 18-6-6 6-6" />
             </svg>
-            Back to home
+            {t("phrases.Back to home")}
           </motion.button>
           <LanguageSwitcher compact />
         </div>
@@ -323,15 +325,17 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 /* Sign in / Sign up form */
                 <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
 
-                  {/* Sliding tab switcher */}
+                  {/* Sliding tab switcher — CSS transform pill; framer layoutId
+                      breaks when the mode change arrives via a route update */}
                   {authMode !== "reset" && (
-                  <div className="mb-8 flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-700">
-                    {[{ id: "signin", label: "Sign in" }, { id: "signup", label: "Sign up" }].map(({ id, label }) => (
-                      <button key={id} type="button" onClick={() => switchAuthMode(id)} className="relative flex-1 rounded-xl py-2.5 text-sm font-bold">
-                        {authMode === id && (
-                          <motion.span layoutId="auth-tab-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm dark:bg-slate-600" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
-                        )}
-                        <span className={`relative z-10 transition-colors ${authMode === id ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>{label}</span>
+                  <div className="relative mb-8 flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-700">
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-slate-600 ${authMode === "signup" ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
+                    />
+                    {[{ id: "signin", label: t("phrases.Sign in") }, { id: "signup", label: t("phrases.Create account") }].map(({ id, label }) => (
+                      <button key={id} type="button" onClick={() => switchAuthMode(id)} className="relative z-10 flex-1 rounded-xl py-2.5 text-sm font-bold">
+                        <span className={`transition-colors ${authMode === id ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>{label}</span>
                       </button>
                     ))}
                   </div>
@@ -378,7 +382,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           ) : (
                             <>
                               <GoogleMark />
-                              Continue with Google
+                              {t("phrases.Continue with Google")}
                             </>
                           )}
                         </button>
@@ -400,7 +404,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       <div className="space-y-4">
                         {/* Email field */}
                         <div className="grid gap-1.5">
-                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">Email address</label>
+                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("phrases.Email")}</label>
                           <input
                             value={authEmail}
                             onChange={(e) => { setAuthEmail(e.target.value); setFieldErrors((f) => ({ ...f, email: "" })); setAuthError(""); }}
@@ -422,7 +426,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                         {/* Password field */}
                         {authMode !== "reset" && (
                         <div className="grid gap-1.5">
-                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">Password</label>
+                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("phrases.Password")}</label>
                           <div className="relative">
                             <input
                               value={authPassword}
@@ -518,7 +522,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                               </svg>
                               {authMode === "signin" ? "Signing in..." : authMode === "reset" ? "Sending link..." : "Creating account..."}
                             </span>
-                          ) : authMode === "signin" ? "Sign in to account" : authMode === "reset" ? "Send reset link" : "Create free account"}
+                          ) : authMode === "signin" ? t("phrases.Sign in") : authMode === "reset" ? "Send reset link" : t("phrases.Create account")}
                         </Button>
                       </div>
                     </motion.div>

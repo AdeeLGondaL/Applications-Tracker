@@ -127,7 +127,10 @@ export default function App() {
           ) : session ? (
             <Redirect to="/app" replace />
           ) : (
-            <LandingPage onGetStarted={() => { trackEvent("cta_get_started_clicked"); navigate("/signup"); }} />
+            <LandingPage
+              onGetStarted={() => { trackEvent("cta_get_started_clicked"); navigate("/signup"); }}
+              onSignIn={() => { trackEvent("cta_signin_clicked"); navigate("/signin"); }}
+            />
           )}
         </Route>
         <Route><Redirect to="/" replace /></Route>

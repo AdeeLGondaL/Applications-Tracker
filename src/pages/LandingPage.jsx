@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLanguage } from "@/i18n";
 import { trackEvent } from "@/utils/analytics";
 
 const demoSets = {
@@ -899,7 +900,8 @@ function FounderNote({ onGetStarted }) {
   );
 }
 
-export default function LandingPage({ onGetStarted }) {
+export default function LandingPage({ onGetStarted, onSignIn }) {
+  const { t } = useLanguage();
   const heroRef = useRef(null);
   useScrollReveal(heroRef, { selector: ".js-hero-reveal", y: 16, duration: 0.7, stagger: 0.08, immediate: true });
 
@@ -924,18 +926,18 @@ export default function LandingPage({ onGetStarted }) {
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm font-semibold text-[#5A6B66] sm:flex">
-            <a href="#why-applume" className="transition hover:text-[#17312E]">Why Applume</a>
-            <a href="#features" className="transition hover:text-[#17312E]">Features</a>
-            <a href="#how-it-works" className="transition hover:text-[#17312E]">How it works</a>
+            <a href="#why-applume" className="transition hover:text-[#17312E]">{t("phrases.Why Applume")}</a>
+            <a href="#features" className="transition hover:text-[#17312E]">{t("phrases.Features")}</a>
+            <a href="#how-it-works" className="transition hover:text-[#17312E]">{t("phrases.How it works")}</a>
             <a href="#faq" className="transition hover:text-[#17312E]">FAQ</a>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher compact />
-            <button type="button" onClick={onGetStarted} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#5A6B66] transition hover:bg-white hover:text-[#17312E] sm:block">
-              Sign in
+            <button type="button" onClick={onSignIn} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#5A6B66] transition hover:bg-white hover:text-[#17312E] sm:block">
+              {t("phrases.Sign in")}
             </button>
             <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
-              <span>Start tracking free</span>
+              <span>{t("phrases.Start tracking free")}</span>
             </button>
           </div>
         </nav>
@@ -954,12 +956,8 @@ export default function LandingPage({ onGetStarted }) {
           <h1
             className="js-hero-reveal mx-auto mt-5 max-w-[17rem] text-[1.72rem] font-black leading-[1.08] tracking-tight min-[420px]:max-w-4xl min-[420px]:text-[2.7rem] sm:text-[3.6rem] sm:leading-[1.04] lg:text-[4.25rem]"
           >
-            <span className="block sm:hidden">Applications</span>
-            <span className="block sm:hidden">deserve better</span>
-            <span className="block sm:hidden">than a</span>
-            <span className="block sm:hidden">spreadsheet.</span>
-            <span className="hidden sm:inline">Your applications deserve better than </span>
-            <span className="hidden sm:block">a spreadsheet.</span>
+            <span className="block sm:hidden">{t("phrases.Applications deserve better than a spreadsheet.")}</span>
+            <span className="hidden sm:block">{t("phrases.Your applications deserve better than a spreadsheet.")}</span>
           </h1>
 
           <p
@@ -982,17 +980,17 @@ export default function LandingPage({ onGetStarted }) {
             className="js-hero-reveal mx-auto mt-7 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
           >
             <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] sm:w-auto">
-              Start tracking free
+              {t("phrases.Start tracking free")}
             </button>
             <a href="#example-tracker" className="w-full min-h-11 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[var(--applume-accent-border)] hover:bg-white hover:text-[var(--applume-accent-hover)] sm:w-auto">
-              See the product demo
+              {t("phrases.See the product demo")}
             </a>
           </div>
 
           <p
             className="js-hero-reveal mx-auto mt-4 max-w-[17rem] text-xs leading-5 text-[#5A6B66] sm:max-w-xl"
           >
-            For students, graduates, and job seekers managing multiple applications at once.
+            {t("phrases.For students, graduates, and job seekers managing multiple applications at once.")}
           </p>
         </div>
 
