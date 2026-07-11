@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { animate, inView, stagger } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLanguage } from "@/i18n";
@@ -235,15 +236,18 @@ const transformationCards = [
   },
 ];
 
-// Entrance reveals via IntersectionObserver + the Web Animations API — no
-// animation library needed. Animates opacity/transform only, so content is
-// never removed from the accessibility tree.
+// Entrance reveals via framer-motion's imperative APIs (animate/inView/
+// stagger). Hiding happens only in JS, so prerendered HTML stays fully
+// visible for crawlers and no-JS visitors, and only opacity/transform are
+// animated, so content never leaves the accessibility tree.
+const REVEAL_EASE = [0.33, 1, 0.68, 1];
+
 function useScrollReveal(ref, {
   selector = null,
   y = 16,
   scale = 1,
   duration = 0.55,
-  stagger = 0.06,
+  stagger: staggerStep = 0.06,
   delay = 0,
   immediate = false,
 } = {}) {
@@ -258,46 +262,35 @@ function useScrollReveal(ref, {
     const targets = selector ? Array.from(root.querySelectorAll(selector)) : [root];
     if (!targets.length) return undefined;
 
-    const animations = [];
+    let controls = null;
+    const keyframes = {
+      opacity: [0, 1],
+      y: [y, 0],
+      ...(scale !== 1 ? { scale: [scale, 1] } : {}),
+    };
     const play = () => {
-      targets.forEach((el, i) => {
-        el.style.opacity = "";
-        const from = `translateY(${y}px)${scale !== 1 ? ` scale(${scale})` : ""}`;
-        animations.push(el.animate(
-          [
-            { opacity: 0, transform: from },
-            { opacity: 1, transform: "translateY(0)" },
-          ],
-          {
-            duration: duration * 1000,
-            delay: (delay + i * stagger) * 1000,
-            easing: "cubic-bezier(0.33, 1, 0.68, 1)",
-            fill: "backwards",
-          }
-        ));
+      targets.forEach((el) => { el.style.opacity = ""; });
+      controls = animate(targets, keyframes, {
+        duration,
+        ease: REVEAL_EASE,
+        delay: stagger(staggerStep, { startDelay: delay }),
       });
     };
 
-    if (immediate || !("IntersectionObserver" in window)) {
+    if (immediate) {
       play();
-      return () => animations.forEach((animation) => animation.cancel());
+      return () => controls?.stop();
     }
 
     targets.forEach((el) => { el.style.opacity = "0"; });
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        observer.disconnect();
-        play();
-      }
-    }, { rootMargin: "0px 0px -15% 0px" });
-    observer.observe(root);
+    const stopInView = inView(root, () => { play(); }, { margin: "0px 0px -15% 0px" });
 
     return () => {
-      observer.disconnect();
+      stopInView();
+      controls?.stop();
       targets.forEach((el) => { el.style.opacity = ""; });
-      animations.forEach((animation) => animation.cancel());
     };
-  }, [delay, duration, immediate, ref, scale, selector, stagger, y]);
+  }, [delay, duration, immediate, ref, scale, selector, staggerStep, y]);
 }
 
 function ToneIcon({ icon, tone = "emerald" }) {
@@ -337,43 +330,81 @@ function LandingFooter() {
     { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}` },
   ];
 
+  const columnHeading = "text-xs font-black uppercase tracking-[0.14em] text-[#17312E]";
+  const columnLink = "text-sm text-[#5A6B66] transition-colors hover:text-[#17312E]";
+
   return (
-    <footer className="border-t border-[rgba(23,49,46,0.08)] bg-white px-6 py-10 text-center">
-      <p className="text-sm font-black text-[#17312E]">Know someone still managing applications in a spreadsheet?</p>
-      <p className="mt-1 text-xs text-[#5A6B66]">Share Applume as their structured tracker.</p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-        {typeof navigator !== "undefined" && !!navigator.share && (
-          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-4 py-2.5 text-sm font-bold text-[var(--applume-accent-hover)] transition hover:border-[rgba(0,153,102,0.35)] hover:bg-[var(--applume-accent-muted)]">
-            <Icon name="share" className="h-3.5 w-3.5" /> Share
-          </button>
-        )}
-        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "border-[rgba(23,49,46,0.08)] bg-white text-[#17312E] hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA]"}`}>
-          <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
-          {copied ? "Copied" : "Copy link"}
-        </button>
-        {socials.map(({ label, href }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white px-4 py-2.5 text-sm font-bold text-[#5A6B66] transition hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA] hover:text-[var(--applume-accent-hover)]">
-            {label}
-          </a>
-        ))}
+    <footer className="border-t border-[rgba(23,49,46,0.08)] bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+
+          {/* Brand + share */}
+          <div>
+            <a href="/" className="inline-flex items-center gap-2.5">
+              <img src="/Logo.png" alt="" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
+              <span className="text-base font-black tracking-tight">
+                <span className="text-[#17312E]">App</span><span className="text-[var(--applume-accent)]">lume</span>
+              </span>
+            </a>
+            <p className="mt-3 max-w-xs text-sm leading-6 text-[#5A6B66]">
+              One calm workspace for university and job applications - deadlines, documents, and next steps included.
+            </p>
+            <p className="mt-6 text-xs font-bold text-[#17312E]">Know someone still stuck in a spreadsheet?</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {typeof navigator !== "undefined" && !!navigator.share && (
+                <button type="button" onClick={handleNativeShare} className="flex items-center gap-1.5 rounded-lg border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)]">
+                  <Icon name="share" className="h-3 w-3" /> Share
+                </button>
+              )}
+              <button type="button" onClick={handleCopy} className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition ${copied ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "border-[rgba(23,49,46,0.08)] bg-white text-[#17312E] hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA]"}`}>
+                <Icon name={copied ? "check" : "copy"} className="h-3 w-3" />
+                {copied ? "Copied" : "Copy link"}
+              </button>
+              {socials.map(({ label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center rounded-lg border border-[rgba(23,49,46,0.08)] bg-white px-3 py-2 text-xs font-bold text-[#5A6B66] transition hover:border-[var(--applume-accent-border)] hover:bg-[#F6FBFA] hover:text-[var(--applume-accent-hover)]">
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Product */}
+          <nav aria-label="Product">
+            <p className={columnHeading}>Product</p>
+            <ul className="mt-4 space-y-2.5">
+              <li><a href="#why-applume" className={columnLink}>Why Applume</a></li>
+              <li><a href="#features" className={columnLink}>Features</a></li>
+              <li><a href="#how-it-works" className={columnLink}>How it works</a></li>
+              <li><a href="#faq" className={columnLink}>FAQ</a></li>
+            </ul>
+          </nav>
+
+          {/* Compare */}
+          <nav aria-label="Compare">
+            <p className={columnHeading}>Compare</p>
+            <ul className="mt-4 space-y-2.5">
+              <li><a href="/university-application-tracker" className={columnLink}>University tracker</a></li>
+              <li><a href="/huntr-alternative" className={columnLink}>Huntr alternative</a></li>
+              <li><a href="/teal-alternative" className={columnLink}>Teal alternative</a></li>
+            </ul>
+          </nav>
+
+          {/* Support */}
+          <nav aria-label="Support">
+            <p className={columnHeading}>Support</p>
+            <ul className="mt-4 space-y-2.5">
+              <li><a href="mailto:hello@applume.app" className={columnLink}>hello@applume.app</a></li>
+              <li><a href="/privacy" className={columnLink}>Privacy Policy</a></li>
+              <li><a href="/terms" className={columnLink}>Terms of Service</a></li>
+            </ul>
+          </nav>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center justify-between gap-2 border-t border-[rgba(23,49,46,0.08)] pt-6 text-xs text-[#5A6B66] sm:flex-row">
+          <p>&copy; {new Date().getFullYear()} Applume. All rights reserved.</p>
+          <p>Built by <a href="mailto:hello@applume.app" className="font-semibold text-[var(--applume-accent)] transition-colors hover:text-[var(--applume-accent-hover)]">Adeel Ahmed</a> for students and job seekers.</p>
+        </div>
       </div>
-      <p className="mt-8 text-xs text-[#5A6B66]">
-        Compare:{" "}
-        <a href="/university-application-tracker" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">University tracker</a>
-        {" - "}
-        <a href="/huntr-alternative" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">Huntr alternative</a>
-        {" - "}
-        <a href="/teal-alternative" className="text-[#5A6B66] underline-offset-2 transition-colors hover:text-[#17312E] hover:underline">Teal alternative</a>
-      </p>
-      <p className="mt-3 text-xs text-[#5A6B66]">
-        &copy; {new Date().getFullYear()} Applume - Structured application tracking
-        {" - "}
-        <a href="/privacy" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Privacy Policy</a>
-        {" - "}
-        <a href="/terms" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">Terms</a>
-        {" - "}
-        <a href="mailto:hello@applume.app" className="text-[#5A6B66] transition-colors hover:text-[#17312E]">hello@applume.app</a>
-      </p>
     </footer>
   );
 }
@@ -891,7 +922,7 @@ function FounderNote({ onGetStarted }) {
           <p className="mt-4 max-w-xl text-sm leading-7 text-[#BFD3CF]">
             Keep the speed of a spreadsheet, then add the structure needed to stay prepared and consistent.
           </p>
-          <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-[var(--applume-accent)] px-9 py-4 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
+          <button type="button" onClick={onGetStarted} className="mt-8 rounded-xl bg-[var(--applume-accent)] px-9 py-4 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
             Start tracking free
           </button>
         </div>
@@ -903,10 +934,18 @@ function FounderNote({ onGetStarted }) {
 export default function LandingPage({ onGetStarted, onSignIn }) {
   const { t } = useLanguage();
   const heroRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
   useScrollReveal(heroRef, { selector: ".js-hero-reveal", y: 16, duration: 0.7, stagger: 0.08, immediate: true });
 
   useEffect(() => {
     trackEvent("landing_view");
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -917,26 +956,28 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-50 border-b border-[rgba(23,49,46,0.08)] bg-[#F6FBFA]/92 backdrop-blur-xl">
-        <nav aria-label="Primary" className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <a href="/" className="flex min-h-11 items-center gap-2.5">
+      <header className={`sticky top-0 z-50 border-b border-[rgba(23,49,46,0.08)] bg-[#F6FBFA]/92 backdrop-blur-xl transition-shadow duration-200 ${scrolled ? "shadow-[0_4px_20px_rgba(23,49,46,0.07)]" : ""}`}>
+        {/* grid with equal 1fr flanks so the middle links sit at true page
+            center regardless of how wide the logo and CTA groups are */}
+        <nav aria-label="Primary" className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 py-3 sm:px-6">
+          <a href="/" className="flex min-h-11 items-center gap-2.5 justify-self-start">
             <img src="/Logo.png" alt="Applume" className="h-8 w-8 object-contain" style={{ mixBlendMode: "multiply" }} />
             <span className="text-sm font-black tracking-tight">
               <span className="text-[#17312E]">App</span><span className="text-[var(--applume-accent)]">lume</span>
             </span>
           </a>
           <div className="hidden items-center gap-7 text-sm font-semibold text-[#5A6B66] sm:flex">
-            <a href="#why-applume" className="transition hover:text-[#17312E]">{t("phrases.Why Applume")}</a>
+            <a href="#why-applume" className="whitespace-nowrap transition hover:text-[#17312E]">{t("phrases.Why Applume")}</a>
             <a href="#features" className="transition hover:text-[#17312E]">{t("phrases.Features")}</a>
             <a href="#how-it-works" className="transition hover:text-[#17312E]">{t("phrases.How it works")}</a>
             <a href="#faq" className="transition hover:text-[#17312E]">FAQ</a>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="col-start-3 flex items-center gap-2 justify-self-end">
             <LanguageSwitcher compact />
             <button type="button" onClick={onSignIn} className="hidden min-h-11 rounded-xl px-3.5 py-2 text-sm font-semibold text-[#5A6B66] transition hover:bg-white hover:text-[#17312E] sm:block">
               {t("phrases.Sign in")}
             </button>
-            <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)]">
+            <button type="button" onClick={onGetStarted} className="inline-flex min-h-11 rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
               <span>{t("phrases.Start tracking free")}</span>
             </button>
           </div>
@@ -950,7 +991,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
             className="js-hero-reveal inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-full border border-[var(--applume-accent-border)] bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--applume-accent)] shadow-sm shadow-[#17312E]/[0.03] sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--applume-accent)]" />
-            Built for spreadsheet escapees
+            Free application tracker
           </span>
 
           <h1
@@ -979,7 +1020,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
           <div
             className="js-hero-reveal mx-auto mt-7 flex w-full max-w-xs flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row"
           >
-            <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] sm:w-auto">
+            <button type="button" onClick={onGetStarted} className="w-full min-h-11 rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white shadow-sm shadow-[var(--applume-accent-shadow)] transition hover:bg-[var(--applume-accent-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)] sm:w-auto">
               {t("phrases.Start tracking free")}
             </button>
             <a href="#example-tracker" className="w-full min-h-11 rounded-xl border border-[rgba(23,49,46,0.08)] bg-white/95 px-6 py-3.5 text-sm font-bold text-[#17312E] shadow-sm shadow-[#17312E]/[0.03] transition hover:border-[var(--applume-accent-border)] hover:bg-white hover:text-[var(--applume-accent-hover)] sm:w-auto">
