@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+    <div className="min-h-screen bg-[#F6FBFA] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12">
         <div className="mb-8 flex items-center justify-center gap-3">
           <img src="/Logo.png" alt="Applume logo" className="h-12 w-12 object-contain" style={{ mixBlendMode: "multiply" }} />
@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
           </span>
         </div>
 
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50">
           {status === "checking" && (
             <div className="py-6 text-center">
               <svg className="mx-auto h-6 w-6 animate-spin text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

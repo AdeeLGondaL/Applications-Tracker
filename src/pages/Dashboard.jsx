@@ -67,7 +67,7 @@ function FeedbackModal({ session, onClose }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <motion.div
-        className="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl shadow-slate-900/20 dark:bg-[#1c1c1f] dark:ring-1 dark:ring-white/5"
+        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl shadow-slate-900/20 dark:bg-[#1c1c1f] dark:ring-1 dark:ring-white/5"
         initial={{ opacity: 0, scale: 0.95, y: 24 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 24 }}
         transition={{ type: "spring", stiffness: 380, damping: 30 }}
       >

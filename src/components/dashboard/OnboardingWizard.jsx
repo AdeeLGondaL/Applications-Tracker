@@ -40,7 +40,7 @@ export function OnboardingWizard({ userId, onStart, onImport, onImportCsv, onSki
       className="mx-auto max-w-5xl"
       aria-labelledby="onboarding-title"
     >
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:ring-1 dark:ring-white/5">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:ring-1 dark:ring-white/5">
         <div className="border-b border-slate-100 p-5 dark:border-[#2a2a2e] sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>

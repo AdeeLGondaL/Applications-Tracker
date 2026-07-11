@@ -195,7 +195,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+    <div className="min-h-screen overflow-x-hidden bg-[#F6FBFA] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <motion.button
@@ -271,7 +271,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
 
           {/* Right form card — first on mobile */}
           <motion.div
-            className="order-1 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 lg:order-2 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
+            className="order-1 rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 lg:order-2 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
             initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}
           >
             {signupSent ? (

@@ -89,7 +89,7 @@ export function ImportCsvModal({ onClose, onImport }) {
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#1c1c1f]"
+        className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#1c1c1f]"
         role="dialog" aria-modal="true" aria-labelledby="csv-import-title"
       >
         <div className="flex items-start justify-between border-b border-slate-100 p-6 dark:border-[#2a2a2e]">
