@@ -2,8 +2,8 @@ export function DrawerSection({ label, children }) {
   return (
     <div>
       <div className="mb-3 flex items-center gap-3">
-        <p className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-[#71717a]">{label}</p>
-        <div className="flex-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
+        <p className="shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-soft)]">{label}</p>
+        <div className="flex-1 border-t border-[var(--border)]" />
       </div>
       {children}
     </div>
@@ -12,21 +12,24 @@ export function DrawerSection({ label, children }) {
 
 export function Field({ label, children, required = false, wide = false }) {
   return (
-    <label className={`grid gap-1.5 text-sm font-bold text-slate-700 dark:text-[#d4d4d8] ${wide ? "sm:col-span-2" : ""}`}>
+    <label className={`grid gap-1.5 text-[13px] font-semibold text-[var(--text-muted)] ${wide ? "sm:col-span-2" : ""}`}>
       <span>
         {label}
-        {required && <span className="text-rose-500"> *</span>}
+        {required && <span className="text-[var(--danger)]"> *</span>}
       </span>
       {children}
     </label>
   );
 }
 
+const controlBase =
+  "min-w-0 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--ink)] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-soft)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--ring)]";
+
 export function Input({ className = "", ...props }) {
   return (
     <input
       {...props}
-      className={`h-11 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
+      className={`${controlBase} h-11 px-3 text-sm ${className}`}
     />
   );
 }
@@ -35,20 +38,20 @@ export function Textarea({ className = "", ...props }) {
   return (
     <textarea
       {...props}
-      rows={4}
-      className={`resize-none rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20 ${className}`}
+      rows={props.rows ?? 4}
+      className={`${controlBase} resize-none px-3 py-3 text-sm ${className}`}
     />
   );
 }
 
-export function Select({ options, ...props }) {
+export function Select({ options, className = "", ...props }) {
   const normalized = options.map((option) =>
     typeof option === "string" ? { label: option, value: option } : option
   );
   return (
     <select
       {...props}
-      className="h-11 min-w-0 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-white dark:focus:border-emerald-500 dark:focus:ring-emerald-500/20"
+      className={`${controlBase} h-11 w-full px-3 text-sm font-medium ${className}`}
     >
       {normalized.map((option) => (
         <option key={option.value} value={option.value}>
