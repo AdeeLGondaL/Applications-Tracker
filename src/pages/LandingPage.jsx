@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { Logo } from "@/components/brand/Logo";
 import { PaperPlane } from "@/components/brand/PaperPlane";
 import { trackEvent } from "@/utils/analytics";
 
 /* ────────────────────────────────────────────────────────────────────────
-   Curated, truthful demo data (universities + jobs). Same shape the product
-   uses: identity, status, deadline, documents checklist, next action, notes.
+   Curated, truthful demo data (universities + jobs).
    ──────────────────────────────────────────────────────────────────────── */
 const demoSets = {
   university: {
@@ -103,105 +103,50 @@ const faqs = [
   { q: "Do I need a credit card to start?", a: "No. You can start tracking for free without a credit card." },
 ];
 
-/* ── Small editorial section header ─────────────────────────────────────── */
+const sidebarNav = [
+  ["dashboard", "Applications", true],
+  ["calendar", "Calendar", false],
+  ["copy", "Documents", false],
+  ["edit", "Notes", false],
+  ["link", "Links", false],
+  ["shield", "Settings", false],
+];
+
+/* ── Editorial section label ────────────────────────────────────────────── */
 function SectionLabel({ index, children }) {
   return (
-    <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-soft)]">
+    <div className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-soft)]">
       {index ? <span className="tabular-nums text-[var(--applume-accent)]">{index}</span> : null}
+      {index ? <span className="text-[var(--border-strong)]">/</span> : null}
       <span>{children}</span>
     </div>
   );
 }
 
-function Reveal({ children, className = "", delay = 0 }) {
+/* Reveal: fires once the element is meaningfully in view (not while it's still
+   near the bottom edge), so the motion is actually seen. */
+function Reveal({ children, className = "", delay = 0, amount = 0.35 }) {
   const reduce = useReducedMotion();
   if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 26 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-      transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1], delay }}
+      viewport={{ once: true, amount }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay }}
     >
       {children}
     </motion.div>
   );
 }
 
-/* ── Wordmark ───────────────────────────────────────────────────────────── */
-function Wordmark({ className = "" }) {
-  return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]">
-        <PaperPlane className="h-4 w-4" />
-      </span>
-      <span className="text-[17px] font-bold tracking-tight text-[var(--ink)]">
-        App<span className="text-[var(--applume-accent)]">lume</span>
-      </span>
-    </span>
-  );
-}
-
-/* ── Scroll-driven paper-plane flight path (desktop only) ───────────────── */
-function PaperPlaneJourney() {
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 60, damping: 20, mass: 0.4 });
-
-  // A gentle vertical zig-zag down the page (viewBox 100 × 1000).
-  const d = "M 78 20 C 40 120, 20 210, 62 300 S 88 470, 40 560 S 14 740, 66 830 S 84 940, 50 990";
-  const pathRef = useRef(null);
-  const [len, setLen] = useState(0);
-  useEffect(() => {
-    if (pathRef.current) setLen(pathRef.current.getTotalLength());
-  }, []);
-
-  const dash = useTransform(progress, (p) => `${len * p} ${len}`);
-  const planeX = useTransform(progress, [0, 1], [0, 0]);
-  const [pt, setPt] = useState({ x: 78, y: 20, a: 0 });
-  useEffect(() => {
-    if (!pathRef.current || !len) return undefined;
-    const el = pathRef.current;
-    const update = (p) => {
-      const at = el.getPointAtLength(len * Math.min(Math.max(p, 0.001), 0.999));
-      const ahead = el.getPointAtLength(len * Math.min(Math.max(p + 0.01, 0.002), 1));
-      const a = (Math.atan2(ahead.y - at.y, ahead.x - at.x) * 180) / Math.PI;
-      setPt({ x: at.x, y: at.y, a });
-    };
-    update(progress.get());
-    const unsub = progress.on("change", update);
-    return unsub;
-  }, [len, progress]);
-
-  if (reduce) return null;
-
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-y-0 right-[max(1rem,calc((100vw-72rem)/2-2.5rem))] z-0 hidden w-16 lg:block">
-      <svg viewBox="0 0 100 1000" preserveAspectRatio="none" className="h-full w-full" style={{ overflow: "visible" }}>
-        {/* faint full path */}
-        <path d={d} fill="none" stroke="var(--border-strong)" strokeWidth="1" strokeDasharray="1 7" strokeLinecap="round" opacity="0.5" />
-        {/* progress-revealed path */}
-        <motion.path ref={pathRef} d={d} fill="none" stroke="var(--applume-accent)" strokeWidth="1.4" strokeDasharray={dash} strokeLinecap="round" opacity="0.55" style={{ x: planeX }} />
-        <g style={{ transform: `translate(${pt.x}px, ${pt.y}px) rotate(${pt.a}deg)` }}>
-          <g style={{ transform: "translate(-7px,-7px)" }}>
-            <PaperPlane className="h-[14px] w-[14px]" style={{ color: "var(--applume-accent)" }} />
-          </g>
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-/* ── Interactive product demo ───────────────────────────────────────────── */
+/* ── Interactive product demo (sidebar · list · detail) ─────────────────── */
 function ProductDemo() {
   const [mode, setMode] = useState("university");
   const set = demoSets[mode];
   const [activeId, setActiveId] = useState(set.records[0].id);
-  const active = useMemo(
-    () => set.records.find((r) => r.id === activeId) ?? set.records[0],
-    [set, activeId]
-  );
+  const active = useMemo(() => set.records.find((r) => r.id === activeId) ?? set.records[0], [set, activeId]);
 
   function switchMode(next) {
     setMode(next);
@@ -211,60 +156,62 @@ function ProductDemo() {
   const readyCount = active.docs.filter(([, done]) => done).length;
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-30px_rgba(12,20,16,0.35)]">
-      {/* window chrome */}
+    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_28px_70px_-38px_rgba(12,20,16,0.4)]">
+      {/* chrome */}
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-2 text-[var(--text-soft)]">
           <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
-          <span className="ml-2 text-xs font-medium text-[var(--text-muted)]">applume.app / applications</span>
+          <span className="ml-2 hidden text-xs font-medium text-[var(--text-muted)] sm:inline">applume.app / applications</span>
         </div>
         <div className="flex rounded-[8px] border border-[var(--border)] p-0.5">
           {["university", "job"].map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => switchMode(m)}
-              className={`rounded-[6px] px-2.5 py-1 text-xs font-semibold transition-colors ${
-                mode === m ? "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)] hover:text-[var(--ink)]"
-              }`}
-            >
+            <button key={m} type="button" onClick={() => switchMode(m)}
+              className={`rounded-[6px] px-2.5 py-1 text-xs font-semibold transition-colors ${mode === m ? "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)] hover:text-[var(--ink)]"}`}>
               {demoSets[m].label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="grid grid-cols-1 md:grid-cols-[9.5rem_minmax(0,0.9fr)] xl:grid-cols-[10.5rem_minmax(0,0.85fr)_minmax(0,1.05fr)]">
+        {/* sidebar */}
+        <nav className="hidden flex-col justify-between border-r border-[var(--border)] p-2.5 md:flex">
+          <div className="grid gap-0.5">
+            <div className="mb-1 px-2 pt-1"><Logo imgClass="h-5 w-5" wordmarkClass="text-[13px]" /></div>
+            {sidebarNav.map(([icon, label, on]) => (
+              <span key={label} className={`flex items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-[13px] font-medium ${on ? "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)]"}`}>
+                <Icon name={icon} className="h-3.5 w-3.5" /> {label}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 border-t border-[var(--border)] px-2 pt-2.5">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--applume-accent)] text-[10px] font-bold text-white">AC</span>
+            <span className="text-xs font-medium text-[var(--text-muted)]">Aiden Chen</span>
+          </div>
+        </nav>
+
         {/* list */}
-        <div className="border-b border-[var(--border)] md:border-b-0 md:border-r">
+        <div className="border-b border-[var(--border)] xl:border-b-0 xl:border-r">
           <div className="flex items-center justify-between px-4 pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]">
-            <span>{set.identity}</span>
-            <span>{set.records.length}</span>
+            <span>{set.identity}</span><span>{set.records.length}</span>
           </div>
           <ul className="p-2">
             {set.records.map((r) => {
               const on = r.id === active.id;
               return (
                 <li key={r.id}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(r.id)}
-                    className={`flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left transition-colors ${
-                      on ? "bg-[var(--applume-accent-soft)]" : "hover:bg-[var(--surface-soft)]"
-                    }`}
-                  >
-                    <span className={`mt-0.5 h-8 w-[3px] shrink-0 rounded-full ${on ? "bg-[var(--applume-accent)]" : "bg-transparent"}`} />
+                  <button type="button" onClick={() => setActiveId(r.id)}
+                    className={`flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left transition-colors ${on ? "bg-[var(--applume-accent-soft)]" : "hover:bg-[var(--surface-soft)]"}`}>
+                    <span className={`h-8 w-[3px] shrink-0 rounded-full ${on ? "bg-[var(--applume-accent)]" : "bg-transparent"}`} />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm font-semibold text-[var(--ink)]">{r.name}</span>
                         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${toneStyles[r.tone]}`}>{r.status}</span>
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-[var(--text-muted)]">{r.detail}</span>
-                      <span className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--text-soft)]">
-                        <Icon name="calendar" className="h-3 w-3" /> {r.deadline}
-                      </span>
+                      <span className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--text-soft)]"><Icon name="calendar" className="h-3 w-3" /> {r.deadline}</span>
                     </span>
                   </button>
                 </li>
@@ -282,8 +229,6 @@ function ProductDemo() {
             </div>
             <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneStyles[active.tone]}`}>{active.status}</span>
           </div>
-
-          {/* deadline + next action */}
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className={`rounded-[10px] border p-3 ${active.tone === "warning" ? toneStyles.warning : "border-[var(--border)] bg-[var(--surface-soft)]"}`}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">Deadline</p>
@@ -295,26 +240,19 @@ function ProductDemo() {
               <p className="mt-1 text-sm font-medium text-[var(--ink)]">{active.next}</p>
             </div>
           </div>
-
-          {/* documents */}
           <div className="mt-4">
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-soft)]">
-              <span>{set.docLabel}</span>
-              <span className="tabular-nums">{readyCount}/{active.docs.length} ready</span>
+              <span>{set.docLabel}</span><span className="tabular-nums">{readyCount}/{active.docs.length} ready</span>
             </div>
             <ul className="mt-2 grid gap-1.5">
               {active.docs.map(([label, done]) => (
                 <li key={label} className="flex items-center gap-2.5 text-sm">
-                  <span className={`grid h-4 w-4 place-items-center rounded-[5px] border ${done ? "border-[var(--applume-accent)] bg-[var(--applume-accent)] text-white" : "border-[var(--border-strong)] text-transparent"}`}>
-                    <Icon name="check" className="h-2.5 w-2.5" />
-                  </span>
+                  <span className={`grid h-4 w-4 place-items-center rounded-[5px] border ${done ? "border-[var(--applume-accent)] bg-[var(--applume-accent)] text-white" : "border-[var(--border-strong)] text-transparent"}`}><Icon name="check" className="h-2.5 w-2.5" /></span>
                   <span className={done ? "text-[var(--ink)]" : "text-[var(--text-muted)]"}>{label}</span>
                 </li>
               ))}
             </ul>
           </div>
-
-          {/* note */}
           <div className="mt-4 rounded-[10px] bg-[var(--surface-soft)] p-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-soft)]">Note · {active.source}</p>
             <p className="mt-1 text-[13px] leading-6 text-[var(--text-muted)]">{active.note}</p>
@@ -325,21 +263,117 @@ function ProductDemo() {
   );
 }
 
+/* ── Hero paper-plane flight path (hero-scoped, pinned on scroll) ────────── */
+// Arc kept in the top band so it never crosses the headline, CTAs or the demo body.
+const HERO_PATH = "M 120 150 C 360 58, 620 60, 800 104 S 1050 150, 1155 74";
+const HERO_VB = { w: 1200, h: 760 };
+
+function HeroPlane({ progress }) {
+  const pathRef = useRef(null);
+  const [len, setLen] = useState(0);
+  const [pt, setPt] = useState(null); // { xPct, yPct, a }
+  const [drawn, setDrawn] = useState(0);
+
+  useEffect(() => {
+    if (pathRef.current) setLen(pathRef.current.getTotalLength());
+  }, []);
+
+  useEffect(() => {
+    if (!pathRef.current || !len) return undefined;
+    const el = pathRef.current;
+    const update = (pRaw) => {
+      const p = Math.min(Math.max(pRaw, 0), 1);
+      const at = el.getPointAtLength(len * Math.min(Math.max(p, 0.0001), 0.9999));
+      const ahead = el.getPointAtLength(len * Math.min(p + 0.01, 1));
+      const a = (Math.atan2(ahead.y - at.y, ahead.x - at.x) * 180) / Math.PI;
+      setPt({ xPct: (at.x / HERO_VB.w) * 100, yPct: (at.y / HERO_VB.h) * 100, a });
+      setDrawn(p);
+    };
+    update(progress.get());
+    return progress.on("change", update);
+  }, [len, progress]);
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-20 hidden lg:block">
+      {/* dotted route — lines stretch cleanly with the container */}
+      <svg viewBox={`0 0 ${HERO_VB.w} ${HERO_VB.h}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <path ref={pathRef} d={HERO_PATH} fill="none" stroke="var(--border-strong)" strokeWidth="1.6" strokeDasharray="2 9" strokeLinecap="round" opacity="0.5" vectorEffect="non-scaling-stroke" />
+        <path d={HERO_PATH} fill="none" stroke="var(--applume-accent)" strokeWidth="2" strokeDasharray={`${len * drawn} ${len}`} strokeLinecap="round" opacity="0.65" vectorEffect="non-scaling-stroke" />
+      </svg>
+      {/* undistorted plane, positioned in % of the container */}
+      {pt && (
+        <div className="absolute" style={{ left: `${pt.xPct}%`, top: `${pt.yPct}%`, transform: `translate(-50%,-50%) rotate(${pt.a}deg)` }}>
+          <PaperPlane className="h-6 w-6" style={{ color: "var(--applume-accent)" }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HeroContent({ onGetStarted }) {
+  return (
+    <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
+      <div className="relative z-10">
+        <SectionLabel>Application tracking, reconsidered</SectionLabel>
+        <h1 className="font-display mt-6 text-[clamp(2.5rem,5.2vw,4.25rem)] leading-[1.02] tracking-[-0.02em] text-[var(--text-strong)]">
+          Every application.<br />One&nbsp;calm&nbsp;place.
+        </h1>
+        <p className="mt-6 max-w-md text-lg leading-8 text-[var(--text-muted)]">
+          Track deadlines, documents, notes, links and next steps — without maintaining another spreadsheet.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <button type="button" onClick={onGetStarted} className="inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--applume-accent-strong)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
+            Start tracking free <Icon name="plus" className="h-4 w-4" />
+          </button>
+          <a href="#how-it-works" className="inline-flex min-h-12 items-center gap-2 rounded-[11px] px-4 text-[15px] font-medium text-[var(--ink)] transition-colors hover:text-[var(--applume-accent-hover)]">
+            View product <Icon name="download" className="h-4 w-4 rotate-[-90deg]" />
+          </a>
+        </div>
+        <p className="mt-5 text-[13px] text-[var(--text-soft)]">Free to use · Private by default · Export anytime</p>
+      </div>
+      <div className="relative z-10 lg:pl-2">
+        <ProductDemo />
+      </div>
+    </div>
+  );
+}
+
+function Hero({ onGetStarted }) {
+  const reduce = useReducedMotion();
+  const wrapRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: wrapRef, offset: ["start start", "end end"] });
+  const planeProgress = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.4 });
+
+  // Mobile / reduced-motion: no pin, no moving plane.
+  if (reduce) {
+    return <section className="px-0 pb-12 pt-16 sm:pt-24">{<HeroContent onGetStarted={onGetStarted} />}</section>;
+  }
+
+  return (
+    <>
+      {/* Mobile hero (no pin) */}
+      <section className="pb-10 pt-16 sm:pt-20 lg:hidden"><HeroContent onGetStarted={onGetStarted} /></section>
+
+      {/* Desktop pinned hero: the plane flies its path as you scroll this
+          region; once it completes, the page scrolls on to the next section. */}
+      <section ref={wrapRef} className="relative hidden lg:block lg:h-[175vh]">
+        <div className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center overflow-hidden">
+          <HeroPlane progress={planeProgress} />
+          <HeroContent onGetStarted={onGetStarted} />
+        </div>
+      </section>
+    </>
+  );
+}
+
 /* ── FAQ item ───────────────────────────────────────────────────────────── */
 function FaqItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-t border-[var(--border)]">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-6 py-5 text-left"
-      >
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center justify-between gap-6 py-5 text-left">
         <span className="text-base font-medium text-[var(--ink)]">{q}</span>
-        <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[var(--border)] text-[var(--text-muted)] transition-transform ${open ? "rotate-45" : ""}`}>
-          <Icon name="plus" className="h-3.5 w-3.5" />
-        </span>
+        <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[var(--border)] text-[var(--text-muted)] transition-transform ${open ? "rotate-45" : ""}`}><Icon name="plus" className="h-3.5 w-3.5" /></span>
       </button>
       {open && <p className="max-w-2xl pb-5 text-[15px] leading-7 text-[var(--text-muted)]">{a}</p>}
     </div>
@@ -365,12 +399,10 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
     <div className="relative min-h-dvh bg-[var(--surface)] text-[var(--ink)]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--applume-accent)] focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
 
-      <PaperPlaneJourney />
-
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="/" aria-label="Applume home"><Wordmark /></a>
+          <a href="/" aria-label="Applume home"><Logo /></a>
           <nav className="hidden items-center gap-8 md:flex">
             {nav.map(([label, href]) => (
               <a key={href} href={href} className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--ink)]">{label}</a>
@@ -385,37 +417,13 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
       </header>
 
       <main id="main">
-        {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-4 pb-10 pt-16 sm:px-6 sm:pt-24">
-          <Reveal>
-            <SectionLabel>Free application tracker · University &amp; jobs</SectionLabel>
-            <h1 className="font-display mt-6 max-w-4xl text-[clamp(2.6rem,6vw,4.75rem)] leading-[1.02] tracking-[-0.02em] text-[var(--text-strong)]">
-              Every application.<br />One&nbsp;calm&nbsp;place.
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--text-muted)]">
-              Applume turns scattered deadlines, documents, links and notes into one structured record per application — so nothing important lives in a spreadsheet cell.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={onGetStarted} className="inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--applume-accent-strong)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
-                Start tracking free <Icon name="plus" className="h-4 w-4" />
-              </button>
-              <a href="#how-it-works" className="inline-flex min-h-12 items-center gap-2 rounded-[11px] px-4 text-[15px] font-medium text-[var(--ink)] transition-colors hover:text-[var(--applume-accent-hover)]">
-                See how it works <Icon name="download" className="h-4 w-4 rotate-[-90deg]" />
-              </a>
-            </div>
-            <p className="mt-5 text-[13px] text-[var(--text-soft)]">No credit card · Private to your account · Export anytime</p>
-          </Reveal>
-
-          <Reveal delay={0.08} className="mt-14">
-            <ProductDemo />
-          </Reveal>
-        </section>
+        <Hero onGetStarted={onGetStarted} />
 
         {/* ── Spreadsheet transformation ───────────────────────────────── */}
         <section id="why-applume" className="border-t border-[var(--border)]">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <Reveal>
-              <SectionLabel index="01">Why Applume</SectionLabel>
+              <SectionLabel index="01">From row to record</SectionLabel>
               <h2 className="font-display mt-6 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
                 A spreadsheet remembers the row.<br />
                 <span className="text-[var(--applume-accent)]">Applume remembers the application.</span>
@@ -423,15 +431,12 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
             </Reveal>
 
             <div className="mt-12 grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
-              {/* spreadsheet row */}
               <Reveal className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">A spreadsheet row</p>
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-left text-[13px] text-[var(--text-muted)]">
                     <thead className="text-[11px] uppercase tracking-[0.1em] text-[var(--text-soft)]">
-                      <tr className="border-b border-[var(--border)]">
-                        <th className="py-2 pr-3 font-semibold">Name</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 font-semibold">Date</th>
-                      </tr>
+                      <tr className="border-b border-[var(--border)]"><th className="py-2 pr-3 font-semibold">Name</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 font-semibold">Date</th></tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-[var(--border)]"><td className="py-2 pr-3">TU Munich</td><td className="py-2 pr-3">applying?</td><td className="py-2">15/6</td></tr>
@@ -444,12 +449,9 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
               </Reveal>
 
               <div className="hidden items-center justify-center lg:flex">
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] text-[var(--applume-accent)]">
-                  <Icon name="download" className="h-4 w-4 rotate-[-90deg]" />
-                </span>
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] text-[var(--applume-accent)]"><Icon name="download" className="h-4 w-4 rotate-[-90deg]" /></span>
               </div>
 
-              {/* structured record */}
               <Reveal delay={0.06} className="rounded-[var(--radius-lg)] border border-[var(--applume-accent-border)] bg-[var(--surface-card)] p-6 shadow-[0_18px_50px_-34px_rgba(0,153,102,0.5)]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--applume-accent-hover)]">An Applume record</p>
                 <p className="mt-4 text-base font-semibold text-[var(--ink)]">TU Munich · M.Sc. Computer Science</p>
@@ -474,16 +476,16 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
         <section id="how-it-works" className="border-t border-[var(--border)]">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <Reveal>
-              <SectionLabel index="02">How it works</SectionLabel>
+              <SectionLabel index="02">Less data entry</SectionLabel>
               <h2 className="font-display mt-6 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
-                From a link you paste to a record you trust — in three steps.
+                Paste the opportunity. Review the details. Keep moving.
               </h2>
             </Reveal>
             <div className="mt-12 grid gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
               {[
-                ["01", "Paste an opportunity", "Drop in a program page or job listing — start from text you already have."],
-                ["02", "Applume drafts the record", "It reads the posting and drafts the fields: role, deadline, documents, source link."],
-                ["03", "Review and save", "You approve every field before it's saved. Nothing is stored without your review."],
+                ["01", "Paste the source", "Add a link to a university or job posting — start from text you already have."],
+                ["02", "We draft the details", "Applume extracts and fills the key fields, so you don't have to."],
+                ["03", "You review and save", "Confirm, adjust if needed, and add what matters. Nothing is stored without your review."],
               ].map(([n, t, c], i) => (
                 <Reveal key={n} delay={i * 0.06} className="bg-[var(--surface-card)] p-7">
                   <span className="font-display text-3xl text-[var(--applume-accent)]">{n}</span>
@@ -499,14 +501,14 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
         <section id="features" className="border-t border-[var(--border)]">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <Reveal>
-              <SectionLabel index="03">The system</SectionLabel>
+              <SectionLabel index="03">The core system</SectionLabel>
               <h2 className="font-display mt-6 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
                 Four things a spreadsheet can't keep together.
               </h2>
             </Reveal>
             <div className="mt-10">
               {coreSystem.map((f, i) => (
-                <Reveal key={f.n} delay={i * 0.04}>
+                <Reveal key={f.n} delay={i * 0.03} amount={0.5}>
                   <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t border-[var(--border)] py-8 sm:grid-cols-[5rem_1fr_1fr] sm:gap-x-10">
                     <span className="font-display text-2xl text-[var(--applume-accent)]">{f.n}</span>
                     <h3 className="text-xl font-semibold tracking-[-0.01em] text-[var(--ink)]">{f.title}</h3>
@@ -523,7 +525,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
               <Reveal>
-                <SectionLabel index="04">One system, two journeys</SectionLabel>
+                <SectionLabel index="04">One system, two worlds</SectionLabel>
                 <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
                   University and jobs, in the same calm structure.
                 </h2>
@@ -555,9 +557,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
             <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
               <Reveal>
                 <SectionLabel index="05">Trust &amp; questions</SectionLabel>
-                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3rem)] leading-[1.06] tracking-[-0.015em]">
-                  Yours, and only yours.
-                </h2>
+                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3rem)] leading-[1.06] tracking-[-0.015em]">Yours, and only yours.</h2>
                 <ul className="mt-8 grid gap-4">
                   {[["shield", "Private to your account", "Nothing is public unless you share a link."], ["download", "Export anytime", "Your records are yours to take with you."], ["check", "No credit card", "Start tracking for free."]].map(([icon, t, c]) => (
                     <li key={t} className="flex gap-3">
@@ -580,12 +580,13 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
             <Reveal>
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-[12px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-6 w-6" /></div>
               <h2 className="font-display mx-auto mt-8 max-w-3xl text-[clamp(2.2rem,5vw,3.75rem)] leading-[1.04] tracking-[-0.02em]">
-                Give your applications the structure they deserve.
+                Your applications deserve more than another abandoned spreadsheet.
               </h2>
               <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-[var(--text-muted)]">Start free today. Move one application out of the spreadsheet and feel the difference.</p>
               <button type="button" onClick={onGetStarted} className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--applume-accent-strong)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
                 Start tracking free <Icon name="plus" className="h-4 w-4" />
               </button>
+              <p className="mt-6 text-[13px] text-[var(--text-soft)]">Private to your account · CSV &amp; JSON export · No credit card required</p>
             </Reveal>
           </div>
         </section>
@@ -596,17 +597,13 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
   );
 }
 
-/* ── Footer (preserves SEO + legal + contact links) ─────────────────────── */
+/* ── Footer ─────────────────────────────────────────────────────────────── */
 function Footer() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Every application. One calm place.";
 
   function handleCopy() {
-    navigator.clipboard?.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {});
+    navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
   }
 
   const heading = "text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]";
@@ -617,10 +614,8 @@ function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.6fr_1fr_1fr]">
           <div>
-            <Wordmark />
-            <p className="mt-4 max-w-xs text-sm leading-6 text-[var(--text-muted)]">
-              One calm workspace for university and job applications — deadlines, documents, notes and next steps included.
-            </p>
+            <Logo />
+            <p className="mt-4 max-w-xs text-sm leading-6 text-[var(--text-muted)]">One calm workspace for university and job applications — deadlines, documents, notes and next steps included.</p>
             <button type="button" onClick={handleCopy} className="mt-5 inline-flex items-center gap-2 rounded-[9px] border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:border-[var(--applume-accent-border)] hover:text-[var(--ink)]">
               <Icon name={copied ? "check" : "link"} className="h-3.5 w-3.5" /> {copied ? "Link copied" : "Copy link to share"}
             </button>

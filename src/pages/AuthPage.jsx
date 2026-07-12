@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { PaperPlane } from "@/components/brand/PaperPlane";
+import { Logo } from "@/components/brand/Logo";
 import { useLanguage } from "@/i18n";
 
 function mapAuthError(error) {
@@ -183,10 +184,11 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
 
   return (
     <div className="min-h-dvh bg-[var(--surface)] text-[var(--ink)]">
-      <div className="mx-auto grid min-h-dvh max-w-6xl grid-cols-1 lg:grid-cols-2">
+      <div className="mx-auto grid min-h-dvh max-w-6xl grid-cols-1 lg:grid-cols-2 lg:items-start">
 
-        {/* ── Left editorial brand panel ─────────────────────────────── */}
-        <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-12 lg:order-1 lg:flex xl:px-14">
+        {/* ── Left editorial brand panel — fixed height so it never shifts
+            when the form grows/shrinks between sign in and create account ─ */}
+        <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-12 lg:order-1 lg:flex lg:sticky lg:top-0 lg:h-dvh xl:px-14">
           {/* subtle plane motif */}
           {!reduce && (
             <motion.div
@@ -200,10 +202,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
               <PaperPlane className="h-64 w-64" />
             </motion.div>
           )}
-          <a href="/" className="relative inline-flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-4.5 w-4.5" /></span>
-            <span className="text-lg font-bold tracking-tight">App<span className="text-[var(--applume-accent)]">lume</span></span>
-          </a>
+          <a href="/" className="relative w-fit"><Logo imgClass="h-9 w-9" wordmarkClass="text-lg" /></a>
 
           <div className="relative">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-soft)]">Spreadsheet, rebuilt as a workspace</p>
@@ -232,7 +231,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
         </div>
 
         {/* ── Right form column ──────────────────────────────────────── */}
-        <div className="order-1 flex flex-col px-4 py-8 sm:px-8 lg:order-2 lg:px-12 lg:py-12">
+        <div className="order-1 flex min-h-dvh flex-col px-4 py-8 sm:px-8 lg:order-2 lg:px-12 lg:py-12">
           <div className="mb-8 flex items-center justify-between">
             <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--ink)]">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -242,12 +241,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
           </div>
 
           {/* mobile wordmark */}
-          <a href="/" className="mb-8 inline-flex items-center gap-2.5 lg:hidden">
-            <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-4.5 w-4.5" /></span>
-            <span className="text-lg font-bold tracking-tight">App<span className="text-[var(--applume-accent)]">lume</span></span>
-          </a>
+          <a href="/" className="mb-8 flex justify-center lg:hidden"><Logo imgClass="h-9 w-9" wordmarkClass="text-lg" /></a>
 
-          <div className="my-auto w-full max-w-md py-4 lg:mx-auto">
+          <div className="mx-auto my-auto w-full max-w-md py-4">
             {signupSent ? (
               <SuccessPanel
                 title="Check your inbox"
