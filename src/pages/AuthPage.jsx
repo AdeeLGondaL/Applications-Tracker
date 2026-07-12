@@ -1,65 +1,12 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { trackEvent } from "@/utils/analytics";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { PaperPlane } from "@/components/brand/PaperPlane";
 import { useLanguage } from "@/i18n";
-
-function LandingFooter() {
-  const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
-  const shareText = "Replace your application spreadsheet with Applume.";
-
-  function handleNativeShare() {
-    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
-  }
-
-  function handleCopy() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    }).catch(() => {});
-  }
-
-  const socials = [
-    { label: "WhatsApp",   href: `https://wa.me/?text=${encodeURIComponent(shareText + "\n" + url)}`, hover: "hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" },
-    { label: "LinkedIn",   href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, hover: "hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" },
-    { label: "X / Twitter",href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`, hover: "hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900" },
-  ];
-
-  return (
-    <footer className="mt-16 border-t border-slate-200 pt-10 pb-8 text-center dark:border-slate-800">
-      <p className="text-sm font-black text-slate-800 dark:text-slate-100">Know someone still tracking applications in spreadsheets?</p>
-      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Share Applume as their structured tracker.</p>
-      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-        {typeof navigator !== "undefined" && !!navigator.share && (
-          <button type="button" onClick={handleNativeShare} className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
-            <Icon name="share" className="h-3.5 w-3.5" /> Share
-          </button>
-        )}
-        <button type="button" onClick={handleCopy} className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition ${copied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"}`}>
-          <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" />
-          {copied ? "Copied!" : "Copy link"}
-        </button>
-        {socials.map(({ label, href, hover }) => (
-          <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 ${hover}`}>{label}</a>
-        ))}
-      </div>
-      <p className="mt-8 text-xs text-slate-500 dark:text-slate-500">
-        &copy; {new Date().getFullYear()} Applume - Structured application tracking
-        {" - "}
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">Privacy Policy</a>
-        {" - "}
-        <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">Terms</a>
-        {" - "}
-        <a href="mailto:hello@applume.app" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">hello@applume.app</a>
-      </p>
-    </footer>
-  );
-}
 
 function mapAuthError(error) {
   const msg = (error?.message || "").toLowerCase();
@@ -91,8 +38,34 @@ function GoogleMark() {
   );
 }
 
+const inputBase =
+  "h-12 w-full rounded-[10px] border bg-[var(--surface-card)] px-4 text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-soft)] focus:ring-2";
+const inputOk = "border-[var(--border-strong)] focus:border-[var(--brand)] focus:ring-[var(--ring)]";
+const inputErr = "border-[color-mix(in_srgb,var(--danger)_55%,transparent)] focus:border-[var(--danger)] focus:ring-[color-mix(in_srgb,var(--danger)_22%,transparent)]";
+
+function SuccessPanel({ title, email, body, onBack }) {
+  return (
+    <motion.div key="sent" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="py-2 text-center">
+      <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-[14px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]">
+        <Icon name="mail" className="h-6 w-6" />
+      </div>
+      <h2 className="font-display text-[1.6rem] leading-tight text-[var(--text-strong)]">{title}</h2>
+      <p className="mt-2 text-sm text-[var(--text-muted)]">We sent it to</p>
+      <p className="mt-1 break-all text-sm font-semibold text-[var(--ink)]">{email}</p>
+      <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-[var(--text-muted)]">{body}</p>
+      <div className="mt-4 rounded-[10px] border border-[color-mix(in_srgb,var(--warning)_28%,transparent)] bg-[var(--warning-soft)] px-4 py-3 text-left">
+        <p className="text-xs font-medium text-[var(--warning-ink)]">Not in your inbox? Check your spam folder — it may take a minute to arrive.</p>
+      </div>
+      <button type="button" onClick={onBack} className="mt-6 h-12 w-full rounded-[10px] bg-[var(--applume-accent-strong)] text-sm font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
+        Back to sign in
+      </button>
+    </motion.div>
+  );
+}
+
 export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
   const { t } = useLanguage();
+  const reduce = useReducedMotion();
   // The URL (/signin | /signup) is the source of truth for the mode;
   // the reset flow is a local sub-state layered on top of /signin.
   const [isReset, setIsReset] = useState(false);
@@ -194,356 +167,296 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     }
   }
 
+  const heading = authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account";
+  const subheading = authMode === "signin"
+    ? "Return to your structured application tracker."
+    : authMode === "reset"
+      ? "Enter your email and we'll send a link to choose a new password."
+      : "Start with one record. Grow it into your full tracker.";
+
+  const points = [
+    ["Application dossiers", "Notes, links and files stay attached to each opportunity."],
+    ["Deadline radar", "Urgent and overdue items surface without sorting columns."],
+    ["Table, cards or board", "Switch views without ever changing your data."],
+    ["Export anytime", "Download CSV or JSON whenever you want a backup."],
+  ];
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F6FBFA] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <motion.button
-            type="button"
-            onClick={onClose}
-            className="flex w-fit items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            {t("phrases.Back to home")}
-          </motion.button>
-          <LanguageSwitcher compact />
+    <div className="min-h-dvh bg-[var(--surface)] text-[var(--ink)]">
+      <div className="mx-auto grid min-h-dvh max-w-6xl grid-cols-1 lg:grid-cols-2">
+
+        {/* ── Left editorial brand panel ─────────────────────────────── */}
+        <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-12 lg:order-1 lg:flex xl:px-14">
+          {/* subtle plane motif */}
+          {!reduce && (
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute -right-10 top-24 text-[var(--applume-accent)]"
+              style={{ opacity: 0.08 }}
+              initial={{ y: 0 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <PaperPlane className="h-64 w-64" />
+            </motion.div>
+          )}
+          <a href="/" className="relative inline-flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-4.5 w-4.5" /></span>
+            <span className="text-lg font-bold tracking-tight">App<span className="text-[var(--applume-accent)]">lume</span></span>
+          </a>
+
+          <div className="relative">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-soft)]">Spreadsheet, rebuilt as a workspace</p>
+            <h1 className="font-display mt-5 max-w-md text-[clamp(2.2rem,3.4vw,3.1rem)] leading-[1.05] tracking-[-0.015em] text-[var(--text-strong)]">
+              Your applications, out of the spreadsheet.
+            </h1>
+            <p className="mt-5 max-w-sm text-[15px] leading-7 text-[var(--text-muted)]">
+              University and job applications with deadlines, statuses, links, documents, notes and next steps — attached to each record.
+            </p>
+            <ul className="mt-8 max-w-sm">
+              {points.map(([title, desc]) => (
+                <li key={title} className="grid grid-cols-[auto_1fr] gap-x-3 border-t border-[var(--border)] py-3.5">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[var(--applume-accent)]" />
+                  <span>
+                    <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
+                    <span className="block text-[13px] leading-6 text-[var(--text-muted)]">{desc}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="relative text-xs text-[var(--text-soft)]">
+            Private to your account · Export anytime · No credit card
+          </p>
         </div>
 
-        <div className="my-auto grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        {/* ── Right form column ──────────────────────────────────────── */}
+        <div className="order-1 flex flex-col px-4 py-8 sm:px-8 lg:order-2 lg:px-12 lg:py-12">
+          <div className="mb-8 flex items-center justify-between">
+            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--ink)]">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+              {t("phrases.Back to home")}
+            </button>
+            <LanguageSwitcher compact />
+          </div>
 
-          {/* Left hero — below the form on mobile so the form comes first */}
-          <motion.div className="order-2 space-y-8 lg:order-1" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, ease: "easeOut" }}>
+          {/* mobile wordmark */}
+          <a href="/" className="mb-8 inline-flex items-center gap-2.5 lg:hidden">
+            <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-4.5 w-4.5" /></span>
+            <span className="text-lg font-bold tracking-tight">App<span className="text-[var(--applume-accent)]">lume</span></span>
+          </a>
 
-            {/* Brand wordmark */}
-            <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.45 }}>
-              <div className="flex items-center gap-4">
-                <img src="/Logo.png" alt="Applume logo" className="h-20 w-20 object-contain shrink-0 sm:h-24 sm:w-24 dark:brightness-150" style={{ mixBlendMode: "multiply" }} />
-                <div>
-                  <h1 className="text-[3rem] font-black leading-none tracking-tight sm:text-6xl lg:text-[3.5rem]">
-                    <span className="text-slate-950 dark:text-slate-50">App</span><span className="text-emerald-600">lume</span>
-                  </h1>
-                  <p className="mt-2 text-base font-semibold text-slate-600 dark:text-slate-400">Your application sheet, rebuilt as a workspace.</p>
-                </div>
-              </div>
-            </motion.div>
-
-            <div className="space-y-4">
-              <motion.span
-                className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700"
-                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.3 }}
-              >
-                Spreadsheet replacement
-              </motion.span>
-              <motion.p
-                className="max-w-md text-base leading-7 text-slate-600 dark:text-slate-400"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, duration: 0.35 }}
-              >
-                Bring university and job applications out of fragile rows. Applume keeps deadlines, statuses, links, documents, notes, and next steps attached to each record.
-              </motion.p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { title: "Application dossiers", desc: "Each opportunity keeps its notes, links, and files together.", icon: "check" },
-                { title: "Deadline radar", desc: "See urgent and overdue items without sorting columns.", icon: "calendar" },
-                { title: "Workflow views", desc: "Move between table, cards, and board views without changing your data.", icon: "dashboard" },
-                { title: "Export anytime", desc: "Download CSV or JSON whenever you want a backup.", icon: "download" },
-              ].map((item, i) => (
-                <motion.div
-                  key={item.title}
-                  className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
-                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 + i * 0.07, duration: 0.35 }}
-                >
-                  <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40">
-                    <Icon name={item.icon} className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.title}</p>
-                    <p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-400">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Right form card — first on mobile */}
-          <motion.div
-            className="order-1 rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-200/70 lg:order-2 dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-900/50"
-            initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}
-          >
+          <div className="my-auto w-full max-w-md py-4 lg:mx-auto">
             {signupSent ? (
-                /* Email confirmation success screen */
-                <motion.div key="signup-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="py-2 text-center">
-                  <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
-                    <Icon name="mail" className="h-7 w-7 text-emerald-600" />
-                  </motion.div>
-                  <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">Check your inbox</h2>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We sent a confirmation link to</p>
-                  <p className="mt-1 break-all font-bold text-slate-800 dark:text-slate-100">{authEmail}</p>
-                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">
-                    Click the link in your email to activate your account, then return here to sign in.
-                  </p>
-                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left dark:border-amber-800 dark:bg-amber-900/30">
-                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Not in your inbox? Check your spam folder. The email may take a minute to arrive.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => switchAuthMode("signin")}
-                    className="mt-6 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
-                  >
-                    Back to sign in
-                  </button>
-                </motion.div>
-              ) : resetSent ? (
-                /* Password reset email sent screen */
-                <motion.div key="reset-sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.25 }} className="py-2 text-center">
-                  <motion.div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-emerald-50 dark:bg-emerald-900/40" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}>
-                    <Icon name="mail" className="h-7 w-7 text-emerald-600" />
-                  </motion.div>
-                  <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">Check your inbox</h2>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">We sent a password reset link to</p>
-                  <p className="mt-1 break-all font-bold text-slate-800 dark:text-slate-100">{authEmail}</p>
-                  <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-600 dark:text-slate-400">
-                    Click the link in your email to choose a new password.
-                  </p>
-                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left dark:border-amber-800 dark:bg-amber-900/30">
-                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Not in your inbox? Check your spam folder. The email may take a minute to arrive.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => switchAuthMode("signin")}
-                    className="mt-6 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
-                  >
-                    Back to sign in
-                  </button>
-                </motion.div>
-              ) : (
-                /* Sign in / Sign up form */
-                <motion.div key="auth-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-
-                  {/* Sliding tab switcher — CSS transform pill; framer layoutId
-                      breaks when the mode change arrives via a route update */}
-                  {authMode !== "reset" && (
-                  <div className="relative mb-8 flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-700">
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-slate-600 ${authMode === "signup" ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
-                    />
+              <SuccessPanel
+                title="Check your inbox"
+                email={authEmail}
+                body="Click the link in your email to activate your account, then return here to sign in."
+                onBack={() => switchAuthMode("signin")}
+              />
+            ) : resetSent ? (
+              <SuccessPanel
+                title="Check your inbox"
+                email={authEmail}
+                body="Click the link in your email to choose a new password."
+                onBack={() => switchAuthMode("signin")}
+              />
+            ) : (
+              <div>
+                {/* mode switch */}
+                {authMode !== "reset" && (
+                  <div className="mb-8 inline-flex rounded-[10px] border border-[var(--border)] p-1">
                     {[{ id: "signin", label: t("phrases.Sign in") }, { id: "signup", label: t("phrases.Create account") }].map(({ id, label }) => (
-                      <button key={id} type="button" onClick={() => switchAuthMode(id)} className="relative z-10 flex-1 rounded-xl py-2.5 text-sm font-bold">
-                        <span className={`transition-colors ${authMode === id ? "text-slate-950 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"}`}>{label}</span>
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => switchAuthMode(id)}
+                        className={`rounded-[7px] px-4 py-1.5 text-sm font-semibold transition-colors ${authMode === id ? "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)] hover:text-[var(--ink)]"}`}
+                      >
+                        {label}
                       </button>
                     ))}
                   </div>
-                  )}
+                )}
 
-                  {authMode === "reset" && (
-                    <button
-                      type="button"
-                      onClick={() => switchAuthMode("signin")}
-                      className="mb-6 flex items-center gap-1.5 text-sm font-semibold text-slate-400 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m15 18-6-6 6-6" />
-                      </svg>
-                      Back to sign in
-                    </button>
-                  )}
+                {authMode === "reset" && (
+                  <button type="button" onClick={() => switchAuthMode("signin")} className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--ink)]">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                    Back to sign in
+                  </button>
+                )}
 
-                  {/* Keyed remount (no AnimatePresence): exit transitions on this
-                      block fail to swap when the re-render comes from a router
-                      store update (framer-motion 12 + React 19), leaving stale
-                      form content on a conversion-critical screen. */}
-                  <motion.div key={authMode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                      <div className="mb-6">
-                        <h2 className="text-2xl font-black text-slate-950 dark:text-slate-50">{authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account"}</h2>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{authMode === "signin" ? "Return to your structured application tracker." : authMode === "reset" ? "Enter your email and we'll send you a link to choose a new password." : "Start with one record. Grow it into your full tracker."}</p>
-                      </div>
+                <motion.div key={authMode} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+                  <div className="mb-7">
+                    <h2 className="font-display text-[1.9rem] leading-tight tracking-[-0.01em] text-[var(--text-strong)]">{heading}</h2>
+                    <p className="mt-1.5 text-[15px] text-[var(--text-muted)]">{subheading}</p>
+                  </div>
 
-                      {authMode !== "reset" && (
-                      <div className="mb-5 space-y-3">
-                        <button
-                          type="button"
-                          onClick={signInWithGoogle}
-                          disabled={authLoading || oauthLoading}
-                          className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
-                        >
-                          {oauthLoading ? (
-                            <>
-                              <svg className="h-4 w-4 animate-spin text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
-                              </svg>
-                              Connecting to Google...
-                            </>
-                          ) : (
-                            <>
-                              <GoogleMark />
-                              {t("phrases.Continue with Google")}
-                            </>
-                          )}
-                        </button>
-                        <p className="text-center text-[11px] leading-5 text-slate-400 dark:text-slate-500">
-                          By continuing, you agree to Applume's{" "}
-                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-bold text-emerald-600 hover:underline">
-                            Privacy Policy
-                          </a>
-                          .
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">or use email</span>
-                          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
-                        </div>
-                      </div>
-                      )}
-
-                      <div className="space-y-4">
-                        {/* Email field */}
-                        <div className="grid gap-1.5">
-                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("phrases.Email")}</label>
-                          <input
-                            value={authEmail}
-                            onChange={(e) => { setAuthEmail(e.target.value); setFieldErrors((f) => ({ ...f, email: "" })); setAuthError(""); }}
-                            onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
-                            type="email"
-                            placeholder="you@example.com"
-                            autoComplete="email"
-                            className={`h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-600 ${fieldErrors.email ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-700 dark:focus:ring-rose-900/40" : "border-slate-200 focus:border-emerald-300 focus:ring-emerald-50 dark:border-slate-600 dark:focus:border-emerald-600 dark:focus:ring-emerald-900/30"}`}
-                          />
-                          <AnimatePresence>
-                            {fieldErrors.email && (
-                              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                                <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.email}
-                              </motion.p>
-                            )}
-                          </AnimatePresence>
-                        </div>
-
-                        {/* Password field */}
-                        {authMode !== "reset" && (
-                        <div className="grid gap-1.5">
-                          <label className="text-sm font-bold text-slate-700 dark:text-slate-200">{t("phrases.Password")}</label>
-                          <div className="relative">
-                            <input
-                              value={authPassword}
-                              onChange={(e) => { setAuthPassword(e.target.value); setFieldErrors((f) => ({ ...f, password: "" })); setAuthError(""); }}
-                              onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
-                              type={showPassword ? "text" : "password"}
-                              placeholder={authMode === "signup" ? "Min. 6 characters" : "Enter your password"}
-                              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
-                              className={`h-12 w-full rounded-2xl border bg-slate-50 px-4 pr-12 text-sm outline-none transition-all duration-150 focus:bg-white focus:ring-4 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-600 ${fieldErrors.password ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-700 dark:focus:ring-rose-900/40" : "border-slate-200 focus:border-emerald-300 focus:ring-emerald-50 dark:border-slate-600 dark:focus:border-emerald-600 dark:focus:ring-emerald-900/30"}`}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword((s) => !s)}
-                              className="absolute right-3.5 top-3.5 text-slate-400 transition hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
-                              tabIndex={-1}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
-                            >
-                              <Icon name={showPassword ? "eyeOff" : "eye"} className="h-4 w-4" />
-                            </button>
-                          </div>
-                          <AnimatePresence>
-                            {fieldErrors.password && (
-                              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                                <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.password}
-                              </motion.p>
-                            )}
-                          </AnimatePresence>
-                          {authMode === "signup" && authPassword.length > 0 && !fieldErrors.password && (
-                            <PasswordStrength password={authPassword} />
-                          )}
-                          {authMode === "signin" && (
-                            <button
-                              type="button"
-                              onClick={() => switchAuthMode("reset")}
-                              className="justify-self-end text-xs font-bold text-emerald-600 hover:underline dark:text-emerald-400"
-                            >
-                              Forgot password?
-                            </button>
-                          )}
-                        </div>
+                  {authMode !== "reset" && (
+                    <div className="mb-6 space-y-3">
+                      <button
+                        type="button"
+                        onClick={signInWithGoogle}
+                        disabled={authLoading || oauthLoading}
+                        className="flex h-12 w-full items-center justify-center gap-3 rounded-[10px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-4 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-60"
+                      >
+                        {oauthLoading ? (
+                          <>
+                            <svg className="h-4 w-4 animate-spin text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
+                            Connecting to Google...
+                          </>
+                        ) : (
+                          <><GoogleMark />{t("phrases.Continue with Google")}</>
                         )}
+                      </button>
+                      <div className="flex items-center gap-3">
+                        <div className="h-px flex-1 bg-[var(--border)]" />
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">or use email</span>
+                        <div className="h-px flex-1 bg-[var(--border)]" />
+                      </div>
+                    </div>
+                  )}
 
-                        {/* General auth error */}
+                  <div className="space-y-4">
+                    {/* Email */}
+                    <div className="grid gap-1.5">
+                      <label className="text-[13px] font-semibold text-[var(--text-muted)]">{t("phrases.Email")}</label>
+                      <input
+                        value={authEmail}
+                        onChange={(e) => { setAuthEmail(e.target.value); setFieldErrors((f) => ({ ...f, email: "" })); setAuthError(""); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        className={`${inputBase} ${fieldErrors.email ? inputErr : inputOk}`}
+                      />
+                      <AnimatePresence>
+                        {fieldErrors.email && (
+                          <motion.p role="alert" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-medium text-[var(--danger)]">
+                            <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.email}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Password */}
+                    {authMode !== "reset" && (
+                      <div className="grid gap-1.5">
+                        <label className="text-[13px] font-semibold text-[var(--text-muted)]">{t("phrases.Password")}</label>
+                        <div className="relative">
+                          <input
+                            value={authPassword}
+                            onChange={(e) => { setAuthPassword(e.target.value); setFieldErrors((f) => ({ ...f, password: "" })); setAuthError(""); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
+                            type={showPassword ? "text" : "password"}
+                            placeholder={authMode === "signup" ? "Min. 6 characters" : "Enter your password"}
+                            autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+                            className={`${inputBase} pr-12 ${fieldErrors.password ? inputErr : inputOk}`}
+                          />
+                          <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute right-3.5 top-3.5 text-[var(--text-soft)] transition-colors hover:text-[var(--ink)]" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"}>
+                            <Icon name={showPassword ? "eyeOff" : "eye"} className="h-4 w-4" />
+                          </button>
+                        </div>
                         <AnimatePresence>
-                          {authError && (
-                            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-800 dark:bg-rose-900/30">
-                              <Icon name="close" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500" />
-                              <div>
-                                <p className="text-sm font-semibold text-rose-700 dark:text-rose-400">{authError}</p>
-                                {authError.includes("already exists") && (
-                                  <button type="button" onClick={() => switchAuthMode("signin")} className="mt-1 text-xs font-bold text-rose-600 underline underline-offset-2 hover:no-underline dark:text-rose-400">
-                                    Sign in instead
-                                  </button>
-                                )}
-                                {authError.includes("confirm your email") && (
-                                  <p className="mt-1 text-xs text-rose-500 dark:text-rose-400">Check your spam folder if you can't find it.</p>
-                                )}
-                              </div>
-                            </motion.div>
+                          {fieldErrors.password && (
+                            <motion.p role="alert" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }} className="flex items-center gap-1.5 text-xs font-medium text-[var(--danger)]">
+                              <Icon name="close" className="h-3 w-3 shrink-0" />{fieldErrors.password}
+                            </motion.p>
                           )}
                         </AnimatePresence>
-
-                        {/* Privacy consent checkbox - signup only */}
-                        {authMode === "signup" && (
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              required
-                              checked={agreedToPrivacy}
-                              onChange={(e) => setAgreedToPrivacy(e.target.checked)}
-                              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-emerald-600"
-                            />
-                            <span className="text-sm text-slate-600">
-                              I agree to the{" "}
-                              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-600 hover:underline">
-                                Privacy Policy
-                              </a>
-                              . I understand my data is stored securely and I can delete it at any time.
-                            </span>
-                          </label>
+                        {authMode === "signup" && authPassword.length > 0 && !fieldErrors.password && (
+                          <PasswordStrength password={authPassword} />
                         )}
+                        {authMode === "signin" && (
+                          <button type="button" onClick={() => switchAuthMode("reset")} className="justify-self-end text-xs font-semibold text-[var(--applume-accent-hover)] hover:underline">
+                            Forgot password?
+                          </button>
+                        )}
+                      </div>
+                    )}
 
-                        {/* Submit button */}
-                        <Button
-                          onClick={handleAuthSubmit}
-                          disabled={authLoading || oauthLoading || (authMode === "signup" && !agreedToPrivacy)}
-                          className="h-12 w-full rounded-2xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-                        >
-                          {authLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
-                              </svg>
-                              {authMode === "signin" ? "Signing in..." : authMode === "reset" ? "Sending link..." : "Creating account..."}
-                            </span>
-                          ) : authMode === "signin" ? t("phrases.Sign in") : authMode === "reset" ? "Send reset link" : t("phrases.Create account")}
-                        </Button>
-                      </div>
-                    </motion.div>
+                    {/* General error */}
+                    <AnimatePresence>
+                      {authError && (
+                        <motion.div role="alert" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="flex items-start gap-2.5 rounded-[10px] border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-[var(--danger-soft)] px-4 py-3">
+                          <Icon name="close" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--danger)]" />
+                          <div>
+                            <p className="text-sm font-medium text-[var(--danger)]">{authError}</p>
+                            {authError.includes("already exists") && (
+                              <button type="button" onClick={() => switchAuthMode("signin")} className="mt-1 text-xs font-semibold text-[var(--danger)] underline underline-offset-2 hover:no-underline">Sign in instead</button>
+                            )}
+                            {authError.includes("confirm your email") && (
+                              <p className="mt-1 text-xs text-[var(--danger)]">Check your spam folder if you can't find it.</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                  <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-900/20">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-emerald-100 dark:bg-emerald-800/60">
-                        <Icon name="check" className="h-3.5 w-3.5 text-emerald-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-emerald-900 dark:text-emerald-300">Your data stays private</p>
-                        <p className="mt-1 text-xs leading-5 text-emerald-800/80 dark:text-emerald-400/70">Your applications are private to your account. Export or delete your data anytime — nothing is visible to anyone else unless you share a tracker link yourself.</p>
-                      </div>
+                    {/* Privacy consent — signup only */}
+                    {authMode === "signup" && (
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          required
+                          checked={agreedToPrivacy}
+                          onChange={(e) => setAgreedToPrivacy(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border-strong)] accent-[var(--applume-accent)]"
+                        />
+                        <span className="text-[13px] leading-6 text-[var(--text-muted)]">
+                          I agree to the{" "}
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--applume-accent-hover)] hover:underline">Privacy Policy</a>
+                          . My data is stored securely and I can delete it at any time.
+                        </span>
+                      </label>
+                    )}
+
+                    {/* Submit */}
+                    <button
+                      type="button"
+                      onClick={handleAuthSubmit}
+                      disabled={authLoading || oauthLoading || (authMode === "signup" && !agreedToPrivacy)}
+                      className="h-12 w-full rounded-[10px] bg-[var(--applume-accent-strong)] text-sm font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)] disabled:opacity-50 disabled:hover:bg-[var(--applume-accent-strong)]"
+                    >
+                      {authLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
+                          {authMode === "signin" ? "Signing in..." : authMode === "reset" ? "Sending link..." : "Creating account..."}
+                        </span>
+                      ) : authMode === "signin" ? t("phrases.Sign in") : authMode === "reset" ? "Send reset link" : t("phrases.Create account")}
+                    </button>
+
+                    {authMode !== "reset" && (
+                      <p className="text-center text-[11px] leading-5 text-[var(--text-soft)]">
+                        By continuing you agree to Applume's{" "}
+                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[var(--applume-accent-hover)] hover:underline">Privacy Policy</a>.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* privacy reassurance */}
+                  <div className="mt-7 flex items-start gap-3 border-t border-[var(--border)] pt-6">
+                    <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><Icon name="shield" className="h-3.5 w-3.5" /></span>
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--ink)]">Your data stays private</p>
+                      <p className="mt-0.5 text-[13px] leading-6 text-[var(--text-muted)]">Applications are private to your account. Export or delete anytime — nothing is visible to anyone else unless you share a link yourself.</p>
                     </div>
                   </div>
                 </motion.div>
-              )}
-          </motion.div>
+              </div>
+            )}
+          </div>
 
+          <footer className="mt-8 flex flex-col items-center gap-2 border-t border-[var(--border)] pt-6 text-center text-xs text-[var(--text-soft)] sm:flex-row sm:justify-between">
+            <p>© {new Date().getFullYear()} Applume</p>
+            <p className="flex items-center gap-3">
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[var(--ink)]">Privacy</a>
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[var(--ink)]">Terms</a>
+              <a href="mailto:hello@applume.app" className="transition-colors hover:text-[var(--ink)]">Contact</a>
+            </p>
+          </footer>
         </div>
-
-        <LandingFooter />
       </div>
     </div>
   );
