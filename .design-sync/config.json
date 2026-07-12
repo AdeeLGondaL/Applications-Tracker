@@ -1,0 +1,28 @@
+{
+  "pkg": "applume",
+  "globalName": "Applume",
+  "projectId": "86e551bc-52c9-4ad5-90b0-74aea0ae54de",
+  "shape": "package",
+  "buildCmd": "npm run build",
+  "srcDir": "src/components",
+  "tsconfig": ".design-sync/tsconfig.json",
+  "cssEntry": "dist/assets/index-WYtf0rn-.css",
+  "extraEntries": ["./src/i18n/index.js", "./.design-sync/motion-static.js"],
+  "provider": { "component": "LanguageProvider" },
+  "readmeHeader": ".design-sync/conventions.md",
+  "overrides": {
+    "ApplicationTable": { "cardMode": "column" },
+    "ApplicationGrid": { "cardMode": "column" },
+    "Metric": { "cardMode": "column" },
+    "Icon": { "cardMode": "column" },
+    "Toolbar": { "cardMode": "column" },
+    "FocusThisWeek": { "cardMode": "column" },
+    "OnboardingChecklist": { "cardMode": "column" },
+    "PipelineCard": { "cardMode": "column" },
+    "KanbanBoard": { "cardMode": "single", "viewport": "960x560" },
+    "BulkActionBar": { "cardMode": "single", "viewport": "820x220" },
+    "ApplicationDrawer": { "cardMode": "single", "viewport": "940x720" },
+    "ImportCsvModal": { "cardMode": "single", "viewport": "860x700" },
+    "OnboardingWizard": { "cardMode": "single", "viewport": "960x640" }
+  }
+}
