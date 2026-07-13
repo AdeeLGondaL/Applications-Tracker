@@ -532,17 +532,8 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
         {/* ── University & jobs vocabulary switch ───────────────────────── */}
         <section className="border-t border-[var(--border)]">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-            <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+            <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
               <Reveal>
-                <SectionLabel index="04">One system, two worlds</SectionLabel>
-                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
-                  University and jobs, in the same calm structure.
-                </h2>
-                <p className="mt-6 max-w-md text-[15px] leading-7 text-[var(--text-muted)]">
-                  The structure never changes — only the words do. Switch a record between a university application and a job application and the labels follow.
-                </p>
-              </Reveal>
-              <Reveal delay={0.06}>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-4 text-sm">
                   <div className="pb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--applume-accent-hover)]">University</div>
                   <div />
@@ -555,6 +546,15 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
                     </div>
                   ))}
                 </div>
+              </Reveal>
+              <Reveal delay={0.06} className="lg:pl-4">
+                <SectionLabel index="04">One system, two worlds</SectionLabel>
+                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
+                  University and jobs, in the same calm structure.
+                </h2>
+                <p className="mt-6 max-w-md text-[15px] leading-7 text-[var(--text-muted)]">
+                  The structure never changes — only the words do. Switch a record between a university application and a job application and the labels follow.
+                </p>
               </Reveal>
             </div>
           </div>
@@ -583,10 +583,10 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
         </section>
 
         {/* ── Closing CTA ──────────────────────────────────────────────── */}
-        <section className="border-t border-[var(--border)]">
+        <section className="border-t border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]">
           <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6 sm:py-32">
             <Reveal>
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-[12px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><PaperPlane className="h-6 w-6" /></div>
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-[12px] bg-[var(--surface-card)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)]"><PaperPlane className="h-6 w-6" /></div>
               <h2 className="font-display mx-auto mt-8 max-w-3xl text-[clamp(2.2rem,5vw,3.75rem)] leading-[1.04] tracking-[-0.02em]">
                 Your applications deserve more than another abandoned spreadsheet.
               </h2>
@@ -609,10 +609,22 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
 function Footer() {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.origin : "https://applume.app";
+  const shareText = "Every application. One calm place. — Applume";
+  const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
 
   function handleCopy() {
     navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
   }
+  function handleNativeShare() {
+    navigator.share({ title: "Applume", text: shareText, url }).catch(() => {});
+  }
+
+  const socials = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${url}`)}` },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+    { label: "X / Twitter", href: `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}` },
+  ];
+  const pill = "inline-flex items-center gap-1.5 rounded-[9px] border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:border-[var(--applume-accent-border)] hover:text-[var(--ink)]";
 
   const heading = "text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]";
   const link = "text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--ink)]";
@@ -624,9 +636,20 @@ function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-6 text-[var(--text-muted)]">One calm workspace for university and job applications — deadlines, documents, notes and next steps included.</p>
-            <button type="button" onClick={handleCopy} className="mt-5 inline-flex items-center gap-2 rounded-[9px] border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:border-[var(--applume-accent-border)] hover:text-[var(--ink)]">
-              <Icon name={copied ? "check" : "link"} className="h-3.5 w-3.5" /> {copied ? "Link copied" : "Copy link to share"}
-            </button>
+            <p className="mt-6 text-sm font-semibold text-[var(--ink)]">Know someone still stuck in a spreadsheet?</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {canNativeShare && (
+                <button type="button" onClick={handleNativeShare} className={pill}>
+                  <Icon name="share" className="h-3.5 w-3.5" /> Share
+                </button>
+              )}
+              <button type="button" onClick={handleCopy} className={pill}>
+                <Icon name={copied ? "check" : "copy"} className="h-3.5 w-3.5" /> {copied ? "Link copied" : "Copy link"}
+              </button>
+              {socials.map(({ label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={pill}>{label}</a>
+              ))}
+            </div>
           </div>
           <div>
             <p className={heading}>Guides</p>
