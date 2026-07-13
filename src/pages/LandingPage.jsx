@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
@@ -263,54 +263,6 @@ function ProductDemo() {
   );
 }
 
-/* ── Hero paper-plane flight path (hero-scoped, pinned on scroll) ────────── */
-// Sweeping loop: starts by the headline, swings down-right, loops around the
-// demo on the right, crosses back, then tails down — the shape drawn in review.
-const HERO_PATH = "M 150 300 C 300 210, 470 220, 600 285 C 690 330, 700 350, 720 360 C 830 190, 1080 165, 1220 320 C 1300 410, 1120 500, 950 462 C 800 428, 742 388, 720 360 C 675 460, 520 640, 380 770";
-const HERO_VB = { w: 1320, h: 820 };
-
-function HeroPlane({ progress }) {
-  const pathRef = useRef(null);
-  const [len, setLen] = useState(0);
-  const [pt, setPt] = useState(null); // { xPct, yPct, a }
-  const [drawn, setDrawn] = useState(0);
-
-  useEffect(() => {
-    if (pathRef.current) setLen(pathRef.current.getTotalLength());
-  }, []);
-
-  useEffect(() => {
-    if (!pathRef.current || !len) return undefined;
-    const el = pathRef.current;
-    const update = (pRaw) => {
-      const p = Math.min(Math.max(pRaw, 0), 1);
-      const at = el.getPointAtLength(len * Math.min(Math.max(p, 0.0001), 0.9999));
-      const ahead = el.getPointAtLength(len * Math.min(p + 0.01, 1));
-      const a = (Math.atan2(ahead.y - at.y, ahead.x - at.x) * 180) / Math.PI;
-      setPt({ xPct: (at.x / HERO_VB.w) * 100, yPct: (at.y / HERO_VB.h) * 100, a });
-      setDrawn(p);
-    };
-    update(progress.get());
-    return progress.on("change", update);
-  }, [len, progress]);
-
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-20 hidden lg:block">
-      {/* dotted route — lines stretch cleanly with the container */}
-      <svg viewBox={`0 0 ${HERO_VB.w} ${HERO_VB.h}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        <path ref={pathRef} d={HERO_PATH} fill="none" stroke="var(--border-strong)" strokeWidth="1.6" strokeDasharray="2 9" strokeLinecap="round" opacity="0.5" vectorEffect="non-scaling-stroke" />
-        <path d={HERO_PATH} fill="none" stroke="var(--applume-accent)" strokeWidth="2" strokeDasharray={`${len * drawn} ${len}`} strokeLinecap="round" opacity="0.65" vectorEffect="non-scaling-stroke" />
-      </svg>
-      {/* undistorted plane, positioned in % of the container */}
-      {pt && (
-        <div className="absolute" style={{ left: `${pt.xPct}%`, top: `${pt.yPct}%`, transform: `translate(-50%,-50%) rotate(${pt.a}deg)` }}>
-          <PaperPlane className="h-6 w-6" style={{ color: "var(--applume-accent)" }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function HeroContent({ onGetStarted }) {
   return (
     <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12 xl:gap-16">
@@ -340,30 +292,10 @@ function HeroContent({ onGetStarted }) {
 }
 
 function Hero({ onGetStarted }) {
-  const reduce = useReducedMotion();
-  const wrapRef = useRef(null);
-  const { scrollYProgress } = useScroll({ target: wrapRef, offset: ["start start", "end end"] });
-  const planeProgress = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.4 });
-
-  // Mobile / reduced-motion: no pin, no moving plane.
-  if (reduce) {
-    return <section className="px-0 pb-12 pt-16 sm:pt-24">{<HeroContent onGetStarted={onGetStarted} />}</section>;
-  }
-
   return (
-    <>
-      {/* Mobile hero (no pin) */}
-      <section className="pb-10 pt-16 sm:pt-20 lg:hidden"><HeroContent onGetStarted={onGetStarted} /></section>
-
-      {/* Desktop pinned hero: the plane flies its path as you scroll this
-          region; once it completes, the page scrolls on to the next section. */}
-      <section ref={wrapRef} className="relative hidden lg:block lg:h-[175vh]">
-        <div className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center overflow-hidden">
-          <HeroPlane progress={planeProgress} />
-          <HeroContent onGetStarted={onGetStarted} />
-        </div>
-      </section>
-    </>
+    <section className="pb-16 pt-16 sm:pt-24">
+      <HeroContent onGetStarted={onGetStarted} />
+    </section>
   );
 }
 
@@ -378,6 +310,129 @@ function FaqItem({ q, a }) {
       </button>
       {open && <p className="max-w-2xl pb-5 text-[15px] leading-7 text-[var(--text-muted)]">{a}</p>}
     </div>
+  );
+}
+
+/* ── Spreadsheet → record morph ─────────────────────────────────────────
+   On desktop the section pins and the spreadsheet card cross-morphs into the
+   Applume record, scrubbed by scroll progress — so it plays forward as you
+   scroll down and reverses as you scroll back up, then releases when done. */
+const sheetCard = (
+  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-6 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.3)]">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">A spreadsheet row</p>
+    <div className="mt-4 overflow-x-auto">
+      <table className="w-full text-left text-[13px] text-[var(--text-muted)]">
+        <thead className="text-[11px] uppercase tracking-[0.1em] text-[var(--text-soft)]">
+          <tr className="border-b border-[var(--border)]"><th className="py-2 pr-3 font-semibold">Name</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 font-semibold">Date</th></tr>
+        </thead>
+        <tbody>
+          <tr className="border-b border-[var(--border)]"><td className="py-2 pr-3">TU Munich</td><td className="py-2 pr-3">applying?</td><td className="py-2">15/6</td></tr>
+          <tr className="border-b border-[var(--border)]"><td className="py-2 pr-3">SAP intern</td><td className="py-2 pr-3">sent</td><td className="py-2">—</td></tr>
+          <tr><td className="py-2 pr-3">Zalando</td><td className="py-2 pr-3">todo</td><td className="py-2">?</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p className="mt-4 text-[13px] leading-6 text-[var(--text-soft)]">Documents, links, notes and next steps don't fit — so they end up in other tabs, emails and your memory.</p>
+  </div>
+);
+
+const recordCard = (
+  <div className="rounded-[var(--radius-lg)] border border-[var(--applume-accent-border)] bg-[var(--surface-card)] p-6 shadow-[0_18px_50px_-30px_rgba(0,153,102,0.55)]">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--applume-accent-hover)]">An Applume record</p>
+    <p className="mt-4 text-base font-semibold text-[var(--ink)]">TU Munich · M.Sc. Computer Science</p>
+    <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+      <span className={`rounded-full border px-2 py-0.5 font-semibold ${toneStyles.warning}`}>Deadline 15 Jun · 9 days</span>
+      <span className={`rounded-full border px-2 py-0.5 font-semibold ${toneStyles.neutral}`}>Next: upload transcript</span>
+    </div>
+    <ul className="mt-4 grid gap-1.5 text-sm">
+      {[["Curriculum vitae", true], ["Transcript", false], ["Motivation letter", true], ["Portal link saved", true]].map(([l, d]) => (
+        <li key={l} className="flex items-center gap-2.5">
+          <span className={`grid h-4 w-4 place-items-center rounded-[5px] border ${d ? "border-[var(--applume-accent)] bg-[var(--applume-accent)] text-white" : "border-[var(--border-strong)] text-transparent"}`}><Icon name="check" className="h-2.5 w-2.5" /></span>
+          <span className={d ? "text-[var(--ink)]" : "text-[var(--text-muted)]"}>{l}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+const morphHeading = (
+  <>
+    <SectionLabel index="01">From row to record</SectionLabel>
+    <h2 className="font-display mt-6 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
+      A spreadsheet remembers the row.<br />
+      <span className="text-[var(--applume-accent)]">Applume remembers the application.</span>
+    </h2>
+  </>
+);
+
+function SpreadsheetMorph() {
+  const reduce = useReducedMotion();
+  const wrapRef = useRef(null);
+  // Deterministic progress: 0 when the pin region's top reaches the viewport
+  // top, 1 after it has scrolled its full pinnable distance. Updates on scroll
+  // so it plays forward on the way down and reverses on the way up.
+  const p = useMotionValue(0);
+  useEffect(() => {
+    if (reduce) return undefined;
+    const el = wrapRef.current;
+    if (!el) return undefined;
+    const onScroll = () => {
+      const pinLen = el.offsetHeight - window.innerHeight;
+      const prog = pinLen > 0 ? Math.min(Math.max(-el.getBoundingClientRect().top / pinLen, 0), 1) : 0;
+      p.set(prog);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [reduce, p]);
+
+  const sheetO = useTransform(p, [0.05, 0.46], [1, 0]);
+  const sheetY = useTransform(p, [0.05, 0.46], [0, -30]);
+  const sheetS = useTransform(p, [0.05, 0.46], [1, 0.94]);
+  const recO = useTransform(p, [0.4, 0.8], [0, 1]);
+  const recY = useTransform(p, [0.4, 0.8], [46, 0]);
+  const recS = useTransform(p, [0.4, 0.8], [0.94, 1]);
+  const arrowO = useTransform(p, [0.24, 0.4, 0.56], [0, 0.9, 0]);
+
+  if (reduce) {
+    return (
+      <section id="why-applume" className="border-t border-[var(--border)]">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          {morphHeading}
+          <div className="mt-12 grid gap-4 lg:grid-cols-2">{sheetCard}{recordCard}</div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section id="why-applume" className="border-t border-[var(--border)]">
+      {/* mobile: static stack (no pin) */}
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:hidden">
+        {morphHeading}
+        <div className="mt-10 grid gap-4">{sheetCard}{recordCard}</div>
+      </div>
+
+      {/* desktop: pinned, scroll-scrubbed morph */}
+      <div ref={wrapRef} className="relative hidden lg:block lg:h-[200vh]">
+        <div className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center">
+          <div className="mx-auto w-full max-w-6xl px-6">
+            {morphHeading}
+            <div className="relative mx-auto mt-10 h-[360px] max-w-xl">
+              <motion.div style={{ opacity: sheetO, y: sheetY, scale: sheetS }} className="absolute inset-x-0 top-0">{sheetCard}</motion.div>
+              <motion.div aria-hidden style={{ opacity: arrowO }} className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                <span className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[var(--surface-card)] text-[var(--applume-accent)] shadow-sm"><Icon name="download" className="h-4 w-4 rotate-[-90deg]" /></span>
+              </motion.div>
+              <motion.div style={{ opacity: recO, y: recY, scale: recS }} className="absolute inset-x-0 top-0">{recordCard}</motion.div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -420,58 +475,8 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
       <main id="main">
         <Hero onGetStarted={onGetStarted} />
 
-        {/* ── Spreadsheet transformation ───────────────────────────────── */}
-        <section id="why-applume" className="border-t border-[var(--border)]">
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-            <Reveal>
-              <SectionLabel index="01">From row to record</SectionLabel>
-              <h2 className="font-display mt-6 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)] leading-[1.06] tracking-[-0.015em]">
-                A spreadsheet remembers the row.<br />
-                <span className="text-[var(--applume-accent)]">Applume remembers the application.</span>
-              </h2>
-            </Reveal>
-
-            <div className="mt-12 grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr]">
-              <Reveal className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">A spreadsheet row</p>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-left text-[13px] text-[var(--text-muted)]">
-                    <thead className="text-[11px] uppercase tracking-[0.1em] text-[var(--text-soft)]">
-                      <tr className="border-b border-[var(--border)]"><th className="py-2 pr-3 font-semibold">Name</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 font-semibold">Date</th></tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-[var(--border)]"><td className="py-2 pr-3">TU Munich</td><td className="py-2 pr-3">applying?</td><td className="py-2">15/6</td></tr>
-                      <tr className="border-b border-[var(--border)]"><td className="py-2 pr-3">SAP intern</td><td className="py-2 pr-3">sent</td><td className="py-2">—</td></tr>
-                      <tr><td className="py-2 pr-3">Zalando</td><td className="py-2 pr-3">todo</td><td className="py-2">?</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p className="mt-4 text-[13px] leading-6 text-[var(--text-soft)]">Documents, links, notes and next steps don't fit — so they end up in other tabs, emails and your memory.</p>
-              </Reveal>
-
-              <div className="hidden items-center justify-center lg:flex">
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] text-[var(--applume-accent)]"><Icon name="download" className="h-4 w-4 rotate-[-90deg]" /></span>
-              </div>
-
-              <Reveal delay={0.06} className="rounded-[var(--radius-lg)] border border-[var(--applume-accent-border)] bg-[var(--surface-card)] p-6 shadow-[0_18px_50px_-34px_rgba(0,153,102,0.5)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--applume-accent-hover)]">An Applume record</p>
-                <p className="mt-4 text-base font-semibold text-[var(--ink)]">TU Munich · M.Sc. Computer Science</p>
-                <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                  <span className={`rounded-full border px-2 py-0.5 font-semibold ${toneStyles.warning}`}>Deadline 15 Jun · 9 days</span>
-                  <span className={`rounded-full border px-2 py-0.5 font-semibold ${toneStyles.neutral}`}>Next: upload transcript</span>
-                </div>
-                <ul className="mt-4 grid gap-1.5 text-sm">
-                  {[["Curriculum vitae", true], ["Transcript", false], ["Motivation letter", true], ["Portal link saved", true]].map(([l, d]) => (
-                    <li key={l} className="flex items-center gap-2.5">
-                      <span className={`grid h-4 w-4 place-items-center rounded-[5px] border ${d ? "border-[var(--applume-accent)] bg-[var(--applume-accent)] text-white" : "border-[var(--border-strong)] text-transparent"}`}><Icon name="check" className="h-2.5 w-2.5" /></span>
-                      <span className={d ? "text-[var(--ink)]" : "text-[var(--text-muted)]"}>{l}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            </div>
-          </div>
-        </section>
+        {/* ── Spreadsheet → record morph (scroll-scrubbed) ─────────────── */}
+        <SpreadsheetMorph />
 
         {/* ── Opportunity import flow ──────────────────────────────────── */}
         <section id="how-it-works" className="border-t border-[var(--border)]">
