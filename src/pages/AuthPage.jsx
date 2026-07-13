@@ -184,11 +184,13 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
 
   return (
     <div className="min-h-dvh bg-[var(--surface)] text-[var(--ink)]">
-      <div className="mx-auto grid min-h-dvh max-w-6xl grid-cols-1 lg:grid-cols-2 lg:items-start">
+      {/* Full-width 50/50 split so the left panel's surface bleeds to the
+          screen's left edge and meets the center. */}
+      <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-2 lg:items-start">
 
         {/* ── Left editorial brand panel — fixed height so it never shifts
             when the form grows/shrinks between sign in and create account ─ */}
-        <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-12 lg:order-1 lg:flex lg:sticky lg:top-0 lg:h-dvh xl:px-14">
+        <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-10 lg:order-1 lg:flex lg:sticky lg:top-0 lg:h-dvh xl:px-16">
           {/* subtle plane motif */}
           {!reduce && (
             <motion.div
@@ -204,18 +206,18 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
           )}
           <a href="/" className="relative w-fit"><Logo imgClass="h-9 w-9" wordmarkClass="text-lg" /></a>
 
-          <div className="relative">
+          <div className="relative max-w-md">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-soft)]">Spreadsheet, rebuilt as a workspace</p>
-            <h1 className="font-display mt-5 max-w-md text-[clamp(2.2rem,3.4vw,3.1rem)] leading-[1.05] tracking-[-0.015em] text-[var(--text-strong)]">
+            <h1 className="font-display mt-4 text-[clamp(1.9rem,2.8vw,2.7rem)] leading-[1.06] tracking-[-0.015em] text-[var(--text-strong)]">
               Your applications, out of the spreadsheet.
             </h1>
-            <p className="mt-5 max-w-sm text-[15px] leading-7 text-[var(--text-muted)]">
-              University and job applications with deadlines, statuses, links, documents, notes and next steps — attached to each record.
+            <p className="mt-4 text-[15px] leading-7 text-[var(--text-muted)]">
+              Deadlines, statuses, links, documents and next steps — attached to each record.
             </p>
-            <ul className="mt-8 max-w-sm">
-              {points.map(([title, desc]) => (
-                <li key={title} className="grid grid-cols-[auto_1fr] gap-x-3 border-t border-[var(--border)] py-3.5">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[var(--applume-accent)]" />
+            <ul className="mt-6">
+              {points.slice(0, 3).map(([title, desc]) => (
+                <li key={title} className="grid grid-cols-[auto_1fr] gap-x-3 border-t border-[var(--border)] py-3">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--applume-accent)]" />
                   <span>
                     <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
                     <span className="block text-[13px] leading-6 text-[var(--text-muted)]">{desc}</span>
@@ -262,7 +264,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
               <div>
                 {/* mode switch */}
                 {authMode !== "reset" && (
-                  <div className="mb-8 inline-flex rounded-[10px] border border-[var(--border)] p-1">
+                  <div className="mb-8 mx-auto flex w-fit rounded-[10px] border border-[var(--border)] p-1 lg:mx-0">
                     {[{ id: "signin", label: t("phrases.Sign in") }, { id: "signup", label: t("phrases.Create account") }].map(({ id, label }) => (
                       <button
                         key={id}
@@ -284,7 +286,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                 )}
 
                 <motion.div key={authMode} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-                  <div className="mb-7">
+                  <div className="mb-7 text-center lg:text-left">
                     <h2 className="font-display text-[1.9rem] leading-tight tracking-[-0.01em] text-[var(--text-strong)]">{heading}</h2>
                     <p className="mt-1.5 text-[15px] text-[var(--text-muted)]">{subheading}</p>
                   </div>

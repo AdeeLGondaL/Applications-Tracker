@@ -175,9 +175,9 @@ function ProductDemo() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[9.5rem_minmax(0,0.9fr)] xl:grid-cols-[10.5rem_minmax(0,0.85fr)_minmax(0,1.05fr)]">
-        {/* sidebar */}
-        <nav className="hidden flex-col justify-between border-r border-[var(--border)] p-2.5 md:flex">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] xl:grid-cols-[9.5rem_minmax(0,0.82fr)_minmax(0,1.22fr)]">
+        {/* sidebar (xl only — keeps the detail pane roomy at smaller widths) */}
+        <nav className="hidden flex-col justify-between border-r border-[var(--border)] p-2.5 xl:flex">
           <div className="grid gap-0.5">
             <div className="mb-1 px-2 pt-1"><Logo imgClass="h-5 w-5" wordmarkClass="text-[13px]" /></div>
             {sidebarNav.map(([icon, label, on]) => (
@@ -193,7 +193,7 @@ function ProductDemo() {
         </nav>
 
         {/* list */}
-        <div className="border-b border-[var(--border)] xl:border-b-0 xl:border-r">
+        <div className="border-b border-[var(--border)] lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between px-4 pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-soft)]">
             <span>{set.identity}</span><span>{set.records.length}</span>
           </div>
@@ -241,8 +241,8 @@ function ProductDemo() {
             </div>
           </div>
           <div className="mt-4">
-            <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-soft)]">
-              <span>{set.docLabel}</span><span className="tabular-nums">{readyCount}/{active.docs.length} ready</span>
+            <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-soft)]">
+              <span>{set.docLabel}</span><span className="shrink-0 whitespace-nowrap tabular-nums">{readyCount}/{active.docs.length} ready</span>
             </div>
             <ul className="mt-2 grid gap-1.5">
               {active.docs.map(([label, done]) => (
@@ -264,9 +264,10 @@ function ProductDemo() {
 }
 
 /* ── Hero paper-plane flight path (hero-scoped, pinned on scroll) ────────── */
-// Arc kept in the top band so it never crosses the headline, CTAs or the demo body.
-const HERO_PATH = "M 120 150 C 360 58, 620 60, 800 104 S 1050 150, 1155 74";
-const HERO_VB = { w: 1200, h: 760 };
+// Sweeping loop: starts by the headline, swings down-right, loops around the
+// demo on the right, crosses back, then tails down — the shape drawn in review.
+const HERO_PATH = "M 150 300 C 300 210, 470 220, 600 285 C 690 330, 700 350, 720 360 C 830 190, 1080 165, 1220 320 C 1300 410, 1120 500, 950 462 C 800 428, 742 388, 720 360 C 675 460, 520 640, 380 770";
+const HERO_VB = { w: 1320, h: 820 };
 
 function HeroPlane({ progress }) {
   const pathRef = useRef(null);
@@ -312,7 +313,7 @@ function HeroPlane({ progress }) {
 
 function HeroContent({ onGetStarted }) {
   return (
-    <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
+    <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12 xl:gap-16">
       <div className="relative z-10">
         <SectionLabel>Application tracking, reconsidered</SectionLabel>
         <h1 className="font-display mt-6 text-[clamp(2.5rem,5.2vw,4.25rem)] leading-[1.02] tracking-[-0.02em] text-[var(--text-strong)]">
