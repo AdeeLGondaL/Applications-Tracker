@@ -3,7 +3,6 @@ import { motion, useMotionValue, useReducedMotion, useTransform } from "framer-m
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { Logo } from "@/components/brand/Logo";
-import { PaperPlane } from "@/components/brand/PaperPlane";
 import { trackEvent } from "@/utils/analytics";
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -586,7 +585,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
         <section className="border-t border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]">
           <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6 sm:py-32">
             <Reveal>
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-[12px] bg-[var(--surface-card)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)]"><PaperPlane className="h-6 w-6" /></div>
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-[14px] bg-[var(--surface-card)] ring-1 ring-[var(--applume-accent-border)]"><Logo showWordmark={false} imgClass="h-9 w-9" /></div>
               <h2 className="font-display mx-auto mt-8 max-w-3xl text-[clamp(2.2rem,5vw,3.75rem)] leading-[1.04] tracking-[-0.02em]">
                 Your applications deserve more than another abandoned spreadsheet.
               </h2>
