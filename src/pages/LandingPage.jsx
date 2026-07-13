@@ -417,18 +417,20 @@ function SpreadsheetMorph() {
         <div className="mt-10 grid gap-4">{sheetCard}{recordCard}</div>
       </div>
 
-      {/* desktop: pinned, scroll-scrubbed morph */}
+      {/* desktop: pinned, scroll-scrubbed morph — cards left, heading right */}
       <div ref={wrapRef} className="relative hidden lg:block lg:h-[200vh]">
         <div className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center">
-          <div className="mx-auto w-full max-w-6xl px-6">
-            {morphHeading}
-            <div className="relative mx-auto mt-10 h-[360px] max-w-xl">
-              <motion.div style={{ opacity: sheetO, y: sheetY, scale: sheetS }} className="absolute inset-x-0 top-0">{sheetCard}</motion.div>
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-center gap-12 px-6 xl:gap-20">
+            {/* morphing stage (left) */}
+            <div className="relative h-[340px]">
+              <motion.div style={{ opacity: sheetO, y: sheetY, scale: sheetS }} className="absolute inset-x-0 top-0 origin-center">{sheetCard}</motion.div>
               <motion.div aria-hidden style={{ opacity: arrowO }} className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
                 <span className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[var(--surface-card)] text-[var(--applume-accent)] shadow-sm"><Icon name="download" className="h-4 w-4 rotate-[-90deg]" /></span>
               </motion.div>
-              <motion.div style={{ opacity: recO, y: recY, scale: recS }} className="absolute inset-x-0 top-0">{recordCard}</motion.div>
+              <motion.div style={{ opacity: recO, y: recY, scale: recS }} className="absolute inset-x-0 top-0 origin-center">{recordCard}</motion.div>
             </div>
+            {/* heading (right) */}
+            <div>{morphHeading}</div>
           </div>
         </div>
       </div>
