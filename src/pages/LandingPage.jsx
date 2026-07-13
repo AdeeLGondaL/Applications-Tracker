@@ -98,8 +98,9 @@ const coreSystem = [
 
 const faqs = [
   { q: "Does it work for both university and job applications?", a: "Yes. The same structure tracks admissions and job searches — the labels adapt to each (program vs role, transcript vs résumé, admissions portal vs job listing)." },
+  { q: "Can I import my current spreadsheet?", a: "Yes — import a CSV and map your columns to Applume's fields. Your existing rows become structured records you can build on." },
   { q: "Is my data private?", a: "Your applications are private to your account. Nothing is public unless you deliberately share a read-only link." },
-  { q: "Can I get my data out?", a: "Yes — you can export your applications at any time. Your records are yours to keep." },
+  { q: "Can I get my data out?", a: "Yes — export your applications to CSV or JSON at any time. Your records are yours to keep." },
   { q: "Do I need a credit card to start?", a: "No. You can start tracking for free without a credit card." },
 ];
 
@@ -564,16 +565,15 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
             <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
               <Reveal>
-                <SectionLabel index="05">Trust &amp; questions</SectionLabel>
-                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3rem)] leading-[1.06] tracking-[-0.015em]">Yours, and only yours.</h2>
-                <ul className="mt-8 grid gap-4">
-                  {[["shield", "Private to your account", "Nothing is public unless you share a link."], ["download", "Export anytime", "Your records are yours to take with you."], ["check", "No credit card", "Start tracking for free."]].map(([icon, t, c]) => (
-                    <li key={t} className="flex gap-3">
-                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><Icon name={icon} className="h-4 w-4" /></span>
-                      <span><span className="block text-sm font-semibold text-[var(--ink)]">{t}</span><span className="block text-[13px] text-[var(--text-muted)]">{c}</span></span>
-                    </li>
-                  ))}
-                </ul>
+                <SectionLabel index="05">Frequently asked</SectionLabel>
+                <h2 className="font-display mt-6 text-[clamp(2rem,4.2vw,3rem)] leading-[1.06] tracking-[-0.015em]">Questions, answered.</h2>
+                <p className="mt-6 max-w-sm text-[15px] leading-7 text-[var(--text-muted)]">
+                  A few things people ask before moving their applications over.
+                </p>
+                <p className="mt-4 max-w-sm text-[15px] leading-7 text-[var(--text-muted)]">
+                  Anything else on your mind?{" "}
+                  <a href="mailto:hello@applume.app" className="font-medium text-[var(--applume-accent-hover)] hover:underline">Email us</a> — we read every message.
+                </p>
               </Reveal>
               <Reveal delay={0.06}>
                 <div>{faqs.map((f) => <FaqItem key={f.q} {...f} />)}</div>
