@@ -11,6 +11,7 @@ import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist"
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
 import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { DashboardGreeting } from "@/components/dashboard/DashboardGreeting";
+import { SettingsModal } from "@/components/dashboard/SettingsModal";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { RecentActivityPanel } from "@/components/dashboard/OptionalPanels";
@@ -285,9 +286,15 @@ export default function Dashboard({ session }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [sortBy, setSortBy] = useState("deadline");
-  const [viewMode, setViewMode] = useState(() => (
-    typeof window !== "undefined" && window.innerWidth < 768 ? "cards" : "table"
-  ));
+  const DEFAULT_VIEW_KEY = "applume_default_view";
+  const [defaultView, setDefaultView] = useState(() => {
+    try {
+      const stored = localStorage.getItem(DEFAULT_VIEW_KEY);
+      return ["cards", "table", "kanban"].includes(stored) ? stored : "cards";
+    } catch { return "cards"; }
+  });
+  const [viewMode, setViewMode] = useState(defaultView);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarView, setSidebarView] = useState("dashboard");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -458,6 +465,17 @@ export default function Dashboard({ session }) {
     const url = `https://${window.location.host}/share/${session.user.id}`;
     navigator.clipboard.writeText(url);
     notify("Share link copied! Anyone with this link can view your tracker.", "success");
+  }
+
+  function changeDefaultView(view) {
+    if (!["cards", "table", "kanban"].includes(view)) return;
+    try { localStorage.setItem(DEFAULT_VIEW_KEY, view); } catch { /* ignore storage failures */ }
+    setDefaultView(view);
+    setViewMode(view);
+  }
+
+  function setThemeMode(mode) {
+    if ((mode === "dark") !== dark) toggleTheme();
   }
 
   async function signOut() {
@@ -1040,6 +1058,14 @@ export default function Dashboard({ session }) {
                         </div>
                         <button
                           type="button"
+                          onClick={() => { closeProfileMenu(); setSettingsOpen(true); }}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
+                        >
+                          <Icon name="sliders" className="h-3.5 w-3.5 text-[var(--text-muted)]" /> {t("phrases.Settings")}
+                        </button>
+                        <div className="mx-3 my-1 border-t border-[var(--border)]" />
+                        <button
+                          type="button"
                           onClick={() => {
                             closeProfileMenu();
                             copyCalendarUrl();
@@ -1217,6 +1243,21 @@ export default function Dashboard({ session }) {
             onBatchChange={(updates) => setForm((old) => ({ ...old, ...updates }))}
             onSave={saveApplication}
             onClose={() => { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {settingsOpen && (
+          <SettingsModal
+            session={session}
+            dark={dark}
+            onSetTheme={setThemeMode}
+            defaultView={defaultView}
+            onChangeDefaultView={changeDefaultView}
+            onSignOut={() => { setSettingsOpen(false); signOut(); }}
+            onDeleteAccount={() => { setSettingsOpen(false); handleDeleteAccount(); }}
+            onClose={() => setSettingsOpen(false)}
           />
         )}
       </AnimatePresence>

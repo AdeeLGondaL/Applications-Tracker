@@ -27,6 +27,10 @@ export function Icon({ name, className = "" }) {
     sun: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z",
     moon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z",
     language: "M4 5h16M4 12h10M4 19h7m5-5 4 8m-8 0 4-8 4 8m-6.5-3h5",
+    user: "M20 21a8 8 0 0 0-16 0M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z",
+    sliders: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+    table: "M3 5h18v14H3V5Zm0 5h18M9 10v9",
+    columns: "M4 5h4v14H4V5Zm6 0h4v14h-4V5Zm6 0h4v14h-4V5Z",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
