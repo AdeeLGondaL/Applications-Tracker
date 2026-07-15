@@ -54,35 +54,43 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
 
   return (
     <motion.div
-      className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm dark:bg-slate-950/60"
+      className="fixed inset-0 z-40 bg-[rgba(8,12,10,0.45)] backdrop-blur-sm dark:bg-[rgba(2,4,3,0.6)]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onClick={onClose}
     >
       <motion.aside
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 250 }}
-        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-[#111113]"
+        onClick={(e) => e.stopPropagation()}
+        className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col border-l border-[var(--border)] bg-[var(--surface-card)] shadow-[0_24px_80px_-24px_rgba(12,20,16,0.5)]"
       >
 
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 p-6 dark:border-[#2a2a2e]">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400 dark:text-[#71717a]">
-              {editingId ? t("phrases.Edit record") : t("phrases.New record")}
-            </p>
-            <h2 className="mt-1 text-2xl font-black">
-              {editingId ? t("phrases.Update application") : t("phrases.Add application")}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-[#a1a1aa]">
-              Fill only what you know now. You can update anything later.
-            </p>
+        <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] p-6">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-[12px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
+              <Icon name={isUni ? "university" : "job"} className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-soft)]">
+                {editingId ? t("phrases.Edit record") : t("phrases.New record")}
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-[var(--text-strong)]">
+                {editingId ? t("phrases.Update application") : t("phrases.Add application")}
+              </h2>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
+                Fill only what you know now. You can update anything later.
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-[#3a3a3e] dark:text-[#a1a1aa] dark:hover:bg-[#1c1c1f]"
+            aria-label={t("phrases.Cancel")}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] text-[var(--text-muted)] transition hover:bg-[var(--surface-soft)] hover:text-[var(--text-strong)]"
           >
             <Icon name="close" />
           </button>
@@ -92,21 +100,21 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         <div className="flex-1 space-y-7 overflow-y-auto p-6">
 
           {/* Type pill switcher */}
-          <div className="relative flex rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
+          <div className="relative flex rounded-[12px] border border-[var(--border)] bg-[var(--surface-soft)] p-1">
             <span
               aria-hidden="true"
-              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-[#2a2a2e] ${form.type === TYPES[1] ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
+              className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-[9px] bg-[var(--surface-card)] shadow-sm ring-1 ring-[var(--border)] transition-transform duration-200 ease-out ${form.type === TYPES[1] ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
             />
             {TYPES.map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => onChange("type", t)}
-                className="relative z-10 flex-1 rounded-xl py-2.5 text-sm font-bold"
+                className="relative z-10 flex-1 rounded-[9px] py-2.5 text-sm font-semibold"
               >
                 <span
                   className={`flex items-center justify-center gap-2 transition-colors ${
-                    form.type === t ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"
+                    form.type === t ? "text-[var(--text-strong)]" : "text-[var(--text-soft)]"
                   }`}
                 >
                   <Icon name={t === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
@@ -117,18 +125,18 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
           </div>
 
           {/* Auto-fill panel */}
-          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-900/20">
+          <div className="overflow-hidden rounded-[14px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]">
             <button
               type="button"
               onClick={() => { setAfOpen((v) => !v); setAfError(""); setAfDone(false); }}
-              className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+              className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-[var(--applume-accent-soft-2)]"
             >
-              <span className="flex items-center gap-2 text-sm font-black text-emerald-800 dark:text-emerald-300">
-                <Icon name="sparkles" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="flex items-center gap-2 text-sm font-bold text-[var(--applume-accent-hover)]">
+                <Icon name="sparkles" className="h-4 w-4 text-[var(--applume-accent)]" />
                 {t("phrases.Auto-fill from URL or description")}
               </span>
               <svg
-                className={`h-4 w-4 text-emerald-500 transition-transform ${afOpen ? "rotate-180" : ""}`}
+                className={`h-4 w-4 text-[var(--applume-accent)] transition-transform ${afOpen ? "rotate-180" : ""}`}
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
               >
                 <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -142,10 +150,10 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden border-t border-emerald-100 dark:border-emerald-900/50"
+                  className="overflow-hidden border-t border-[var(--applume-accent-border)]"
                 >
-                  <div className="p-4 space-y-3">
-                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                  <div className="space-y-3 p-4">
+                    <p className="text-[11px] leading-5 text-[var(--applume-accent-hover)]">
                       {afIsUrl
                         ? "AI will fetch and read the page for you."
                         : "Paste a job posting, program description, email, or any text. AI extracts the details."}
@@ -156,13 +164,13 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleExtract(); }}
                       placeholder={t("phrases.Paste a URL or description here...")}
                       rows={afIsUrl ? 2 : 5}
-                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-[#52525b]"
+                      className="w-full resize-none rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--surface-card)] px-3 py-2.5 text-sm text-[var(--ink)] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-soft)] focus:border-[var(--applume-accent)] focus:ring-2 focus:ring-[var(--applume-accent-soft)]"
                     />
                     <button
                       type="button"
                       onClick={handleExtract}
                       disabled={afLoading || !afInput.trim()}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--applume-accent-strong)] py-2.5 text-xs font-bold text-white transition hover:bg-[var(--applume-accent-ink)] disabled:opacity-50"
                     >
                       {afLoading ? (
                         <>
@@ -184,7 +192,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                         <motion.p
                           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
-                          className="flex items-start gap-1.5 text-xs font-semibold text-rose-600"
+                          className="flex items-start gap-1.5 text-xs font-semibold text-[var(--danger)]"
                         >
                           <Icon name="close" className="mt-0.5 h-3 w-3 shrink-0" />{afError}
                         </motion.p>
@@ -193,7 +201,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                         <motion.p
                           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
-                          className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400"
+                          className="flex items-center gap-1.5 text-xs font-bold text-[var(--applume-accent-hover)]"
                         >
                           <Icon name="check" className="h-3 w-3" />{t("phrases.Fields populated. Review and save.")}
                         </motion.p>
@@ -215,9 +223,11 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
-                  <p className="text-xs font-black text-amber-800 dark:text-amber-300">{t("phrases.Possible duplicate")}</p>
-                  <p className="mt-0.5 text-xs leading-5 text-amber-700 dark:text-amber-400">
+                <div className="rounded-[12px] border border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-[var(--warning-soft)] px-4 py-3">
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-[var(--warning-ink)]">
+                    <Icon name="calendar" className="h-3 w-3" />{t("phrases.Possible duplicate")}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[var(--warning-ink)]">
                     You already have <span className="font-bold">{duplicate.name}</span> tracked as a{" "}
                     {duplicate.type} - currently <span className="font-semibold">{duplicate.status}</span>.
                     You can still save this as a separate entry.
@@ -380,12 +390,12 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-5 dark:border-[#2a2a2e] dark:bg-[#0d0d0f]">
-          <Button variant="outline" onClick={onClose} className="rounded-2xl">
+        <div className="flex justify-end gap-2.5 border-t border-[var(--border)] bg-[var(--surface-soft)] p-5">
+          <Button variant="outline" onClick={onClose}>
             {t("phrases.Cancel")}
           </Button>
-          <Button onClick={onSave} className="rounded-2xl">
-            <Icon name={editingId ? "edit" : "plus"} className="mr-2" />
+          <Button onClick={onSave}>
+            <Icon name={editingId ? "edit" : "plus"} className="mr-1.5 h-4 w-4" />
             {editingId ? t("phrases.Save changes") : t("phrases.Create application")}
           </Button>
         </div>

@@ -23,7 +23,7 @@ export function Field({ label, children, required = false, wide = false }) {
 }
 
 const controlBase =
-  "min-w-0 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--ink)] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-soft)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--ring)]";
+  "w-full min-w-0 rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--ink)] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-soft)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--ring)]";
 
 export function Input({ className = "", ...props }) {
   return (
