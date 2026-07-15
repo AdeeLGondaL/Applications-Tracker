@@ -10,14 +10,10 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
 import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
+import { DashboardGreeting } from "@/components/dashboard/DashboardGreeting";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
-import {
-  NextStepCoveragePanel,
-  QuickActionsPanel,
-  RecentActivityPanel,
-  StatusDistributionPanel,
-} from "@/components/dashboard/OptionalPanels";
+import { RecentActivityPanel } from "@/components/dashboard/OptionalPanels";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
 import { ApplicationGrid } from "@/components/applications/ApplicationCard";
@@ -75,7 +71,7 @@ function FeedbackModal({ session, onClose }) {
           {sent ? (
             <motion.div key="sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="py-6 text-center">
               <motion.div
-                className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-3xl bg-[var(--applume-accent-soft)] dark:bg-[rgba(0,153,102,0.18)]"
+                className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-[18px] bg-[var(--applume-accent-soft)] dark:bg-[rgba(0,153,102,0.18)]"
                 initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.05 }}
               >
@@ -215,28 +211,37 @@ function DashboardSpan({ span = 6, children }) {
   );
 }
 
+function SectionHeading({ children }) {
+  return (
+    <h2 className="mb-3 flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      {children}
+      <span className="h-px flex-1 bg-[var(--border)]" />
+    </h2>
+  );
+}
+
 function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
   const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
   const summary = `${pct}% ready · ${documented} of ${total} records include document notes · ${incompleteItems.length} need setup`;
 
   return (
-    <div className="h-full rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:ring-1 dark:ring-white/5 sm:p-6">
+    <div className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-4 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">Application readiness</h2>
-          <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">
+          <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">Application readiness</h2>
+          <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
             Documents, deadlines, links, and next steps that still need setup.
           </p>
         </div>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-[#20242A] dark:text-[#9AA4B2] dark:ring-[rgba(255,255,255,0.09)]">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
           <Icon name="dashboard" className="h-4 w-4" />
         </div>
       </div>
 
-      <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`${pct}% application readiness`}>
+      <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-label={`${pct}% application readiness`}>
         <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-3 text-sm font-black leading-6 text-slate-800 dark:text-[#F8FAFC]">{summary}</p>
+      <p className="mt-3 text-sm font-semibold leading-6 text-[var(--text-strong)]">{summary}</p>
 
       {incompleteItems.length > 0 ? (
         <div className="mt-4 space-y-2">
@@ -246,20 +251,20 @@ function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenR
               type="button"
               onClick={() => onOpenRecord?.(app)}
               aria-label={`Fix missing ${missing.join(", ")} for ${app.name}`}
-              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31] dark:focus:ring-offset-[#1A1D22]"
+              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm font-bold text-slate-800 dark:text-white">{app.name}</span>
-                <span className="block truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">Missing {missing.join(", ")}</span>
+                <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
+                <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">Missing {missing.join(", ")}</span>
               </span>
-              <span className="shrink-0 text-xs font-black text-[var(--applume-accent-hover)]">Fix</span>
+              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Fix</span>
             </button>
           ))}
         </div>
       ) : (
-        <div className="mt-4 rounded-xl bg-[var(--applume-accent-soft)] px-3 py-4 dark:bg-[rgba(0,153,102,0.16)]">
-          <p className="text-sm font-black text-[var(--applume-accent-hover)] dark:text-[var(--applume-accent-muted)]">Everything important is set up.</p>
-          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-[#9AA4B2]">
+        <div className="mt-4 rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-4">
+          <p className="text-sm font-bold text-[var(--applume-accent-hover)]">Everything important is set up.</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
             Applications with missing documents, deadlines, links, or next steps will appear here.
           </p>
         </div>
@@ -414,15 +419,6 @@ export default function Dashboard({ session }) {
     if (firstItem) openEdit(firstItem);
   }
 
-  function openNextStepQueue(firstItem) {
-    trackEvent("dashboard_next_step_coverage_clicked", { source: "dashboard" });
-    if (firstItem) {
-      openEdit(firstItem);
-      return;
-    }
-    openNewTracked("University", "next_step_coverage");
-  }
-
   function clearProfileMenuCloseTimer() {
     if (profileMenuCloseTimer.current) {
       window.clearTimeout(profileMenuCloseTimer.current);
@@ -564,14 +560,6 @@ export default function Dashboard({ session }) {
     return { documented, incompleteItems };
   }, [applications]);
 
-  const nextStepCoverage = useMemo(() => {
-    const itemsMissingNextStep = applications.filter((app) => !String(app.notes || "").trim());
-    return {
-      withNextStep: applications.length - itemsMissingNextStep.length,
-      itemsMissingNextStep,
-    };
-  }, [applications]);
-
   const focusThisWeek = useMemo(() => {
     const overdueItems = applications.filter((app) => {
       if (!ACTIONABLE_STATUSES.includes(app.status)) return false;
@@ -588,8 +576,26 @@ export default function Dashboard({ session }) {
     return { overdueItems, dueSoonItems, interviewItems, missingDocumentItems };
   }, [applications]);
 
+  const displayName = useMemo(() => {
+    const meta = session?.user?.user_metadata || {};
+    const raw = meta.full_name || meta.name || meta.display_name || "";
+    const fromMeta = String(raw).trim().split(/\s+/)[0];
+    if (fromMeta) return fromMeta.charAt(0).toUpperCase() + fromMeta.slice(1);
+    const local = String(session?.user?.email || "").split("@")[0].replace(/[._+\-].*$/, "").replace(/\d+/g, "");
+    if (local.length >= 2) return local.charAt(0).toUpperCase() + local.slice(1);
+    return "";
+  }, [session]);
+
+  const todayLabel = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+    } catch {
+      return "";
+    }
+  }, []);
+
   const headerSummary = sidebarView === "dashboard"
-    ? `${stats.total} tracked · ${stats.actionNeeded} needs action · ${stats.progress}% submitted or beyond`
+    ? todayLabel
     : VIEW_META[sidebarView]?.sub;
 
   function openNew(type = "University") {
@@ -797,7 +803,6 @@ export default function Dashboard({ session }) {
       case "focusThisWeek":
         return (
           <FocusThisWeek
-            showQuickActions={false}
             overdueCount={focusThisWeek.overdueItems.length}
             dueSoonCount={focusThisWeek.dueSoonItems.length}
             interviewCount={focusThisWeek.interviewItems.length}
@@ -805,10 +810,6 @@ export default function Dashboard({ session }) {
             onReviewUrgent={() => openUrgentQueue("focus_layer")}
             onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
             onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
-            onAddUniversity={() => openNewTracked("University", "focus")}
-            onAddJob={() => openNewTracked("Job", "focus")}
-            onImport={openImportPicker}
-            onCalendarSync={copyCalendarUrl}
           />
         );
       case "pipelineSummary":
@@ -817,8 +818,6 @@ export default function Dashboard({ session }) {
         return <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} onAddDeadline={() => openNewTracked("University", "deadline_empty")} />;
       case "recentActivity":
         return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
-      case "quickActions":
-        return <QuickActionsPanel onAddUniversity={() => openNewTracked("University", "quick_actions")} onAddJob={() => openNewTracked("Job", "quick_actions")} onImport={openImportPicker} onCalendarSync={copyCalendarUrl} />;
       case "applicationReadiness":
         return (
           <ApplicationReadinessPanel
@@ -828,16 +827,6 @@ export default function Dashboard({ session }) {
             onOpenRecord={openEdit}
           />
         );
-      case "nextStepCoverage":
-        return (
-          <NextStepCoveragePanel
-            total={stats.total}
-            withNextStep={nextStepCoverage.withNextStep}
-            onAddNextSteps={() => openNextStepQueue(nextStepCoverage.itemsMissingNextStep[0])}
-          />
-        );
-      case "statusDistribution":
-        return <StatusDistributionPanel applications={applications} />;
       default:
         return null;
     }
@@ -845,48 +834,43 @@ export default function Dashboard({ session }) {
 
   function renderFixedDashboard() {
     return (
-      <div className="space-y-4 min-[900px]:space-y-6">
-        <DashboardLayout>
-          <DashboardSpan span={8}>{renderDashboardPanel("focusThisWeek")}</DashboardSpan>
-          <DashboardSpan span={4}>{renderDashboardPanel("quickActions")}</DashboardSpan>
-          <DashboardSpan span={12}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-        </DashboardLayout>
-
-        <div className="hidden min-[900px]:grid min-[900px]:grid-cols-12 min-[900px]:items-start min-[900px]:gap-6">
-          <div className="min-w-0 space-y-6 min-[900px]:col-span-7">
-            {renderDashboardPanel("applicationReadiness")}
-            {renderDashboardPanel("recentActivity")}
+      <div className="space-y-8">
+        {/* Tier 1 — act on this now */}
+        <section>
+          <SectionHeading>{t("phrases.Needs your attention")}</SectionHeading>
+          <div className="space-y-4 min-[900px]:space-y-6">
+            {renderDashboardPanel("focusThisWeek")}
+            <DashboardLayout>
+              <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
+              <DashboardSpan span={6}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
+            </DashboardLayout>
           </div>
-          <div className="min-w-0 space-y-6 min-[900px]:col-span-5">
-            {renderDashboardPanel("pipelineSummary")}
-            {renderDashboardPanel("nextStepCoverage")}
-            {renderDashboardPanel("statusDistribution")}
-          </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 gap-4 min-[900px]:hidden">
-          {renderDashboardPanel("applicationReadiness")}
-          {renderDashboardPanel("pipelineSummary")}
-          {renderDashboardPanel("recentActivity")}
-          {renderDashboardPanel("nextStepCoverage")}
-          {renderDashboardPanel("statusDistribution")}
-        </div>
+        {/* Tier 2 — how the whole tracker is trending */}
+        <section>
+          <SectionHeading>{t("phrases.Your progress")}</SectionHeading>
+          <DashboardLayout>
+            <DashboardSpan span={7}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
+            <DashboardSpan span={5}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
+          </DashboardLayout>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className={`${dark ? "dark" : ""} min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 dark:bg-[#0F1115] dark:text-[#F8FAFC]`}>
-      <div className="flex min-h-screen min-w-0">
+    <div className={`${dark ? "dark" : ""} min-h-dvh overflow-x-hidden bg-[var(--surface-page)] text-[var(--ink)]`}>
+      <div className="flex min-h-dvh min-w-0">
 
         {/* Sidebar */}
-        <aside className="max-md:hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]">
-          <div className="border-b border-slate-100 px-4 py-4 dark:border-[rgba(255,255,255,0.09)]">
+        <aside className="max-md:hidden md:flex w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface-card)]">
+          <div className="border-b border-[var(--border)] px-5 py-4">
             <Brand dark={dark} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 py-4">
-            <p className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-[#52525b]">Menu</p>
+          <div className="flex-1 overflow-y-auto px-3 py-5">
+            <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">Menu</p>
             <nav className="space-y-0.5">
               <NavItem active={sidebarView === "dashboard"}    onClick={() => handleSidebarView("dashboard")}    icon="dashboard"  label="Dashboard"      />
               <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities"    count={stats.universities} />
@@ -901,7 +885,7 @@ export default function Dashboard({ session }) {
         </aside>
 
         {/* Mobile bottom nav */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-sm md:hidden dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/95">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-card)_92%,transparent)] backdrop-blur-md md:hidden">
           <div className="flex items-stretch">
             {[
               { view: "dashboard",    icon: "dashboard",  label: label("view", "Home")  },
@@ -916,12 +900,12 @@ export default function Dashboard({ session }) {
                   key={view}
                   type="button"
                   onClick={() => handleSidebarView(view)}
-                  className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${isActive ? "text-[var(--applume-accent)]" : "text-slate-400 dark:text-[#71717a]"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${isActive ? "text-[var(--applume-accent)]" : "text-[var(--text-soft)]"}`}
                 >
                   <div className="relative">
                     <Icon name={icon} className="h-5 w-5" />
                     {badge > 0 && (
-                      <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white">
+                      <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--danger)] text-[8px] font-black text-white">
                         {badge > 9 ? "9+" : badge}
                       </span>
                     )}
@@ -934,7 +918,7 @@ export default function Dashboard({ session }) {
               <button
                 type="button"
                 onClick={() => handleSidebarView("admin")}
-                className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-[var(--applume-accent)]" : "text-slate-400 dark:text-[#71717a]"}`}
+                className={`flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${sidebarView === "admin" ? "text-[var(--applume-accent)]" : "text-[var(--text-soft)]"}`}
               >
                 <Icon name="shield" className="h-5 w-5" />
                 <span className="text-[10px] font-bold">{label("view", "Admin")}</span>
@@ -947,11 +931,11 @@ export default function Dashboard({ session }) {
         <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
 
           {/* Header */}
-          <header className="sticky top-0 z-30 max-w-full border-b border-slate-200 bg-white/90 backdrop-blur dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22]/90">
+          <header className="sticky top-0 z-30 max-w-full border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-card)_85%,transparent)] backdrop-blur-md">
             <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
               <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-slate-500 dark:text-[#a1a1aa]">{headerSummary}</p>
-                <h1 className="truncate text-lg font-black leading-tight sm:text-xl">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
+                <p className="truncate text-xs font-medium text-[var(--text-muted)]">{headerSummary}</p>
+                <h1 className="truncate text-xl font-semibold leading-tight tracking-[-0.01em] text-[var(--text-strong)]">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
               </motion.div>
 
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -967,11 +951,11 @@ export default function Dashboard({ session }) {
                 <div ref={exportMenuRef} className="relative">
                   <button
                     onClick={() => setExportMenuOpen((v) => !v)}
-                    className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32] sm:px-3"
+                    className="flex h-9 items-center justify-center gap-1.5 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-soft)] hover:text-[var(--ink)] sm:px-3"
                   >
                     <Icon name="download" className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">{t("phrases.Export")}</span>
-                    <svg className="hidden h-3 w-3 text-slate-400 min-[380px]:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="hidden h-3 w-3 text-[var(--text-soft)] min-[380px]:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
@@ -980,19 +964,19 @@ export default function Dashboard({ session }) {
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
+                        className="absolute right-0 top-full z-50 mt-1.5 w-52 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
                       >
-                        <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Export CSV")}
                         </button>
-                        <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Download backup")}
                         </button>
-                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <button type="button" onClick={() => { setCsvImportOpen(true); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <div className="mx-3 my-1 border-t border-[var(--border)]" />
+                        <button type="button" onClick={() => { setCsvImportOpen(true); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import CSV
                         </button>
-                        <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Import backup")}
                         </button>
                       </motion.div>
@@ -1007,7 +991,7 @@ export default function Dashboard({ session }) {
                   type="button"
                   onClick={toggleTheme}
                   title={dark ? "Switch to light mode" : "Switch to dark mode"}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--text-muted)] transition-colors hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)]"
                 >
                   <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
                 </button>
@@ -1030,15 +1014,15 @@ export default function Dashboard({ session }) {
                       if (canHoverProfileMenu()) setProfileMenuOpen(true);
                       else setProfileMenuOpen((v) => !v);
                     }}
-                    className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-1 text-left shadow-sm transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:hover:bg-[#2e2e32] sm:pr-2.5"
+                    className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface-card)] p-1 pr-1 text-left transition-colors hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] sm:pr-2.5"
                   >
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-black text-white dark:bg-[#d4d4d8] dark:text-slate-900">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--applume-accent)] text-xs font-bold text-white">
                       {session?.user?.email?.[0]?.toUpperCase() || "?"}
                     </span>
-                    <span className="hidden max-w-[8rem] truncate text-xs font-bold text-slate-700 dark:text-[#d4d4d8] lg:block">
+                    <span className="hidden max-w-[8rem] truncate text-xs font-semibold text-[var(--ink)] lg:block">
                       {session?.user?.email}
                     </span>
-                    <svg className="hidden h-3 w-3 shrink-0 text-slate-400 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="hidden h-3 w-3 shrink-0 text-[var(--text-soft)] sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
@@ -1047,12 +1031,12 @@ export default function Dashboard({ session }) {
                       <motion.div
                         initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
+                        className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
                         role="menu"
                       >
-                        <div className="border-b border-slate-100 px-4 py-3 dark:border-[#2a2a2e]">
-                          <p className="truncate text-xs font-semibold text-slate-700 dark:text-[#a1a1aa]">{session?.user?.email}</p>
-                          <p className="text-[10px] text-slate-400 dark:text-[#71717a]">{t("phrases.Signed in")}</p>
+                        <div className="border-b border-[var(--border)] px-4 py-3">
+                          <p className="truncate text-xs font-semibold text-[var(--ink)]">{session?.user?.email}</p>
+                          <p className="text-[10px] text-[var(--text-soft)]">{t("phrases.Signed in")}</p>
                         </div>
                         <button
                           type="button"
@@ -1060,7 +1044,7 @@ export default function Dashboard({ session }) {
                             closeProfileMenu();
                             copyCalendarUrl();
                           }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
                         >
                           <Icon name="calendar" className="h-3.5 w-3.5 text-[var(--info)]" /> {t("phrases.Calendar sync")}
                         </button>
@@ -1070,21 +1054,21 @@ export default function Dashboard({ session }) {
                             closeProfileMenu();
                             copyShareUrl();
                           }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]"
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
                         >
                           <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share tracker")}
                         </button>
-                        <button type="button" onClick={() => { closeProfileMenu(); setFeedbackOpen(true); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <button type="button" onClick={() => { closeProfileMenu(); setFeedbackOpen(true); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="messageSquare" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share feedback")}
                         </button>
-                        <div className="mx-3 my-1 border-t border-slate-100 dark:border-[#2a2a2e]" />
-                        <button type="button" onClick={() => { closeProfileMenu(); signOut(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
+                        <div className="mx-3 my-1 border-t border-[var(--border)]" />
+                        <button type="button" onClick={() => { closeProfileMenu(); signOut(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
                           <Icon name="reset" className="h-3.5 w-3.5" /> {t("phrases.Sign out")}
                         </button>
                         <button
                           type="button"
                           onClick={() => { closeProfileMenu(); handleDeleteAccount(); }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:text-rose-600 transition hover:bg-rose-50/60 dark:hover:bg-rose-900/10"
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
                         >
                           {t("phrases.Delete account")}
                         </button>
@@ -1105,10 +1089,10 @@ export default function Dashboard({ session }) {
                   <>
                     {loading && applications.length === 0 ? (
                       <div className="flex items-center justify-center py-20">
-                        <svg className="h-6 w-6 animate-spin text-slate-300 dark:text-[#52525b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="h-6 w-6 animate-spin text-[var(--applume-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
                         </svg>
-                        <span className="ml-3 text-sm text-slate-400 dark:text-[#71717a]">Loading your applications...</span>
+                        <span className="ml-3 text-sm text-[var(--text-muted)]">Loading your applications...</span>
                       </div>
                     ) : applications.length === 0 && !onboardingWizardDone ? (
                       <OnboardingWizard
@@ -1133,17 +1117,24 @@ export default function Dashboard({ session }) {
                         onImport={openImportPicker}
                       />
                     ) : (
-                      <>
+                      <div className="space-y-6">
+                        <DashboardGreeting
+                          name={displayName}
+                          stats={stats}
+                          missingDocs={focusThisWeek.missingDocumentItems.length}
+                          onReviewUrgent={() => openUrgentQueue("greeting")}
+                          onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
+                          onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
+                          onAddApplication={() => openNewTracked("University", "greeting")}
+                        />
+                        <OnboardingChecklist
+                          userId={session?.user?.id}
+                          applications={applications}
+                          onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
+                          onOpenFeedback={() => setFeedbackOpen(true)}
+                        />
                         {renderFixedDashboard()}
-                        <div className="mt-4">
-                          <OnboardingChecklist
-                            userId={session?.user?.id}
-                            applications={applications}
-                            onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
-                            onOpenFeedback={() => setFeedbackOpen(true)}
-                          />
-                        </div>
-                      </>
+                      </div>
                     )}
                   </>
                 )}

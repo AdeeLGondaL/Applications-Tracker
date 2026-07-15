@@ -1,39 +1,48 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 
-function FocusTile({ icon, label, value, detail, tone = "slate", actionLabel, onClick, ariaLabel }) {
-  const toneClass = {
-    danger: "bg-rose-50 text-rose-600 ring-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-800",
-    warning: "bg-[var(--warning-soft)] text-[var(--warning)] ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-800",
-    accent: "bg-[var(--applume-accent-soft)] text-[var(--applume-accent)] ring-[var(--applume-accent-border)] dark:bg-[rgba(0,153,102,0.18)] dark:text-[var(--applume-accent-muted)] dark:ring-[rgba(0,153,102,0.32)]",
-    blue: "bg-[var(--info-soft)] text-[var(--info)] ring-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-800",
-    slate: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-[#2a2a2e] dark:text-[#a1a1aa] dark:ring-[#3a3a3e]",
-  }[tone];
+// Tiles stay neutral by default; only genuine attention items (overdue, due soon)
+// pick up a soft token tint. Interviews / missing-docs read calmly in neutral.
+const HOT_TONE = {
+  danger: {
+    tile: "border-[color-mix(in_srgb,var(--danger)_24%,var(--border))] bg-[var(--danger-soft)]",
+    chip: "bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] text-[var(--danger)]",
+    value: "text-[var(--danger)]",
+  },
+  warning: {
+    tile: "border-[color-mix(in_srgb,var(--warning)_26%,var(--border))] bg-[var(--warning-soft)]",
+    chip: "bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-[var(--warning-ink)]",
+    value: "text-[var(--warning-ink)]",
+  },
+};
 
+function FocusTile({ icon, label, value, detail, hot = false, tone = null, actionLabel, onClick, ariaLabel }) {
+  const t = hot && tone ? HOT_TONE[tone] : null;
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex min-h-[9rem] min-w-0 flex-col rounded-2xl border border-slate-100 bg-slate-50 p-4 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:hover:bg-[#252A31] dark:focus:ring-offset-[#1A1D22] sm:p-5"
+      className={`flex min-h-[9rem] min-w-0 flex-col rounded-[12px] border p-4 text-left transition hover:border-[var(--applume-accent-border)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)] sm:p-5 ${
+        t ? t.tile : "border-[var(--border)] bg-[var(--surface-soft)]"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ring-1 ${toneClass}`}>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${t ? t.chip : "bg-[var(--surface-card)] text-[var(--text-muted)] ring-1 ring-[var(--border)]"}`}>
           <Icon name={icon} className="h-4 w-4" />
         </span>
-        <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-500 ring-1 ring-slate-200 dark:bg-[#1A1D22] dark:text-[#9AA4B2] dark:ring-[rgba(255,255,255,0.09)]">
+        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[var(--text-soft)]">
           {actionLabel}
         </span>
       </div>
-      <p className="mt-5 text-[28px] font-black tabular-nums leading-none text-slate-950 dark:text-white">{value}</p>
-      <p className="mt-2 text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{label}</p>
-      <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{detail}</p>
+      <p className={`mt-5 font-display text-[30px] font-semibold tabular-nums leading-none ${t ? t.value : "text-[var(--text-strong)]"}`}>{value}</p>
+      <p className="mt-2 text-sm font-semibold text-[var(--text-strong)]">{label}</p>
+      <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{detail}</p>
     </button>
   );
 }
 
 export function FocusThisWeek({
-  showQuickActions = true,
   overdueCount,
   dueSoonCount,
   interviewCount,
@@ -41,105 +50,72 @@ export function FocusThisWeek({
   onReviewUrgent,
   onReviewInterviews,
   onReviewDocuments,
-  onAddUniversity,
-  onAddJob,
-  onImport,
-  onCalendarSync,
 }) {
-  const focusTone = overdueCount > 0 ? "danger" : dueSoonCount > 0 ? "warning" : "accent";
-
   return (
-    <div className={showQuickActions ? "grid gap-4 xl:grid-cols-[1.45fr_0.55fr]" : "h-full"}>
-      <Card className="h-full rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
-        <CardContent className="p-4 sm:p-6">
-          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--applume-accent)]">Today focus</p>
-              <h2 className="mt-1 text-lg font-black leading-tight text-slate-950 dark:text-white">Action queue</h2>
-              <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">
-                Your action queue for deadlines, interviews, and setup gaps.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onReviewUrgent}
-              aria-label="Review overdue and urgent applications"
-              className="rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:focus:ring-offset-[#1A1D22]"
-            >
-              Review queue
-            </button>
-          </div>
-          <div className="grid gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
-            <FocusTile
-              icon="reset"
-              label="Overdue"
-              value={overdueCount}
-              detail={overdueCount > 0 ? "Needs attention before anything else." : "No overdue active records."}
-              tone={overdueCount > 0 ? "danger" : "slate"}
-              actionLabel="Review"
-              onClick={onReviewUrgent}
-              ariaLabel="Review overdue applications"
-            />
-            <FocusTile
-              icon="calendar"
-              label="Due in 7 days"
-              value={dueSoonCount}
-              detail={dueSoonCount > 0 ? "Upcoming deadlines to prepare now." : "Nothing due in the next week."}
-              tone={focusTone}
-              actionLabel="Open"
-              onClick={onReviewUrgent}
-              ariaLabel="Open applications due in the next seven days"
-            />
-            <FocusTile
-              icon="job"
-              label="Interviews"
-              value={interviewCount}
-              detail={interviewCount > 0 ? "Active interview-stage records." : "No active interview records yet."}
-              tone="blue"
-              actionLabel="Filter"
-              onClick={onReviewInterviews}
-              ariaLabel="Filter interview applications"
-            />
-            <FocusTile
-              icon="check"
-              label="Missing docs"
-              value={missingDocsCount}
-              detail={missingDocsCount > 0 ? "Records without document context." : "Document context is complete."}
-              tone="accent"
-              actionLabel="Fix"
-              onClick={onReviewDocuments}
-              ariaLabel="Fix applications with missing document context"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {showQuickActions && (
-      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
-        <CardContent className="flex h-full flex-col p-4 sm:p-5">
+    <Card className="relative h-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.3)]">
+      {/* Intentional accent: one soft wash instead of scattered colour */}
+      <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[var(--applume-accent-soft)] opacity-50 blur-3xl" />
+      <CardContent className="relative p-4 sm:p-6">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-black text-slate-950 dark:text-white">Quick actions</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-[#71717a]">
-              Start from the action that gets your pipeline clearer fastest.
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--applume-accent-hover)]">Today focus</p>
+            <h2 className="mt-1 font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">Action queue</h2>
+            <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
+              Deadlines, interviews, and setup gaps that need you.
             </p>
           </div>
-          <div className="mt-4 grid gap-2">
-            <button type="button" onClick={onAddUniversity} className="flex items-center gap-2 rounded-xl bg-slate-950 px-3 py-2.5 text-left text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
-              <Icon name="university" className="h-4 w-4" /> Add university
-            </button>
-            <button type="button" onClick={onAddJob} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-              <Icon name="job" className="h-4 w-4" /> Add job
-            </button>
-            <button type="button" onClick={onImport} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-              <Icon name="upload" className="h-4 w-4" /> Import backup
-            </button>
-            <button type="button" onClick={onCalendarSync} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#d4d4d8] dark:hover:bg-[#242428]">
-              <Icon name="calendar" className="h-4 w-4" /> Copy calendar URL
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-      )}
-    </div>
+          <button
+            type="button"
+            onClick={onReviewUrgent}
+            aria-label="Review overdue and urgent applications"
+            className="rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+          >
+            Review queue
+          </button>
+        </div>
+        <div className="grid gap-3 min-[520px]:grid-cols-2 xl:grid-cols-4">
+          <FocusTile
+            icon="reset"
+            label="Overdue"
+            value={overdueCount}
+            detail={overdueCount > 0 ? "Needs attention before anything else." : "No overdue active records."}
+            hot={overdueCount > 0}
+            tone="danger"
+            actionLabel="Review"
+            onClick={onReviewUrgent}
+            ariaLabel="Review overdue applications"
+          />
+          <FocusTile
+            icon="calendar"
+            label="Due in 7 days"
+            value={dueSoonCount}
+            detail={dueSoonCount > 0 ? "Upcoming deadlines to prepare now." : "Nothing due in the next week."}
+            hot={dueSoonCount > 0}
+            tone="warning"
+            actionLabel="Open"
+            onClick={onReviewUrgent}
+            ariaLabel="Open applications due in the next seven days"
+          />
+          <FocusTile
+            icon="job"
+            label="Interviews"
+            value={interviewCount}
+            detail={interviewCount > 0 ? "Active interview-stage records." : "No active interview records yet."}
+            actionLabel="Filter"
+            onClick={onReviewInterviews}
+            ariaLabel="Filter interview applications"
+          />
+          <FocusTile
+            icon="check"
+            label="Missing docs"
+            value={missingDocsCount}
+            detail={missingDocsCount > 0 ? "Records without document context." : "Document context is complete."}
+            actionLabel="Fix"
+            onClick={onReviewDocuments}
+            ariaLabel="Fix applications with missing document context"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }

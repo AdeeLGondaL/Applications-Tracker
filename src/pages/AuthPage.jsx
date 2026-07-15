@@ -5,7 +5,6 @@ import { trackEvent } from "@/utils/analytics";
 import { Icon } from "@/components/ui/Icon";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
-import { PaperPlane } from "@/components/brand/PaperPlane";
 import { Logo } from "@/components/brand/Logo";
 import { useLanguage } from "@/i18n";
 
@@ -191,17 +190,17 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
         {/* ── Left editorial brand panel — fixed height so it never shifts
             when the form grows/shrinks between sign in and create account ─ */}
         <div className="relative order-2 hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-alt)] px-10 py-10 lg:order-1 lg:flex lg:sticky lg:top-0 lg:h-dvh xl:px-16">
-          {/* subtle plane motif */}
+          {/* subtle brand watermark */}
           {!reduce && (
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute -right-10 top-24 text-[var(--applume-accent)]"
-              style={{ opacity: 0.08 }}
+              className="pointer-events-none absolute -right-12 top-20"
+              style={{ opacity: 0.07 }}
               initial={{ y: 0 }}
               animate={{ y: [0, -12, 0] }}
               transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
             >
-              <PaperPlane className="h-64 w-64" />
+              <Logo showWordmark={false} imgClass="h-64 w-64" />
             </motion.div>
           )}
           <a href="/" className="relative w-fit"><Logo imgClass="h-9 w-9" wordmarkClass="text-lg" /></a>

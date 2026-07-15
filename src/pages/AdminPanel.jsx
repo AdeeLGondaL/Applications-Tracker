@@ -60,7 +60,7 @@ export default function AdminPanel() {
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Status filter */}
-        <div className="flex gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
+        <div className="flex gap-1 rounded-[12px] bg-slate-100 p-1 dark:bg-[#1c1c1f]">
           {[["open", "Open"], ["resolved", "Resolved"], ["all", "All"]].map(([v, l]) => (
             <button key={v} type="button" onClick={() => setStatusFilter(v)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${statusFilter === v ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
@@ -68,7 +68,7 @@ export default function AdminPanel() {
           ))}
         </div>
         {/* Type filter */}
-        <div className="flex gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-[#1c1c1f]">
+        <div className="flex gap-1 rounded-[12px] bg-slate-100 p-1 dark:bg-[#1c1c1f]">
           {[["all", "All types"], ["bug", "Bugs"], ["feature", "Features"]].map(([v, l]) => (
             <button key={v} type="button" onClick={() => setTypeFilter(v)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${typeFilter === v ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
@@ -91,7 +91,7 @@ export default function AdminPanel() {
       ) : shown.length === 0 ? (
         <Card className="border border-dashed border-slate-300 bg-white dark:border-[#3a3a3e] dark:bg-[#1c1c1f]">
           <CardContent className="grid place-items-center p-14 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-3xl bg-slate-100 dark:bg-[#2a2a2e]">
+            <div className="grid h-14 w-14 place-items-center rounded-[16px] bg-slate-100 dark:bg-[#2a2a2e]">
               <Icon name="messageSquare" className="h-6 w-6 text-slate-400 dark:text-[#52525b]" />
             </div>
             <p className="mt-4 text-base font-black text-slate-700 dark:text-[#d4d4d8]">
@@ -109,7 +109,7 @@ export default function AdminPanel() {
               <motion.div
                 key={item.id}
                 layout
-                className={`rounded-2xl border p-5 transition-colors ${item.resolved ? "border-emerald-100 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-900/10" : "border-slate-200 bg-white dark:border-[#3a3a3e] dark:bg-[#1c1c1f]"}`}
+                className={`rounded-[16px] border p-5 transition-colors ${item.resolved ? "border-emerald-100 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-900/10" : "border-slate-200 bg-white dark:border-[#3a3a3e] dark:bg-[#1c1c1f]"}`}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 24, transition: { duration: 0.2 } }}
                 transition={{ delay: i * 0.04, duration: 0.25 }}
               >

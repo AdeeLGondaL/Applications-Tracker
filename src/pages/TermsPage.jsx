@@ -1,3 +1,5 @@
+import { Logo } from "@/components/brand/Logo";
+
 const SECTIONS = [
   {
     title: "1. What Applume is",
@@ -57,25 +59,20 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-950">
+    <div className="min-h-screen bg-[var(--surface-page)] text-[var(--ink)]">
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <header className="mb-12 border-b border-slate-200 pb-10">
-          <div className="flex items-center gap-4">
-            <img
-              src="/Logo.png"
-              alt="Applume logo"
-              className="h-14 w-14 shrink-0 object-contain"
-              style={{ mixBlendMode: "multiply" }}
-            />
+        <header className="mb-12 border-b border-[var(--border)] pb-10">
+          <div className="flex items-center gap-3.5">
+            <Logo imgClass="h-12 w-12" showWordmark={false} />
             <div>
-              <h1 className="text-3xl font-black leading-tight tracking-tight">
-                <span className="text-slate-950">App</span><span className="text-emerald-600">lume</span>
+              <h1 className="font-display text-3xl font-semibold leading-tight tracking-[-0.01em]">
+                <span className="text-[var(--text-strong)]">App</span><span className="text-[var(--applume-accent)]">lume</span>
               </h1>
-              <p className="mt-0.5 text-sm text-slate-600">Terms of Service</p>
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">Terms of Service</p>
             </div>
           </div>
-          <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-slate-500">Last updated: July 2026</p>
-          <p className="mt-4 text-sm leading-7 text-slate-600">
+          <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-[var(--text-soft)]">Last updated: July 2026</p>
+          <p className="mt-4 text-sm leading-7 text-[var(--text-muted)]">
             The short version: Applume is a free tracker for your applications. Your data stays yours, export it anytime,
             be reasonable, and we'll do the same. The details follow in plain language.
           </p>
@@ -84,20 +81,20 @@ export default function TermsPage() {
         <main className="space-y-10">
           {SECTIONS.map((section) => (
             <section key={section.title}>
-              <h2 className="mb-3 text-xl font-black text-slate-950">{section.title}</h2>
+              <h2 className="mb-3 font-display text-xl font-semibold text-[var(--text-strong)]">{section.title}</h2>
               {section.body.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)} className="text-sm leading-7 text-slate-600">{paragraph}</p>
+                <p key={paragraph.slice(0, 40)} className="text-sm leading-7 text-[var(--text-muted)]">{paragraph}</p>
               ))}
             </section>
           ))}
         </main>
 
-        <footer className="mt-14 border-t border-slate-200 pt-8 text-sm text-slate-500">
+        <footer className="mt-14 border-t border-[var(--border)] pt-8 text-sm text-[var(--text-muted)]">
           <p>
             See also the{" "}
-            <a href="/privacy" className="font-semibold text-emerald-600 hover:underline">Privacy Policy</a>
+            <a href="/privacy" className="font-semibold text-[var(--applume-accent)] hover:underline">Privacy Policy</a>
             {" "}- or head{" "}
-            <a href="/" className="font-semibold text-emerald-600 hover:underline">back to Applume</a>.
+            <a href="/" className="font-semibold text-[var(--applume-accent)] hover:underline">back to Applume</a>.
           </p>
         </footer>
       </div>

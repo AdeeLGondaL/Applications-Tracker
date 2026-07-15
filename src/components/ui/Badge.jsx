@@ -1,15 +1,20 @@
 import { Icon } from "@/components/ui/Icon";
 import { useLanguage } from "@/i18n";
 
+// Muted, token-based tints shared with the landing page. Legacy blue/violet/notice
+// collapse onto the same 5-tone system so nothing renders as a saturated chip.
 function badgeClass(tone) {
+  const info = "border-[color-mix(in_srgb,var(--info)_26%,transparent)] bg-[var(--info-soft)] text-[var(--info)]";
+  const warning = "border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-[var(--warning-soft)] text-[var(--warning-ink)]";
   const map = {
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    danger: "border-rose-200 bg-rose-50 text-rose-700",
-    warning: "border-orange-200 bg-orange-50 text-orange-700",
-    notice: "border-amber-200 bg-amber-50 text-amber-700",
-    neutral: "border-slate-200 bg-slate-50 text-slate-700 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-[#d4d4d8]",
-    blue: "border-blue-200 bg-blue-50 text-blue-700",
-    violet: "border-violet-200 bg-violet-50 text-violet-700",
+    success: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
+    danger: "border-[color-mix(in_srgb,var(--danger)_26%,transparent)] bg-[var(--danger-soft)] text-[var(--danger)]",
+    warning,
+    notice: warning,
+    neutral: "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]",
+    blue: info,
+    info,
+    violet: info,
     dark: "border-white/10 bg-white/10 text-white",
   };
   return map[tone] || map.neutral;
@@ -31,14 +36,14 @@ export function Priority({ priority }) {
 
 export function IconButton({ icon, label, onClick, danger = false }) {
   const dangerClass = danger
-    ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-    : "text-slate-600 hover:text-slate-950 hover:bg-slate-50 dark:text-[#a1a1aa] dark:hover:text-white dark:hover:bg-[#2a2a2e]";
+    ? "text-[var(--danger)] hover:border-[color-mix(in_srgb,var(--danger)_30%,transparent)] hover:bg-[var(--danger-soft)]"
+    : "text-[var(--text-muted)] hover:border-[var(--applume-accent-border)] hover:text-[var(--applume-accent-hover)] hover:bg-[var(--applume-accent-soft)]";
   return (
     <button
       type="button"
       title={label}
       onClick={onClick}
-      className={`grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white transition dark:border-[#2a2a2e] dark:bg-[#1c1c1f] ${dangerClass}`}
+      className={`grid h-9 w-9 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-card)] transition ${dangerClass}`}
     >
       <Icon name={icon} />
     </button>
@@ -50,7 +55,7 @@ export function Toggle({ active, children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`min-w-0 rounded-xl px-2.5 py-1.5 text-xs font-bold sm:px-3 ${active ? "bg-white text-slate-950 shadow-sm dark:bg-[#2a2a2e] dark:text-white" : "text-slate-500 hover:text-slate-900 dark:text-[#71717a] dark:hover:text-[#d4d4d8]"}`}
+      className={`min-w-0 rounded-[9px] px-2.5 py-1.5 text-xs font-semibold sm:px-3 ${active ? "bg-[var(--surface-card)] text-[var(--text-strong)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]"}`}
     >
       {children}
     </button>

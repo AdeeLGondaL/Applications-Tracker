@@ -79,10 +79,10 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className={`mb-5 overflow-hidden rounded-[2rem] border shadow-sm ${
+        className={`mb-5 overflow-hidden rounded-[var(--radius-lg)] border shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] ${
           allDoneAnimating
-            ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] dark:border-[rgba(0,153,102,0.36)] dark:bg-[rgba(0,153,102,0.18)]"
-            : "border-[var(--applume-accent-border)] bg-white dark:border-[rgba(0,153,102,0.24)] dark:bg-[rgba(0,153,102,0.1)]"
+            ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]"
+            : "border-[var(--border)] bg-[var(--surface-card)]"
         }`}
       >
         <div className="p-5">
@@ -97,14 +97,14 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
               {/* Header row */}
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-[var(--applume-accent-soft)] dark:bg-[rgba(0,153,102,0.18)]">
-                    <Icon name="sparkles" className="h-4 w-4 text-[var(--applume-accent)] dark:text-[var(--applume-accent-muted)]" />
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[var(--applume-accent-soft)]">
+                    <Icon name="sparkles" className="h-4 w-4 text-[var(--applume-accent)]" />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-slate-900 dark:text-white">
+                    <p className="text-sm font-bold text-[var(--text-strong)]">
                       Build your structured tracker
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-[#a1a1aa]">
+                    <p className="text-xs text-[var(--text-muted)]">
                       {completedCount} of {steps.length} setup steps complete
                     </p>
                   </div>
@@ -113,14 +113,14 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                   type="button"
                   title="Dismiss"
                   onClick={handleDismiss}
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 dark:border-[#2a2a2e] dark:text-[#71717a] dark:hover:bg-[#1c1c1f] dark:hover:text-[#d4d4d8]"
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] border border-[var(--border)] text-[var(--text-soft)] transition hover:bg-[var(--surface-soft)] hover:text-[var(--text-strong)]"
                 >
                   <Icon name="close" className="h-3 w-3" />
                 </button>
               </div>
 
               {/* Progress bar */}
-              <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-[#2a2a2e]">
+              <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-soft)]">
                 <motion.div
                   className="h-full rounded-full bg-[var(--applume-accent)]"
                   initial={{ width: 0 }}
@@ -138,7 +138,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         step.done
                           ? "border-[var(--applume-accent)] bg-[var(--applume-accent)]"
-                          : "border-slate-300 bg-white dark:border-[#3a3a3e] dark:bg-[#111113]"
+                          : "border-[var(--border-strong)] bg-[var(--surface-card)]"
                       }`}
                     >
                       {step.done && (
@@ -149,7 +149,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                     </span>
 
                     {/* Step text */}
-                    <span className={`flex-1 text-sm ${step.done ? "text-slate-400 line-through dark:text-[#52525b]" : "text-slate-700 dark:text-[#d4d4d8]"}`}>
+                    <span className={`flex-1 text-sm ${step.done ? "text-[var(--text-soft)] line-through" : "text-[var(--text-strong)]"}`}>
                       {step.label}
                     </span>
 
@@ -158,13 +158,13 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                       <button
                         type="button"
                         onClick={onAddApplication}
-                        className="shrink-0 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:border-[rgba(0,153,102,0.32)] dark:bg-[rgba(0,153,102,0.16)] dark:text-[var(--applume-accent-muted)] dark:hover:bg-[rgba(0,153,102,0.24)]"
+                        className="shrink-0 rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)]"
                       >
                         Add application
                       </button>
                     )}
                     {!step.done && step.id === "deadline" && (
-                      <span className="shrink-0 text-[10px] font-semibold text-slate-400 dark:text-[#52525b]">
+                      <span className="shrink-0 text-[10px] font-semibold text-[var(--text-soft)]">
                         Add a deadline inside any record
                       </span>
                     )}

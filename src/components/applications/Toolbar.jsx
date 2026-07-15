@@ -18,7 +18,7 @@ export function Toolbar(props) {
   } = props;
 
   return (
-    <Card className="mb-4 min-w-0 rounded-[1.5rem] border border-slate-200 bg-white shadow-sm dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 sm:rounded-[2rem]">
+    <Card className="mb-4 min-w-0 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
       <CardContent className="p-3 sm:p-4">
         <div className="flex flex-col gap-3">
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
@@ -31,7 +31,7 @@ export function Toolbar(props) {
                 placeholder={t("phrases.Search applications...")}
               />
             </div>
-            <div className="grid min-w-0 grid-cols-3 rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-[#2a2a2e] dark:bg-[#2a2a2e] sm:flex sm:shrink-0">
+            <div className="grid min-w-0 grid-cols-3 rounded-[12px] border border-[var(--border)] bg-[var(--surface-soft)] p-1 sm:flex sm:shrink-0">
               <Toggle active={viewMode === "table"} onClick={() => setViewMode("table")}>{t("phrases.Table")}</Toggle>
               <Toggle active={viewMode === "cards"} onClick={() => setViewMode("cards")}>{t("phrases.Cards")}</Toggle>
               <Toggle active={viewMode === "kanban"} onClick={() => setViewMode("kanban")}>{t("phrases.Kanban")}</Toggle>
@@ -56,12 +56,12 @@ export function Toolbar(props) {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-[#71717a]">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
           <span className="inline-flex min-w-0 items-center gap-1">
             <Icon name="filter" className="h-3 w-3 shrink-0" /> {t("common.showing", { showing, total })}
           </span>
           <button
-            className="font-bold text-slate-700 hover:text-slate-950 dark:text-[#a1a1aa] dark:hover:text-white"
+            className="font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--applume-accent-hover)]"
             onClick={() => {
               setQuery("");
               setTypeFilter("All");

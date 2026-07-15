@@ -17,15 +17,15 @@ const STATUS_DISTRIBUTION_COLORS = {
 
 function PanelShell({ title, description, icon = "dashboard", children }) {
   return (
-    <Card className="h-full rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
+    <Card className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
       <CardContent className="flex h-full flex-col p-4 sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">{title}</h2>
-            <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{description}</p>
+            <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{title}</h2>
+            <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{description}</p>
           </div>
           {icon && (
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--applume-accent-soft)] text-[var(--applume-accent)] ring-1 ring-[var(--applume-accent-border)] dark:bg-[rgba(0,153,102,0.16)]">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
               <Icon name={icon} className="h-4 w-4" />
             </div>
           )}
@@ -38,11 +38,11 @@ function PanelShell({ title, description, icon = "dashboard", children }) {
 
 function EmptyPanel({ title, children, actionLabel, onAction }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
-      {title && <p className="text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{title}</p>}
-      <p className={`${title ? "mt-1" : ""} text-sm font-semibold leading-6 text-slate-500 dark:text-[#9AA4B2]`}>{children}</p>
+    <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-4">
+      {title && <p className="text-sm font-bold text-[var(--text-strong)]">{title}</p>}
+      <p className={`${title ? "mt-1" : ""} text-sm leading-6 text-[var(--text-muted)]`}>{children}</p>
       {actionLabel && onAction && (
-        <button type="button" onClick={onAction} className="mt-3 rounded-xl border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-black text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-muted)] dark:border-[rgba(0,153,102,0.28)] dark:bg-[rgba(0,153,102,0.16)] dark:text-[var(--applume-accent-muted)]">
+        <button type="button" onClick={onAction} className="mt-3 rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)]">
           {actionLabel}
         </button>
       )}
@@ -84,10 +84,10 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
       ) : (
         <div className="space-y-2.5">
           {recent.map((app) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} aria-label={`Open ${app.name} application`} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:focus:ring-offset-[#1A1D22]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} aria-label={`Open ${app.name} application`} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]">
               <span className="min-w-0">
-                <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{app.name}</span>
-              <span className="block truncate text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{label("status", app.status)} - {formatDate(app.lastUpdated)}</span>
+                <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
+              <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">{label("status", app.status)} - {formatDate(app.lastUpdated)}</span>
               </span>
               <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">{t("phrases.Open")}</span>
             </button>

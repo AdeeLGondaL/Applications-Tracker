@@ -5,30 +5,32 @@ import { Icon } from "@/components/ui/Icon";
 import { STATUSES } from "@/utils/constants";
 import { useLanguage } from "@/i18n";
 
+// Status accent for the card's left edge — token-based and calm, keyed to the
+// same 5-tone system as the badges (success · info · warning · danger · neutral).
 const COLUMN_BORDER = {
-  "Not Open Yet":      "border-l-slate-300",
-  "Open":              "border-l-emerald-400",
-  "Applying":          "border-l-blue-400",
-  "Submitted":         "border-l-violet-400",
-  "Awaiting Response": "border-l-amber-400",
-  "Interview":         "border-l-orange-400",
-  "Accepted":          "border-l-emerald-500",
-  "Rejected":          "border-l-rose-400",
-  "Deferred":          "border-l-slate-400",
+  "Not Open Yet":      "border-l-[var(--border-strong)]",
+  "Open":              "border-l-[var(--applume-accent)]",
+  "Applying":          "border-l-[var(--warning)]",
+  "Submitted":         "border-l-[var(--info)]",
+  "Awaiting Response": "border-l-[var(--info)]",
+  "Interview":         "border-l-[var(--info)]",
+  "Accepted":          "border-l-[var(--applume-accent)]",
+  "Rejected":          "border-l-[var(--danger)]",
+  "Deferred":          "border-l-[var(--border-strong)]",
 };
 
 const PRIORITY_COLOR = {
-  High:   "bg-rose-400",
-  Medium: "bg-amber-400",
-  Low:    "bg-slate-300",
+  High:   "bg-[var(--danger)]",
+  Medium: "bg-[var(--warning)]",
+  Low:    "bg-[var(--border-strong)]",
 };
 
 const DEADLINE_TONE_CLASS = {
-  danger:  "border-rose-200 bg-rose-50 text-rose-700",
-  warning: "border-orange-200 bg-orange-50 text-orange-700",
-  notice:  "border-amber-200 bg-amber-50 text-amber-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  neutral: "border-slate-200 bg-slate-50 text-slate-500 dark:border-[#3a3a3e] dark:bg-[#1c1c1f] dark:text-[#71717a]",
+  danger:  "border-[color-mix(in_srgb,var(--danger)_26%,transparent)] bg-[var(--danger-soft)] text-[var(--danger)]",
+  warning: "border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-[var(--warning-soft)] text-[var(--warning-ink)]",
+  notice:  "border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-[var(--warning-soft)] text-[var(--warning-ink)]",
+  success: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]",
+  neutral: "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]",
 };
 
 function KanbanCard({ app, onEdit, onDelete }) {
@@ -47,15 +49,11 @@ function KanbanCard({ app, onEdit, onDelete }) {
       onDragStart={handleDragStart}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative cursor-grab rounded-2xl border bg-white p-3.5 shadow-sm transition-shadow active:cursor-grabbing active:shadow-md dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5 ${COLUMN_BORDER[app.status]} border-l-4 dark:border-[#2a2a2e]`}
+      className={`relative cursor-grab rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] p-3.5 shadow-sm transition-shadow active:cursor-grabbing active:shadow-md ${COLUMN_BORDER[app.status]} border-l-[3px]`}
     >
       {/* Type badge + priority dot */}
       <div className="mb-2.5 flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
-          app.type === "University"
-            ? "border-blue-200 bg-blue-50 text-blue-700"
-            : "border-violet-200 bg-violet-50 text-violet-700"
-        }`}>
+        <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-muted)]">
           <Icon name={app.type === "University" ? "university" : "job"} className="h-2.5 w-2.5" />
           {label("type", app.type)}
         </span>
@@ -66,11 +64,11 @@ function KanbanCard({ app, onEdit, onDelete }) {
       </div>
 
       {/* Name */}
-      <p className="text-sm font-black leading-tight text-slate-900 dark:text-white">{app.name}</p>
+      <p className="text-sm font-bold leading-tight text-[var(--text-strong)]">{app.name}</p>
 
       {/* Program / Role */}
       {app.programRole && (
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-[#a1a1aa] truncate">{app.programRole}</p>
+        <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">{app.programRole}</p>
       )}
 
       {/* Deadline badge */}
@@ -88,7 +86,7 @@ function KanbanCard({ app, onEdit, onDelete }) {
             type="button"
             title={t("phrases.Edit")}
             onClick={(e) => { e.stopPropagation(); onEdit(app); }}
-            className="grid h-6 w-6 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-[#a1a1aa] dark:hover:bg-[#2a2a2e] dark:hover:text-white"
+            className="grid h-6 w-6 place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface-card)] text-[var(--text-muted)] shadow-sm transition hover:bg-[var(--surface-soft)] hover:text-[var(--text-strong)]"
           >
             <Icon name="edit" className="h-3 w-3" />
           </button>
@@ -96,7 +94,7 @@ function KanbanCard({ app, onEdit, onDelete }) {
             type="button"
             title={t("phrases.Delete")}
             onClick={(e) => { e.stopPropagation(); onDelete(app.id); }}
-            className="grid h-6 w-6 place-items-center rounded-lg border border-slate-200 bg-white text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-700 dark:border-[#2a2a2e] dark:bg-[#111113] dark:hover:bg-rose-950/40"
+            className="grid h-6 w-6 place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface-card)] text-[var(--danger)] shadow-sm transition hover:bg-[var(--danger-soft)]"
           >
             <Icon name="trash" className="h-3 w-3" />
           </button>
@@ -131,28 +129,28 @@ function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
 
   return (
     <div
-      className={`flex min-w-[260px] max-w-[260px] flex-col overflow-hidden rounded-2xl border transition-colors dark:border-[#2a2a2e] ${
+      className={`flex min-w-[260px] max-w-[260px] flex-col overflow-hidden rounded-[14px] border transition-colors ${
         dragOver
-          ? "border-emerald-300 bg-emerald-50/60 dark:border-emerald-700 dark:bg-emerald-900/20"
-          : "border-slate-200 bg-slate-50 dark:bg-[#111113]"
+          ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]"
+          : "border-[var(--border)] bg-[var(--surface-soft)]"
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3.5 py-3 dark:border-[#2a2a2e] dark:bg-[#1c1c1f]">
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-card)] px-3.5 py-3">
         <div className="flex items-center gap-2">
           <Badge tone={tone}>{label("status", status)}</Badge>
         </div>
-        <span className="text-xs font-black text-slate-400 dark:text-[#71717a]">{apps.length}</span>
+        <span className="text-xs font-bold text-[var(--text-soft)]">{apps.length}</span>
       </div>
 
       {/* Cards area */}
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-2.5" style={{ minHeight: 80 }}>
         {apps.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center rounded-xl border-2 border-dashed border-slate-200 px-3 py-6 dark:border-[#2a2a2e]">
-            <p className="text-center text-xs text-slate-400 dark:text-[#52525b]">{t("phrases.Drop here")}</p>
+          <div className="flex flex-1 items-center justify-center rounded-[10px] border-2 border-dashed border-[var(--border)] px-3 py-6">
+            <p className="text-center text-xs text-[var(--text-soft)]">{t("phrases.Drop here")}</p>
           </div>
         ) : (
           apps.map((app) => (

@@ -5,22 +5,22 @@ import { STATUSES } from "@/utils/constants";
 import { useLanguage } from "@/i18n";
 
 const STATUS_COLOR = {
-  "Not Open Yet":      "bg-slate-300",
-  "Open":              "bg-blue-400",
+  "Not Open Yet":      "bg-[var(--border-strong)]",
+  "Open":              "bg-[var(--applume-accent)]",
   "Applying":          "bg-[var(--warning)]",
-  "Submitted":         "bg-[var(--applume-accent)]",
-  "Awaiting Response": "bg-amber-400",
-  "Interview":         "bg-orange-500",
+  "Submitted":         "bg-[var(--info)]",
+  "Awaiting Response": "bg-[var(--info)]",
+  "Interview":         "bg-[var(--info)]",
   "Accepted":          "bg-[var(--applume-accent)]",
-  "Rejected":          "bg-rose-400",
-  "Deferred":          "bg-slate-400",
+  "Rejected":          "bg-[var(--danger)]",
+  "Deferred":          "bg-[var(--border-strong)]",
 };
 
 const PHASES = [
-  { label: "Planning", statuses: ["Not Open Yet", "Open"], color: "bg-slate-400" },
+  { label: "Planning", statuses: ["Not Open Yet", "Open"], color: "bg-[var(--border-strong)]" },
   { label: "Preparing", statuses: ["Applying"], color: "bg-[var(--warning)]" },
   { label: "Submitted", statuses: ["Submitted", "Awaiting Response", "Interview"], color: "bg-[var(--applume-accent)]" },
-  { label: "Outcome", statuses: ["Accepted", "Rejected", "Deferred"], color: "bg-slate-700 dark:bg-slate-300" },
+  { label: "Outcome", statuses: ["Accepted", "Rejected", "Deferred"], color: "bg-[var(--text-muted)]" },
 ];
 
 export function PipelineCard({ pipeline, total }) {
@@ -29,7 +29,7 @@ export function PipelineCard({ pipeline, total }) {
   const rows = STATUSES.map((status) => ({
     status,
     count: pipeline.find((p) => p.status === status)?.count || 0,
-    color: STATUS_COLOR[status] || "bg-slate-300",
+    color: STATUS_COLOR[status] || "bg-[var(--border-strong)]",
   }));
   const activeRows = rows.filter((row) => row.count > 0);
   const segments = PHASES.map((phase) => ({
@@ -43,19 +43,19 @@ export function PipelineCard({ pipeline, total }) {
     : "Start by moving records from planning into preparation.";
 
   return (
-    <Card className="rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] dark:border-[rgba(255,255,255,0.09)] dark:bg-[#1A1D22] dark:shadow-none dark:ring-1 dark:ring-white/5">
+    <Card className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
       <CardContent className="p-4 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black leading-tight text-slate-950 dark:text-white">{t("phrases.Pipeline summary")}</h2>
-            <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{t("phrases.Your applications grouped into clear progress stages.")}</p>
+            <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{t("phrases.Pipeline summary")}</h2>
+            <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{t("phrases.Your applications grouped into clear progress stages.")}</p>
           </div>
           {activeRows.length > 0 && (
             <button
               type="button"
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
-              className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--applume-accent)] focus:ring-offset-2 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A] dark:text-[#9AA4B2] dark:focus:ring-offset-[#1A1D22]"
+              className="shrink-0 rounded-[9px] border border-[var(--border)] bg-[var(--surface-card)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)] transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
             >
               {expanded ? t("phrases.Hide detail") : t("phrases.Details")}
             </button>
@@ -63,19 +63,19 @@ export function PipelineCard({ pipeline, total }) {
         </div>
 
         {total === 0 ? (
-          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-4 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
-            <p className="text-sm font-black text-slate-800 dark:text-[#F8FAFC]">{t("phrases.No pipeline data yet.")}</p>
-            <p className="mt-1 text-sm font-semibold leading-6 text-slate-500 dark:text-[#9AA4B2]">Add your first application to start tracking progress.</p>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-4">
+            <p className="text-sm font-bold text-[var(--text-strong)]">{t("phrases.No pipeline data yet.")}</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-[var(--text-muted)]">Add your first application to start tracking progress.</p>
           </div>
         ) : (
           <div>
-            <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
+            <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
               <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--applume-accent)]">{t("phrases.Submitted or beyond")}</p>
-              <p className="mt-1 text-lg font-black text-slate-950 dark:text-white">{submittedOrBeyond} {t("common.of")} {total} {t("phrases.applications")}</p>
-              <p className="mt-1 text-[13px] leading-5 text-slate-500 dark:text-[#9AA4B2]">{insight}</p>
+              <p className="mt-1 text-lg font-bold text-[var(--text-strong)]">{submittedOrBeyond} {t("common.of")} {total} {t("phrases.applications")}</p>
+              <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{insight}</p>
             </div>
 
-            <div className="flex h-3.5 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A]" aria-label={`Application pipeline summary. ${submittedPct}% submitted or beyond.`}>
+            <div className="flex h-3.5 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-label={`Application pipeline summary. ${submittedPct}% submitted or beyond.`}>
               {segments.map(({ label, count, color }) => {
                 const pct = total > 0 ? (count / total) * 100 : 0;
                 if (count === 0) return null;
@@ -96,13 +96,13 @@ export function PipelineCard({ pipeline, total }) {
               {segments.map(({ label, count, color }) => {
                 const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 return (
-                  <div key={label} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 dark:border-[rgba(255,255,255,0.09)] dark:bg-[#20242A]">
+                  <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3">
                     <div className="flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${color}`} />
-                      <span className="text-xs font-bold text-slate-700 dark:text-[#d4d4d8]">{t(`phrases.${label}`)}</span>
+                      <span className="text-xs font-semibold text-[var(--text-strong)]">{t(`phrases.${label}`)}</span>
                     </div>
-                    <p className="mt-2 text-[13px] text-slate-500 dark:text-[#9AA4B2]">
-                      <span className="font-black text-slate-900 dark:text-white">{count}</span>
+                    <p className="mt-2 text-[13px] text-[var(--text-muted)]">
+                      <span className="font-bold text-[var(--text-strong)]">{count}</span>
                       {count > 0 && <span> - {pct}%</span>}
                     </p>
                   </div>
@@ -125,13 +125,13 @@ export function PipelineCard({ pipeline, total }) {
               return (
                 <div key={status} className="sm:flex sm:items-center sm:gap-3">
                   <div className="mb-1.5 flex min-w-0 items-center justify-between gap-3 sm:mb-0 sm:w-36 sm:shrink-0">
-                    <div className="min-w-0 truncate text-[13px] font-semibold text-slate-500 dark:text-[#9AA4B2]">{label("status", status)}</div>
+                    <div className="min-w-0 truncate text-[13px] font-semibold text-[var(--text-muted)]">{label("status", status)}</div>
                     <div className="shrink-0 text-right text-[13px] sm:hidden">
-                      <span className="font-black text-slate-800 dark:text-white">{count}</span>
-                      {pct > 0 && <span className="ml-1 text-slate-400 dark:text-[#9AA4B2]">{pct}%</span>}
+                      <span className="font-bold text-[var(--text-strong)]">{count}</span>
+                      {pct > 0 && <span className="ml-1 text-[var(--text-soft)]">{pct}%</span>}
                     </div>
                   </div>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-[#20242A] sm:h-2">
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)] sm:h-2">
                     <motion.div
                       className={`h-full rounded-full ${color}`}
                       initial={{ width: 0 }}
@@ -140,8 +140,8 @@ export function PipelineCard({ pipeline, total }) {
                     />
                   </div>
                   <div className="hidden w-16 shrink-0 text-right text-[13px] sm:block">
-                    <span className="font-black text-slate-800 dark:text-white">{count}</span>
-                    {pct > 0 && <span className="ml-1 text-slate-400 dark:text-[#9AA4B2]">{pct}%</span>}
+                    <span className="font-bold text-[var(--text-strong)]">{count}</span>
+                    {pct > 0 && <span className="ml-1 text-[var(--text-soft)]">{pct}%</span>}
                   </div>
                 </div>
               );

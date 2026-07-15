@@ -29,7 +29,7 @@ export function InlineStatusPicker({ status, onStatusChange }) {
         title="Change status"
       >
         <Badge tone={statusTone(status)}>{label("status", status)}</Badge>
-        <Icon name="edit" className="h-2.5 w-2.5 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-[#52525b]" />
+        <Icon name="edit" className="h-2.5 w-2.5 text-[var(--text-soft)] opacity-0 transition-opacity group-hover:opacity-100" />
       </button>
 
       <AnimatePresence>
@@ -39,17 +39,17 @@ export function InlineStatusPicker({ status, onStatusChange }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/80 dark:border-[#2a2a2e] dark:bg-[#1c1c1f] dark:shadow-none dark:ring-1 dark:ring-white/5"
+            className="absolute left-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
           >
             {STATUSES.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => { onStatusChange(s); setOpen(false); }}
-                className="flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-[#242428]"
+                className="flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-[var(--surface-soft)]"
               >
                 <Badge tone={statusTone(s)}>{label("status", s)}</Badge>
-                {s === status && <Icon name="check" className="h-3 w-3 text-emerald-500" />}
+                {s === status && <Icon name="check" className="h-3 w-3 text-[var(--applume-accent)]" />}
               </button>
             ))}
           </motion.div>
