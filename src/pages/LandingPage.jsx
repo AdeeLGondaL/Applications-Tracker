@@ -265,7 +265,7 @@ function ProductDemo() {
 
 function HeroContent({ onGetStarted }) {
   return (
-    <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12 xl:gap-16">
+    <div className="mx-auto grid w-full max-w-7xl items-start gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-12 xl:gap-16">
       <div className="relative z-10">
         <SectionLabel>Application tracking, reconsidered</SectionLabel>
         <h1 className="font-display mt-6 text-[clamp(2.5rem,5.2vw,4.25rem)] leading-[1.02] tracking-[-0.02em] text-[var(--text-strong)]">
@@ -284,7 +284,7 @@ function HeroContent({ onGetStarted }) {
         </div>
         <p className="mt-5 text-[13px] text-[var(--text-soft)]">Free to use · Private by default · Export anytime</p>
       </div>
-      <div className="relative z-10 lg:pl-2">
+      <div className="relative z-10 lg:-mt-6 lg:pl-2">
         <ProductDemo />
       </div>
     </div>
@@ -293,7 +293,7 @@ function HeroContent({ onGetStarted }) {
 
 function Hero({ onGetStarted }) {
   return (
-    <section className="pb-16 pt-16 sm:pt-24">
+    <section className="pb-16 pt-6 sm:pt-12">
       <HeroContent onGetStarted={onGetStarted} />
     </section>
   );
