@@ -35,11 +35,11 @@ export function InlineStatusPicker({ status, onStatusChange }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 top-full z-50 mt-1.5 max-h-64 w-48 overflow-y-auto rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
           >
             {STATUSES.map((s) => (
               <button

@@ -36,7 +36,7 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Card
-        className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[var(--radius-lg)] border bg-gradient-to-b from-[var(--surface-card)] to-[var(--surface-soft)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.3)] transition-all hover:-translate-y-0.5 ${
+        className={`group relative flex h-full min-w-0 flex-col rounded-[var(--radius-lg)] border bg-gradient-to-b from-[var(--surface-card)] to-[var(--surface-soft)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.3)] transition-all hover:z-20 hover:-translate-y-0.5 focus-within:z-20 ${
           selected
             ? "border-[var(--applume-accent-border)]"
             : overdue

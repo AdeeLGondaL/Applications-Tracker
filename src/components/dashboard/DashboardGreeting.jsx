@@ -11,7 +11,7 @@ function timeGreeting(hour) {
 
 // Pick the single most useful thing to say right now, in priority order:
 // overdue → due soon → interviews → missing setup → all caught up.
-function resolveInsight({ overdue, dueSoon, interviews, missingDocs, total, progress }, handlers) {
+function resolveInsight({ overdue, dueSoon, interviews, missingDocs, progress }, handlers) {
   if (overdue > 0) {
     return {
       tone: "danger",
@@ -83,7 +83,6 @@ export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, on
       dueSoon: stats.dueSoon7,
       interviews: stats.interviews,
       missingDocs,
-      total: stats.total,
       progress: stats.progress,
     },
     { onReviewUrgent, onReviewInterviews, onReviewDocuments, onAddApplication },

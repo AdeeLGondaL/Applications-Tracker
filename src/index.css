@@ -201,3 +201,20 @@
     }
   }
 }
+
+/* Native form widgets follow the design system: brand accent for
+   checkboxes/radios/progress, calm calendar trigger on date fields
+   (the popup itself is OS-rendered but themes via color-scheme above). */
+:root {
+  accent-color: var(--applume-accent);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

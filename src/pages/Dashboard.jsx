@@ -3,18 +3,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
-import { Field, Input, Textarea } from "@/components/ui/Field";
 import { Brand } from "@/components/layout/Brand";
 import { NavItem } from "@/components/layout/NavItem";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
-import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { DashboardGreeting } from "@/components/dashboard/DashboardGreeting";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
-import { PipelineCard } from "@/components/dashboard/PipelineCard";
-import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
-import { RecentActivityPanel } from "@/components/dashboard/OptionalPanels";
+import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
+import { ProfileMenu } from "@/components/dashboard/ProfileMenu";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
 import { ApplicationGrid } from "@/components/applications/ApplicationCard";
@@ -31,154 +29,6 @@ import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
 import { useLanguage } from "@/i18n";
 
-function FeedbackModal({ session, onClose }) {
-  const [type, setType] = useState("bug");
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [steps, setSteps] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-
-  async function submit() {
-    if (!title.trim() || !desc.trim()) return;
-    setLoading(true);
-    setError("");
-    const { error: sbError } = await supabase.from("feedback").insert({
-      user_id: session.user.id,
-      email: session.user.email,
-      type,
-      title: title.trim(),
-      description: desc.trim(),
-      steps: steps.trim() || null,
-    });
-    setLoading(false);
-    if (sbError) setError("Couldn't send feedback. Please try again.");
-    else setSent(true);
-  }
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 backdrop-blur-sm sm:items-center px-4 pb-4 sm:pb-0"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <motion.div
-        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl shadow-slate-900/20 dark:bg-[#1c1c1f] dark:ring-1 dark:ring-white/5"
-        initial={{ opacity: 0, scale: 0.95, y: 24 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 24 }}
-        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-      >
-        <AnimatePresence mode="wait">
-          {sent ? (
-            <motion.div key="sent" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="py-6 text-center">
-              <motion.div
-                className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-[18px] bg-[var(--applume-accent-soft)] dark:bg-[rgba(0,153,102,0.18)]"
-                initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.05 }}
-              >
-                <Icon name="check" className="h-7 w-7 text-[var(--applume-accent)]" />
-              </motion.div>
-              <h3 className="text-xl font-black text-slate-950 dark:text-white">Feedback received</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-[#a1a1aa]">
-                {type === "bug" ? "Thanks for reporting. We'll investigate and fix it." : "Great idea. We'll consider it for a future update."}
-              </p>
-              <button type="button" onClick={onClose} className="mt-6 rounded-2xl bg-slate-950 px-8 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-[#f0f0f0] dark:text-slate-900 dark:hover:bg-white">
-                Done
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-
-              {/* Header */}
-              <div className="mb-5 flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-slate-950 dark:text-white">Share feedback</h2>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-[#a1a1aa]">Help make Applume better for everyone.</p>
-                </div>
-                <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-[#3a3a3e] dark:text-[#a1a1aa] dark:hover:bg-[#2e2e32]">
-                  <Icon name="close" />
-                </button>
-              </div>
-
-              {/* Type pill switcher */}
-              <div className="relative mb-5 flex rounded-2xl bg-slate-100 p-1 dark:bg-[#2a2a2e]">
-                <span
-                  aria-hidden="true"
-                  className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-[#1c1c1f] ${type === "feature" ? "translate-x-full rtl:-translate-x-full" : "translate-x-0"}`}
-                />
-                {[{ id: "bug", label: "Bug report" }, { id: "feature", label: "Feature request" }].map(({ id, label }) => (
-                  <button key={id} type="button" onClick={() => setType(id)} className="relative z-10 flex-1 rounded-xl py-2 text-sm font-bold">
-                    <span className={`transition-colors ${type === id ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-[#71717a]"}`}>{label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                <Field label={type === "bug" ? "What's the issue?" : "What would you like to see?"} required>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !loading) submit(); }}
-                    placeholder={type === "bug" ? "e.g., Export button doesn't work on mobile" : "e.g., Email reminders before deadlines"}
-                  />
-                </Field>
-
-                <Field label={type === "bug" ? "What happened?" : "Why would this help you?"} required>
-                  <Textarea
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    placeholder={type === "bug"
-                      ? "Describe what went wrong and what you expected instead..."
-                      : "Explain the problem this would solve, or how you'd use it..."}
-                  />
-                </Field>
-
-                <AnimatePresence>
-                  {type === "bug" && (
-                    <motion.div initial={{ opacity: 0, height: 0, overflow: "hidden" }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
-                      <Field label="Steps to reproduce (optional)">
-                        <Textarea
-                          value={steps}
-                          onChange={(e) => setSteps(e.target.value)}
-                          placeholder={"1. Go to the export menu\n2. Click Download CSV\n3. Nothing happens"}
-                        />
-                      </Field>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {error && (
-                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                      <Icon name="close" className="h-3 w-3 shrink-0" />{error}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-
-                <Button
-                  onClick={submit}
-                  disabled={loading || !title.trim() || !desc.trim()}
-                  className="h-11 w-full rounded-2xl text-sm font-bold transition disabled:opacity-50"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
-                      </svg>
-                      Sending...
-                    </span>
-                  ) : type === "bug" ? "Submit bug report" : "Submit feature request"}
-                </Button>
-              </div>
-
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 const VIEW_META = {
   dashboard:    { title: "Overview",           sub: "Tracker overview" },
   universities: { title: "University records", sub: "Admissions"       },
@@ -186,93 +36,6 @@ const VIEW_META = {
   urgent:       { title: "Upcoming deadlines", sub: "Action needed"    },
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
-
-function DashboardLayout({ children }) {
-  return (
-    <div className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-12 min-[900px]:items-start min-[900px]:gap-6">
-      {children}
-    </div>
-  );
-}
-
-function DashboardSpan({ span = 6, children }) {
-  const spanClass = {
-    4: "min-[900px]:col-span-4",
-    5: "min-[900px]:col-span-5",
-    6: "min-[900px]:col-span-6",
-    7: "min-[900px]:col-span-7",
-    8: "min-[900px]:col-span-8",
-    12: "min-[900px]:col-span-12",
-  }[span] || "min-[900px]:col-span-6";
-
-  return (
-    <div className={`min-w-0 ${spanClass}`}>
-      {children}
-    </div>
-  );
-}
-
-function SectionHeading({ children }) {
-  return (
-    <h2 className="mb-3 flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">
-      {children}
-      <span className="h-px flex-1 bg-[var(--border)]" />
-    </h2>
-  );
-}
-
-function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
-  const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
-  const summary = `${pct}% ready · ${documented} of ${total} records include document notes · ${incompleteItems.length} need setup`;
-
-  return (
-    <div className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-4 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] sm:p-6">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">Application readiness</h2>
-          <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
-            Documents, deadlines, links, and next steps that still need setup.
-          </p>
-        </div>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
-          <Icon name="dashboard" className="h-4 w-4" />
-        </div>
-      </div>
-
-      <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-label={`${pct}% application readiness`}>
-        <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
-      </div>
-      <p className="mt-3 text-sm font-semibold leading-6 text-[var(--text-strong)]">{summary}</p>
-
-      {incompleteItems.length > 0 ? (
-        <div className="mt-4 space-y-2">
-          {incompleteItems.slice(0, 5).map(({ app, missing }) => (
-            <button
-              key={app.id}
-              type="button"
-              onClick={() => onOpenRecord?.(app)}
-              aria-label={`Fix missing ${missing.join(", ")} for ${app.name}`}
-              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
-            >
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
-                <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">Missing {missing.join(", ")}</span>
-              </span>
-              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Fix</span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="mt-4 rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-4">
-          <p className="text-sm font-bold text-[var(--applume-accent-hover)]">Everything important is set up.</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
-            Applications with missing documents, deadlines, links, or next steps will appear here.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function Dashboard({ session }) {
   const { label, t } = useLanguage();
@@ -302,7 +65,6 @@ export default function Dashboard({ session }) {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [csvImportOpen, setCsvImportOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [onboardingWizardDone, setOnboardingWizardDone] = useState(() => {
     try {
       return localStorage.getItem(`applume_onboarding_wizard_${session?.user?.id || "anonymous"}`) === "true";
@@ -313,8 +75,6 @@ export default function Dashboard({ session }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const exportMenuRef = useRef(null);
   const importInputRef = useRef(null);
-  const profileMenuRef = useRef(null);
-  const profileMenuCloseTimer = useRef(null);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -330,18 +90,9 @@ export default function Dashboard({ session }) {
   useEffect(() => {
     function handleClick(e) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportMenuOpen(false);
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) setProfileMenuOpen(false);
-    }
-    function handleKeyDown(e) {
-      if (e.key === "Escape") setProfileMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKeyDown);
-      if (profileMenuCloseTimer.current) window.clearTimeout(profileMenuCloseTimer.current);
-    };
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   useEffect(() => {
@@ -424,32 +175,6 @@ export default function Dashboard({ session }) {
   function openDocumentQueue(firstItem) {
     trackEvent("dashboard_focus_card_clicked", { card: "missing_documents" });
     if (firstItem) openEdit(firstItem);
-  }
-
-  function clearProfileMenuCloseTimer() {
-    if (profileMenuCloseTimer.current) {
-      window.clearTimeout(profileMenuCloseTimer.current);
-      profileMenuCloseTimer.current = null;
-    }
-  }
-
-  function canHoverProfileMenu() {
-    return typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  }
-
-  function openProfileMenu() {
-    clearProfileMenuCloseTimer();
-    setProfileMenuOpen(true);
-  }
-
-  function closeProfileMenu() {
-    clearProfileMenuCloseTimer();
-    setProfileMenuOpen(false);
-  }
-
-  function scheduleProfileMenuClose() {
-    clearProfileMenuCloseTimer();
-    profileMenuCloseTimer.current = window.setTimeout(() => setProfileMenuOpen(false), 140);
   }
 
   function copyCalendarUrl() {
@@ -599,7 +324,7 @@ export default function Dashboard({ session }) {
     const raw = meta.full_name || meta.name || meta.display_name || "";
     const fromMeta = String(raw).trim().split(/\s+/)[0];
     if (fromMeta) return fromMeta.charAt(0).toUpperCase() + fromMeta.slice(1);
-    const local = String(session?.user?.email || "").split("@")[0].replace(/[._+\-].*$/, "").replace(/\d+/g, "");
+    const local = String(session?.user?.email || "").split("@")[0].replace(/[._+-].*$/, "").replace(/\d+/g, "");
     if (local.length >= 2) return local.charAt(0).toUpperCase() + local.slice(1);
     return "";
   }, [session]);
@@ -816,67 +541,6 @@ export default function Dashboard({ session }) {
     event.target.value = "";
   }
 
-  function renderDashboardPanel(panelId) {
-    switch (panelId) {
-      case "focusThisWeek":
-        return (
-          <FocusThisWeek
-            overdueCount={focusThisWeek.overdueItems.length}
-            dueSoonCount={focusThisWeek.dueSoonItems.length}
-            interviewCount={focusThisWeek.interviewItems.length}
-            missingDocsCount={focusThisWeek.missingDocumentItems.length}
-            onReviewUrgent={() => openUrgentQueue("focus_layer")}
-            onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
-            onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
-          />
-        );
-      case "pipelineSummary":
-        return <PipelineCard pipeline={pipeline} total={stats.total} />;
-      case "upcomingDeadlines":
-        return <UpcomingDeadlinesCard apps={topDeadlines} onOpenRecord={openEdit} onAddDeadline={() => openNewTracked("University", "deadline_empty")} />;
-      case "recentActivity":
-        return <RecentActivityPanel applications={applications} onOpenRecord={openEdit} />;
-      case "applicationReadiness":
-        return (
-          <ApplicationReadinessPanel
-            total={stats.total}
-            documented={documentReadiness.documented}
-            incompleteItems={documentReadiness.incompleteItems}
-            onOpenRecord={openEdit}
-          />
-        );
-      default:
-        return null;
-    }
-  }
-
-  function renderFixedDashboard() {
-    return (
-      <div className="space-y-8">
-        {/* Tier 1 — act on this now */}
-        <section>
-          <SectionHeading>{t("phrases.Needs your attention")}</SectionHeading>
-          <div className="space-y-4 min-[900px]:space-y-6">
-            {renderDashboardPanel("focusThisWeek")}
-            <DashboardLayout>
-              <DashboardSpan span={6}>{renderDashboardPanel("upcomingDeadlines")}</DashboardSpan>
-              <DashboardSpan span={6}>{renderDashboardPanel("applicationReadiness")}</DashboardSpan>
-            </DashboardLayout>
-          </div>
-        </section>
-
-        {/* Tier 2 — how the whole tracker is trending */}
-        <section>
-          <SectionHeading>{t("phrases.Your progress")}</SectionHeading>
-          <DashboardLayout>
-            <DashboardSpan span={7}>{renderDashboardPanel("pipelineSummary")}</DashboardSpan>
-            <DashboardSpan span={5}>{renderDashboardPanel("recentActivity")}</DashboardSpan>
-          </DashboardLayout>
-        </section>
-      </div>
-    );
-  }
-
   return (
     <div className={`${dark ? "dark" : ""} min-h-dvh overflow-x-hidden bg-[var(--surface-page)] text-[var(--ink)]`}>
       <div className="flex min-h-dvh min-w-0">
@@ -985,17 +649,17 @@ export default function Dashboard({ session }) {
                         className="absolute right-0 top-full z-50 mt-1.5 w-52 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
                       >
                         <button onClick={() => { downloadFile("applications.csv", toCsv(applications), "text/csv"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Export CSV")}
+                          <Icon name="download" className="h-3.5 w-3.5 text-[var(--text-soft)]" /> {t("phrases.Export CSV")}
                         </button>
                         <button onClick={() => { downloadFile("applications-backup.json", JSON.stringify(applications, null, 2), "application/json"); setExportMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="download" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Download backup")}
+                          <Icon name="download" className="h-3.5 w-3.5 text-[var(--text-soft)]" /> {t("phrases.Download backup")}
                         </button>
                         <div className="mx-3 my-1 border-t border-[var(--border)]" />
                         <button type="button" onClick={() => { setCsvImportOpen(true); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> Import CSV
+                          <Icon name="upload" className="h-3.5 w-3.5 text-[var(--text-soft)]" /> Import CSV
                         </button>
                         <button type="button" onClick={() => { openImportPicker(); setExportMenuOpen(false); }} className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="upload" className="h-3.5 w-3.5 text-slate-400" /> {t("phrases.Import backup")}
+                          <Icon name="upload" className="h-3.5 w-3.5 text-[var(--text-soft)]" /> {t("phrases.Import backup")}
                         </button>
                       </motion.div>
                     )}
@@ -1014,94 +678,15 @@ export default function Dashboard({ session }) {
                   <Icon name={dark ? "sun" : "moon"} className="h-4 w-4" />
                 </button>
 
-                <div
-                  ref={profileMenuRef}
-                  className="relative"
-                  onMouseEnter={() => { if (canHoverProfileMenu()) openProfileMenu(); }}
-                  onMouseLeave={() => { if (canHoverProfileMenu()) scheduleProfileMenuClose(); }}
-                  onFocus={openProfileMenu}
-                  onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) scheduleProfileMenuClose(); }}
-                >
-                  <button
-                    type="button"
-                    aria-haspopup="menu"
-                    aria-expanded={profileMenuOpen}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      clearProfileMenuCloseTimer();
-                      if (canHoverProfileMenu()) setProfileMenuOpen(true);
-                      else setProfileMenuOpen((v) => !v);
-                    }}
-                    className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface-card)] p-1 pr-1 text-left transition-colors hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] sm:pr-2.5"
-                  >
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--applume-accent)] text-xs font-bold text-white">
-                      {session?.user?.email?.[0]?.toUpperCase() || "?"}
-                    </span>
-                    <span className="hidden max-w-[8rem] truncate text-xs font-semibold text-[var(--ink)] lg:block">
-                      {session?.user?.email}
-                    </span>
-                    <svg className="hidden h-3 w-3 shrink-0 text-[var(--text-soft)] sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                  <AnimatePresence>
-                    {profileMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--surface-card)] py-1 shadow-[0_18px_50px_-30px_rgba(12,20,16,0.4)]"
-                        role="menu"
-                      >
-                        <div className="border-b border-[var(--border)] px-4 py-3">
-                          <p className="truncate text-xs font-semibold text-[var(--ink)]">{session?.user?.email}</p>
-                          <p className="text-[10px] text-[var(--text-soft)]">{t("phrases.Signed in")}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { closeProfileMenu(); setSettingsOpen(true); }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
-                        >
-                          <Icon name="sliders" className="h-3.5 w-3.5 text-[var(--text-muted)]" /> {t("phrases.Settings")}
-                        </button>
-                        <div className="mx-3 my-1 border-t border-[var(--border)]" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            closeProfileMenu();
-                            copyCalendarUrl();
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
-                        >
-                          <Icon name="calendar" className="h-3.5 w-3.5 text-[var(--info)]" /> {t("phrases.Calendar sync")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            closeProfileMenu();
-                            copyShareUrl();
-                          }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]"
-                        >
-                          <Icon name="share" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share tracker")}
-                        </button>
-                        <button type="button" onClick={() => { closeProfileMenu(); setFeedbackOpen(true); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="messageSquare" className="h-3.5 w-3.5 text-[var(--applume-accent)]" /> {t("phrases.Share feedback")}
-                        </button>
-                        <div className="mx-3 my-1 border-t border-[var(--border)]" />
-                        <button type="button" onClick={() => { closeProfileMenu(); signOut(); }} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-soft)]">
-                          <Icon name="reset" className="h-3.5 w-3.5" /> {t("phrases.Sign out")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { closeProfileMenu(); handleDeleteAccount(); }}
-                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
-                        >
-                          {t("phrases.Delete account")}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <ProfileMenu
+                  email={session?.user?.email}
+                  onSettings={() => setSettingsOpen(true)}
+                  onCalendarSync={copyCalendarUrl}
+                  onShareTracker={copyShareUrl}
+                  onFeedback={() => setFeedbackOpen(true)}
+                  onSignOut={signOut}
+                  onDeleteAccount={handleDeleteAccount}
+                />
 
               </div>
             </div>
@@ -1159,7 +744,19 @@ export default function Dashboard({ session }) {
                           onAddApplication={() => { setDrawerOpen(true); setEditingId(null); setForm(EMPTY_FORM); }}
                           onOpenFeedback={() => setFeedbackOpen(true)}
                         />
-                        {renderFixedDashboard()}
+                        <DashboardOverview
+                          applications={applications}
+                          total={stats.total}
+                          pipeline={pipeline}
+                          topDeadlines={topDeadlines}
+                          focusThisWeek={focusThisWeek}
+                          documentReadiness={documentReadiness}
+                          onOpenRecord={openEdit}
+                          onAddDeadline={() => openNewTracked("University", "deadline_empty")}
+                          onReviewUrgent={() => openUrgentQueue("focus_layer")}
+                          onReviewInterviews={openInterviewQueue}
+                          onReviewDocuments={openDocumentQueue}
+                        />
                       </div>
                     )}
                   </>

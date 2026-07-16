@@ -154,7 +154,7 @@ export function ImportCsvModal({ onClose, onImport }) {
                   </label>
                   <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-[#a1a1aa]">
                     Default type
-                    <select value={defaultType} onChange={(e) => setDefaultType(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs dark:border-[#2a2a2e] dark:bg-[#111113] dark:text-white">
+                    <select value={defaultType} onChange={(e) => setDefaultType(e.target.value)} className="rounded-[8px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 py-1 text-xs text-[var(--ink)] outline-none focus:border-[var(--applume-accent-border)]">
                       {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </label>
@@ -178,7 +178,7 @@ export function ImportCsvModal({ onClose, onImport }) {
                         value={mapping[i] || ""}
                         onChange={(e) => setColumnField(i, e.target.value)}
                         aria-label={`Field for column ${headers?.[i] || i + 1}`}
-                        className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition dark:bg-[#111113] dark:text-white ${mapping[i] ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300" : "border-slate-200 bg-white text-slate-500 dark:border-[#2a2a2e]"}`}
+                        className={`rounded-[9px] border px-3 py-2 text-sm font-semibold outline-none transition ${mapping[i] ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--text-muted)]"}`}
                       >
                         <option value="">Don't import</option>
                         {IMPORT_FIELDS.map((field) => (
