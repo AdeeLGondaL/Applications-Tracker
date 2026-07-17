@@ -23,8 +23,11 @@ import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
 import { useTheme } from "@/hooks/useTheme";
-import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM } from "@/utils/constants";
+import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM, OUTCOME_STATUSES } from "@/utils/constants";
+import { OutcomeDialog } from "@/components/applications/OutcomeDialog";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
+import { documentsProgress, buildDocumentLibrary } from "@/utils/documents";
+import { DocumentLibraryView } from "@/components/documents/DocumentLibraryView";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
 import { useLanguage } from "@/i18n";
@@ -34,6 +37,7 @@ const VIEW_META = {
   universities: { title: "University records", sub: "Admissions"       },
   jobs:         { title: "Job records",        sub: "Applications"     },
   urgent:       { title: "Upcoming deadlines", sub: "Action needed"    },
+  documents:    { title: "Documents",          sub: "Linked files"     },
   admin:        { title: "Feedback inbox", sub: "Admin"         },
 };
 
@@ -58,6 +62,8 @@ export default function Dashboard({ session }) {
   });
   const [viewMode, setViewMode] = useState(defaultView);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [outcomePrompt, setOutcomePrompt] = useState(null); // { id, name, status }
+  const outcomeMigrationWarned = useRef(false);
   const [sidebarView, setSidebarView] = useState("dashboard");
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -288,12 +294,14 @@ export default function Dashboard({ session }) {
   }, [applications]);
 
   const documentReadiness = useMemo(() => {
-    const documented = applications.filter((app) => String(app.documents || "").trim()).length;
+    // "documented" = every checklist item is checked (not just non-empty text).
+    const documented = applications.filter((app) => documentsProgress(app.documents).complete).length;
     const incompleteItems = applications
       .map((app) => {
+        const docs = documentsProgress(app.documents);
         const missing = [
           !app.deadline && "deadline",
-          !String(app.documents || "").trim() && "documents",
+          !docs.complete && (docs.total === 0 ? "documents" : `${docs.total - docs.done} document${docs.total - docs.done === 1 ? "" : "s"}`),
           !String(app.link || "").trim() && "link",
           !String(app.notes || "").trim() && "next step",
         ].filter(Boolean);
@@ -315,9 +323,11 @@ export default function Dashboard({ session }) {
       return d !== null && d >= 0 && d <= 7;
     });
     const interviewItems = applications.filter((app) => app.status === "Interview");
-    const missingDocumentItems = applications.filter((app) => !String(app.documents || "").trim());
+    const missingDocumentItems = applications.filter((app) => !documentsProgress(app.documents).complete);
     return { overdueItems, dueSoonItems, interviewItems, missingDocumentItems };
   }, [applications]);
+
+  const documentLibrary = useMemo(() => buildDocumentLibrary(applications), [applications]);
 
   const displayName = useMemo(() => {
     const meta = session?.user?.user_metadata || {};
@@ -375,6 +385,7 @@ export default function Dashboard({ session }) {
     const isFirstSavedRecord = !editingId && applications.length === 0;
 
     if (editingId) {
+      const previous = applications.find((app) => app.id === editingId);
       const { error } = await supabase
         .from("applications")
         .update(payload)
@@ -383,6 +394,12 @@ export default function Dashboard({ session }) {
       if (error) { notify(error.message, "error"); return; }
       setApplications((old) => old.map((app) => (app.id === editingId ? normalize({ ...app, ...payload }) : app)));
       notify("Application updated.");
+      if (previous && payload.status !== previous.status) {
+        appendStatusHistory(previous, payload.status, payload.lastUpdated);
+        if (OUTCOME_STATUSES.includes(payload.status)) {
+          setOutcomePrompt({ id: editingId, name: payload.name, status: payload.status });
+        }
+      }
     } else {
       const newApp = { id: makeId(), ...payload };
       const { error } = await supabase.from("applications").insert([newApp]);
@@ -426,10 +443,46 @@ export default function Dashboard({ session }) {
 
   async function updateStatus(id, newStatus) {
     const today = todayIso();
+    const current = applications.find((a) => a.id === id);
+    const prevStatus = current?.status;
     setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: newStatus, lastUpdated: today } : a));
     const { error } = await supabase.from("applications").update({ status: newStatus, lastUpdated: today }).eq("id", id).eq("user_id", session.user.id);
-    if (error) notify(error.message, "error");
-    else trackOnce("first_status_updated", { status: newStatus });
+    if (error) { notify(error.message, "error"); return; }
+    trackOnce("first_status_updated", { status: newStatus });
+    if (newStatus !== prevStatus) {
+      appendStatusHistory(current, newStatus, today);
+      if (OUTCOME_STATUSES.includes(newStatus)) {
+        setOutcomePrompt({ id, name: current?.name || "", status: newStatus });
+      }
+    }
+  }
+
+  // Best-effort second write: status history lives in a jsonb column added by
+  // the Phase 5.2 migration. If the column doesn't exist yet, the base status
+  // update above has already succeeded — we just hint at the migration once.
+  async function appendStatusHistory(app, newStatus, at) {
+    if (!app || !session?.user) return;
+    const history = [...(Array.isArray(app.statusHistory) ? app.statusHistory : []), { status: newStatus, at }];
+    const { error } = await supabase.from("applications").update({ statusHistory: history }).eq("id", app.id).eq("user_id", session.user.id);
+    if (error) warnOutcomeMigrationOnce();
+    else setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, statusHistory: history } : a)));
+  }
+
+  function warnOutcomeMigrationOnce() {
+    if (outcomeMigrationWarned.current) return;
+    outcomeMigrationWarned.current = true;
+    notify("Outcome tracking needs the Phase 5.2 database migration (see REDESIGN_PLAN.md).", "error");
+  }
+
+  async function saveOutcome({ reason, note }) {
+    const prompt = outcomePrompt;
+    setOutcomePrompt(null);
+    if (!prompt || !session?.user) return;
+    const outcome = { result: prompt.status, reason: reason || "", note: String(note || "").trim(), at: todayIso() };
+    const { error } = await supabase.from("applications").update({ outcome }).eq("id", prompt.id).eq("user_id", session.user.id);
+    if (error) { warnOutcomeMigrationOnce(); return; }
+    setApplications((prev) => prev.map((a) => (a.id === prompt.id ? { ...a, outcome } : a)));
+    notify("Outcome saved.");
   }
 
   function toggleSelect(id) {
@@ -480,6 +533,9 @@ export default function Dashboard({ session }) {
       lastUpdated: todayIso(),
       user_id: session.user.id,
     };
+    // A copy starts fresh — don't inherit the source's history or outcome.
+    if ("statusHistory" in newApp) newApp.statusHistory = [];
+    if ("outcome" in newApp) newApp.outcome = null;
     const { error } = await supabase.from("applications").insert([newApp]);
     if (error) { notify(error.message, "error"); return; }
     setApplications((old) => [normalize(newApp), ...old]);
@@ -558,6 +614,7 @@ export default function Dashboard({ session }) {
               <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities"    count={stats.universities} />
               <NavItem active={sidebarView === "jobs"}         onClick={() => handleSidebarView("jobs")}         icon="job"        label="Jobs"            count={stats.jobs} />
               <NavItem active={sidebarView === "urgent"}       onClick={() => handleSidebarView("urgent")}       icon="calendar"   label="Urgent"          count={stats.actionNeeded} alert={stats.actionNeeded > 0} />
+              <NavItem active={sidebarView === "documents"}    onClick={() => handleSidebarView("documents")}    icon="file"       label="Documents"       count={documentLibrary.length} />
               {session?.user?.email === ADMIN_EMAIL && (
                 <NavItem active={sidebarView === "admin"} onClick={() => handleSidebarView("admin")} icon="shield" label="Feedback inbox" />
               )}
@@ -574,6 +631,7 @@ export default function Dashboard({ session }) {
               { view: "universities", icon: "university", label: label("view", "Uni")   },
               { view: "jobs",         icon: "job",        label: label("view", "Jobs")  },
               { view: "urgent",       icon: "calendar",   label: label("view", "Urgent")},
+              { view: "documents",    icon: "file",       label: "Docs"                 },
             ].map(({ view, icon, label }) => {
               const isActive = sidebarView === view;
               const badge = view === "urgent" ? stats.actionNeeded : 0;
@@ -764,7 +822,14 @@ export default function Dashboard({ session }) {
 
                 {sidebarView === "admin" && <AdminPanel />}
 
-                {sidebarView !== "dashboard" && sidebarView !== "admin" && (
+                {sidebarView === "documents" && (
+                  <DocumentLibraryView
+                    applications={applications}
+                    onCopyLink={(url) => { navigator.clipboard.writeText(url); notify("Link copied."); }}
+                  />
+                )}
+
+                {sidebarView !== "dashboard" && sidebarView !== "admin" && sidebarView !== "documents" && (
                   <>
                     <Toolbar
                       query={query} setQuery={setQuery}
@@ -840,6 +905,17 @@ export default function Dashboard({ session }) {
             onBatchChange={(updates) => setForm((old) => ({ ...old, ...updates }))}
             onSave={saveApplication}
             onClose={() => { setDrawerOpen(false); setEditingId(null); setForm(EMPTY_FORM); }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {outcomePrompt && (
+          <OutcomeDialog
+            name={outcomePrompt.name}
+            status={outcomePrompt.status}
+            onSave={saveOutcome}
+            onSkip={() => setOutcomePrompt(null)}
           />
         )}
       </AnimatePresence>

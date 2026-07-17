@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { DrawerSection, Field, Input, Textarea, Select } from "@/components/ui/Field";
+import { DocumentChecklist } from "@/components/applications/DocumentChecklist";
+import { buildDocumentLibrary } from "@/utils/documents";
 import { TYPES, STATUSES, PRIORITIES } from "@/utils/constants";
 import { callAiExtract } from "@/utils/ai";
 import { useLanguage } from "@/i18n";
@@ -17,6 +19,12 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
   const [afError, setAfError] = useState("");
   const [afDone, setAfDone] = useState(false);
   const afIsUrl = /^https?:\/\//i.test(afInput.trim());
+
+  const documentLibrary = useMemo(
+    // Exclude the record being edited so its own links don't suggest themselves.
+    () => buildDocumentLibrary(applications.filter((a) => a.id !== editingId)),
+    [applications, editingId]
+  );
 
   const duplicate = useMemo(() => {
     if (editingId || !form.name.trim()) return null;
@@ -341,14 +349,11 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 />
               </Field>
               <Field label={isUni ? t("phrases.Documents required") : t("phrases.Documents to prepare")}>
-                <Textarea
+                <DocumentChecklist
                   value={form.documents}
-                  onChange={(e) => onChange("documents", e.target.value)}
-                  placeholder={
-                    isUni
-                      ? "e.g., CV, transcript, module handbook, motivation letter, language certificate (IELTS/TOEFL)"
-                      : "e.g., CV, cover letter, portfolio link, references, work samples"
-                  }
+                  onChange={(value) => onChange("documents", value)}
+                  type={form.type}
+                  library={documentLibrary}
                 />
               </Field>
             </div>

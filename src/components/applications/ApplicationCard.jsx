@@ -4,6 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Badge } from "@/components/ui/Badge";
 import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { EmptyState } from "@/components/applications/EmptyState";
+import { documentsProgress } from "@/utils/documents";
 import { useLanguage } from "@/i18n";
 
 const PRIORITY_DOT = {
@@ -30,6 +31,7 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
   const { deadlineInfo, formatDate, label, t } = useLanguage();
   const info = deadlineInfo(app.deadline);
   const overdue = info.tone === "danger";
+  const docs = documentsProgress(app.documents);
   const iconBtn =
     "grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-card)] text-[var(--text-muted)] transition hover:border-[var(--applume-accent-border)] hover:text-[var(--applume-accent-hover)]";
 
@@ -88,6 +90,22 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
           <div className="mt-4 grid grid-cols-1 gap-3 rounded-[12px] border border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-soft)_60%,transparent)] p-3 min-[360px]:grid-cols-2">
             <MetaItem icon="pin" label={t("phrases.City")} value={app.city || "—"} />
             <MetaItem icon="calendar" label={t("phrases.Deadline")} value={formatDate(app.deadline) || "—"} />
+            {docs.total > 0 && (
+              <div className="min-[360px]:col-span-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-soft)]">{t("phrases.Documents")}</span>
+                  <span className={`text-[11px] font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)]"}`}>
+                    {docs.done}/{docs.total} ready
+                  </span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)] ring-1 ring-inset ring-[var(--border-subtle)]">
+                  <div
+                    className="h-full rounded-full bg-[var(--applume-accent)] transition-[width]"
+                    style={{ width: `${Math.round((docs.done / docs.total) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {app.notes && (

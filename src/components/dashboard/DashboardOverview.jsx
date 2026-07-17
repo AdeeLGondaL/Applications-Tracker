@@ -3,6 +3,7 @@ import { FocusThisWeek } from "@/components/dashboard/FocusThisWeek";
 import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { RecentActivityPanel } from "@/components/dashboard/OptionalPanels";
+import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { useLanguage } from "@/i18n";
 
 function PanelGrid({ children }) {
@@ -41,7 +42,7 @@ function SectionHeading({ children }) {
 
 function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
   const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
-  const summary = `${pct}% ready · ${documented} of ${total} records include document notes · ${incompleteItems.length} need setup`;
+  const summary = `${pct}% ready · ${documented} of ${total} records have every document checked off · ${incompleteItems.length} need setup`;
 
   return (
     <div className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-4 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] sm:p-6">
@@ -149,6 +150,9 @@ export function DashboardOverview({
           </PanelSpan>
           <PanelSpan span={5}>
             <RecentActivityPanel applications={applications} onOpenRecord={onOpenRecord} />
+          </PanelSpan>
+          <PanelSpan span={12}>
+            <InsightsPanel applications={applications} />
           </PanelSpan>
         </PanelGrid>
       </section>

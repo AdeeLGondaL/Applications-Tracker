@@ -109,7 +109,7 @@ export function FocusThisWeek({
             icon="check"
             label="Missing docs"
             value={missingDocsCount}
-            detail={missingDocsCount > 0 ? "Records without document context." : "Document context is complete."}
+            detail={missingDocsCount > 0 ? "Records with unchecked documents." : "Every document is checked off."}
             actionLabel="Fix"
             onClick={onReviewDocuments}
             ariaLabel="Fix applications with missing document context"

@@ -3,6 +3,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Badge, Priority, IconButton } from "@/components/ui/Badge";
 import { InlineStatusPicker } from "@/components/applications/InlineStatusPicker";
 import { EmptyState } from "@/components/applications/EmptyState";
+import { documentsProgress } from "@/utils/documents";
 import { useLanguage } from "@/i18n";
 
 function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
@@ -56,7 +57,20 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
         <Priority priority={app.priority} />
       </td>
       <td className="max-w-[240px] px-4 py-4 align-top text-[var(--text-muted)]">
-        <span className="line-clamp-2">{app.documents || "—"}</span>
+        {(() => {
+          const docs = documentsProgress(app.documents);
+          if (docs.total === 0) return <span>—</span>;
+          return (
+            <div className="min-w-0">
+              <span className={`text-xs font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-strong)]"}`}>
+                {docs.done}/{docs.total} ready
+              </span>
+              <span className="mt-0.5 block truncate text-xs text-[var(--text-soft)]">
+                {docs.items.map((item) => item.label).join(", ")}
+              </span>
+            </div>
+          );
+        })()}
       </td>
       <td className="px-4 py-4 align-top text-[var(--text-soft)]">{formatDate(app.lastUpdated)}</td>
       <td className="px-5 py-4 align-top">
