@@ -78,8 +78,8 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
   return (
     <PanelShell title={t("phrases.Recent activity")} description={t("phrases.Recently added and updated applications.")} icon="reset">
       {recent.length === 0 ? (
-        <EmptyPanel title="No recent activity yet.">
-          Updates will appear here after you add or edit applications.
+        <EmptyPanel title={t("phrases.No recent activity yet.")}>
+          {t("phrases.Updates will appear here after you add or edit applications.")}
         </EmptyPanel>
       ) : (
         <div className="space-y-2.5">

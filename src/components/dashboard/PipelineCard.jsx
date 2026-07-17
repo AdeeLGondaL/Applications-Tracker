@@ -39,8 +39,8 @@ export function PipelineCard({ pipeline, total }) {
   const submittedOrBeyond = segments.find((segment) => segment.label === "Submitted")?.count || 0;
   const submittedPct = total > 0 ? Math.round((submittedOrBeyond / total) * 100) : 0;
   const insight = submittedOrBeyond > 0
-    ? "Most applications are already submitted or waiting for response."
-    : "Start by moving records from planning into preparation.";
+    ? t("phrases.Most applications are already submitted or waiting for response.")
+    : t("phrases.Start by moving records from planning into preparation.");
 
   return (
     <Card className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
@@ -65,7 +65,7 @@ export function PipelineCard({ pipeline, total }) {
         {total === 0 ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-4">
             <p className="text-sm font-bold text-[var(--text-strong)]">{t("phrases.No pipeline data yet.")}</p>
-            <p className="mt-1 text-sm font-semibold leading-6 text-[var(--text-muted)]">Add your first application to start tracking progress.</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-[var(--text-muted)]">{t("phrases.Add your first application to start tracking progress.")}</p>
           </div>
         ) : (
           <div>

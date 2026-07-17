@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { DOCUMENT_TEMPLATES, parseDocuments, serializeDocuments } from "@/utils/documents";
+import { useLanguage } from "@/i18n";
 
 // Demo-style document checklist (the landing page's "DOCUMENTS 2/4 READY"
 // pane, made real). Works on the serialized string stored in the `documents`
 // column: parses whatever is there (JSON or legacy text), edits as items,
 // hands back a serialized string via onChange.
 export function DocumentChecklist({ value, onChange, type = "University", library = [] }) {
+  const { t } = useLanguage();
   const items = parseDocuments(value);
   const [draft, setDraft] = useState("");
   const [linkEditIndex, setLinkEditIndex] = useState(null);
@@ -57,9 +59,9 @@ export function DocumentChecklist({ value, onChange, type = "University", librar
     <div className="rounded-[12px] border border-[var(--border)] bg-[var(--surface-soft)] p-3.5">
       {/* Header: progress readout, like the demo's "2/4 READY" */}
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">Checklist</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Checklist")}</p>
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-          {items.length > 0 ? `${done}/${items.length} ready` : "No documents yet"}
+          {items.length > 0 ? t("phrases.{done}/{total} ready", { done, total: items.length }) : t("phrases.No documents yet")}
         </p>
       </div>
 
@@ -135,7 +137,7 @@ export function DocumentChecklist({ value, onChange, type = "University", librar
                     autoFocus
                     type="url"
                     defaultValue={item.url || ""}
-                    placeholder="Paste a link (Google Drive, Dropbox, ...)"
+                    placeholder={t("phrases.Paste a link (Google Drive, Dropbox, ...)")}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") { setItemUrl(index, e.currentTarget.value); setLinkEditIndex(null); }
                       if (e.key === "Escape") setLinkEditIndex(null);
@@ -169,7 +171,7 @@ export function DocumentChecklist({ value, onChange, type = "University", librar
       {/* Reuse documents already linked on other applications */}
       {librarySuggestions.length > 0 && (
         <div className="mt-3">
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">From your documents</p>
+          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.From your documents")}</p>
           <div className="flex flex-wrap gap-1.5">
             {librarySuggestions.map((doc) => (
               <button
@@ -193,7 +195,7 @@ export function DocumentChecklist({ value, onChange, type = "University", librar
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addItem(draft); } }}
-          placeholder="Add a document..."
+          placeholder={t("phrases.Add a document...")}
           className="h-9 w-full min-w-0 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--text-soft)] focus:border-[var(--applume-accent-border)] focus:ring-2 focus:ring-[var(--applume-accent-soft)]"
         />
         <button

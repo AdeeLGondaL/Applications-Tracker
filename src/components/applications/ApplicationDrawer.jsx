@@ -91,7 +91,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                 {editingId ? t("phrases.Update application") : t("phrases.Add application")}
               </h2>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Fill only what you know now. You can update anything later.
+                {t("phrases.Fill only what you know now. You can update anything later.")}
               </p>
             </div>
           </div>
@@ -163,8 +163,8 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                   <div className="space-y-3 p-4">
                     <p className="text-[11px] leading-5 text-[var(--applume-accent-hover)]">
                       {afIsUrl
-                        ? "AI will fetch and read the page for you."
-                        : "Paste a job posting, program description, email, or any text. AI extracts the details."}
+                        ? t("phrases.AI will fetch and read the page for you.")
+                        : t("phrases.Paste a job posting, program description, email, or any text. AI extracts the details.")}
                     </p>
                     <textarea
                       value={afInput}
@@ -236,9 +236,11 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                     <Icon name="calendar" className="h-3 w-3" />{t("phrases.Possible duplicate")}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-[var(--warning-ink)]">
-                    You already have <span className="font-bold">{duplicate.name}</span> tracked as a{" "}
-                    {duplicate.type} - currently <span className="font-semibold">{duplicate.status}</span>.
-                    You can still save this as a separate entry.
+                    {t("phrases.You already have {name} tracked as a {type} — currently {status}. You can still save this as a separate entry.", {
+                      name: duplicate.name,
+                      type: label("type", duplicate.type),
+                      status: label("status", duplicate.status),
+                    })}
                   </p>
                 </div>
               </motion.div>

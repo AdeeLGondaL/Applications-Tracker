@@ -41,16 +41,22 @@ function SectionHeading({ children }) {
 }
 
 function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
+  const { t } = useLanguage();
   const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
-  const summary = `${pct}% ready · ${documented} of ${total} records have every document checked off · ${incompleteItems.length} need setup`;
+  const summary = t("phrases.{pct}% ready · {documented} of {total} records have every document checked off · {missing} need setup", {
+    pct,
+    documented,
+    total,
+    missing: incompleteItems.length,
+  });
 
   return (
     <div className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-4 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] sm:p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">Application readiness</h2>
+          <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{t("phrases.Application readiness")}</h2>
           <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
-            Documents, deadlines, links, and next steps that still need setup.
+            {t("phrases.Documents, deadlines, links, and next steps that still need setup.")}
           </p>
         </div>
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
@@ -75,17 +81,17 @@ function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenR
             >
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
-                <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">Missing {missing.join(", ")}</span>
+                <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">{t("phrases.Missing {list}", { list: missing.join(", ") })}</span>
               </span>
-              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">Fix</span>
+              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">{t("phrases.Fix")}</span>
             </button>
           ))}
         </div>
       ) : (
         <div className="mt-4 rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-4">
-          <p className="text-sm font-bold text-[var(--applume-accent-hover)]">Everything important is set up.</p>
+          <p className="text-sm font-bold text-[var(--applume-accent-hover)]">{t("phrases.Everything important is set up.")}</p>
           <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
-            Applications with missing documents, deadlines, links, or next steps will appear here.
+            {t("phrases.Applications with missing documents, deadlines, links, or next steps will appear here.")}
           </p>
         </div>
       )}

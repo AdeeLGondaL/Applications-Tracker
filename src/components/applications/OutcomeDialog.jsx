@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { Field, Select, Textarea } from "@/components/ui/Field";
 import { OUTCOME_REASONS } from "@/utils/constants";
+import { useLanguage } from "@/i18n";
 
 const COPY = {
   Accepted: {
@@ -35,6 +36,7 @@ const COPY = {
 // Optional post-status-change reflection. Every path out of this dialog is
 // safe: Skip, Escape, or the scrim simply close it — nothing is required.
 export function OutcomeDialog({ name, status, onSave, onSkip }) {
+  const { t } = useLanguage();
   const copy = COPY[status] || COPY.Rejected;
   const reasons = OUTCOME_REASONS[status] || [];
   const [reason, setReason] = useState("");
@@ -65,8 +67,8 @@ export function OutcomeDialog({ name, status, onSave, onSkip }) {
               <Icon name={copy.icon} className="h-4.5 w-4.5" />
             </span>
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-semibold leading-tight text-[var(--text-strong)]">{copy.title}</h2>
-              <p className="mt-1 truncate text-[13px] font-semibold text-[var(--text-muted)]">{name} · {status}</p>
+              <h2 className="font-display text-xl font-semibold leading-tight text-[var(--text-strong)]">{t(`phrases.${copy.title}`)}</h2>
+              <p className="mt-1 truncate text-[13px] font-semibold text-[var(--text-muted)]">{name} · {t(`phrases.${status}`)}</p>
             </div>
           </div>
           <button
@@ -79,34 +81,37 @@ export function OutcomeDialog({ name, status, onSave, onSkip }) {
           </button>
         </div>
 
-        <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">{copy.subtitle}</p>
+        <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">{t(`phrases.${copy.subtitle}`)}</p>
 
         <div className="mt-5 space-y-4">
-          <Field label={copy.reasonLabel}>
+          <Field label={t(`phrases.${copy.reasonLabel}`)}>
             <Select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              options={[{ label: "Select a reason (optional)", value: "" }, ...reasons]}
+              options={[
+                { label: t("phrases.Select a reason (optional)"), value: "" },
+                ...reasons.map((value) => ({ label: t(`phrases.${value}`), value })),
+              ]}
             />
           </Field>
-          <Field label="Anything worth remembering?">
+          <Field label={t("phrases.Anything worth remembering?")}>
             <Textarea
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder={copy.notePlaceholder}
+              placeholder={t(`phrases.${copy.notePlaceholder}`)}
             />
           </Field>
         </div>
 
         <p className="mt-3 text-[11px] leading-4 text-[var(--text-soft)]">
-          Private to you. Stored with this application only.
+          {t("phrases.Private to you. Stored with this application only.")}
         </p>
 
         <div className="mt-5 flex justify-end gap-2.5">
-          <Button variant="outline" onClick={onSkip}>Skip</Button>
+          <Button variant="outline" onClick={onSkip}>{t("phrases.Skip")}</Button>
           <Button onClick={() => onSave({ reason, note })} disabled={!reason && !note.trim()}>
-            Save outcome
+            {t("phrases.Save outcome")}
           </Button>
         </div>
       </motion.div>

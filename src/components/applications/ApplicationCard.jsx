@@ -95,7 +95,7 @@ export function ApplicationCard({ app, onEdit, onDelete, onDuplicate, onStatusCh
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-soft)]">{t("phrases.Documents")}</span>
                   <span className={`text-[11px] font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-muted)]"}`}>
-                    {docs.done}/{docs.total} ready
+                    {t("phrases.{done}/{total} ready", { done: docs.done, total: docs.total })}
                   </span>
                 </div>
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)] ring-1 ring-inset ring-[var(--border-subtle)]">

@@ -66,7 +66,7 @@ function ProfilePanel({ session, onSignOut, onDeleteAccount }) {
 
       <SettingRow
         title={t("phrases.Sign out")}
-        description="End this session on this device."
+        description={t("phrases.End this session on this device.")}
       >
         <button
           type="button"
@@ -79,7 +79,7 @@ function ProfilePanel({ session, onSignOut, onDeleteAccount }) {
 
       <SettingRow
         title={t("phrases.Delete account")}
-        description="Permanently remove your account and all application data. This cannot be undone."
+        description={t("phrases.Permanently remove your account and all application data. This cannot be undone.")}
       >
         <button
           type="button"
@@ -97,21 +97,21 @@ function AppearancePanel({ dark, onSetTheme, defaultView, onChangeDefaultView })
   const { t } = useLanguage();
   return (
     <div>
-      <SettingRow title="Theme" description="Choose a light or dark appearance for the app.">
+      <SettingRow title={t("phrases.Theme")} description={t("phrases.Choose a light or dark appearance for the app.")}>
         <Segmented
           ariaLabel="Theme"
           value={dark ? "dark" : "light"}
           onChange={onSetTheme}
           options={[
-            { value: "light", label: "Light", icon: "sun" },
-            { value: "dark", label: "Dark", icon: "moon" },
+            { value: "light", label: t("phrases.Light"), icon: "sun" },
+            { value: "dark", label: t("phrases.Dark"), icon: "moon" },
           ]}
         />
       </SettingRow>
 
       <SettingRow
-        title="Default view"
-        description="How your university and job records open by default. You can still switch views anytime."
+        title={t("phrases.Default view")}
+        description={t("phrases.How your university and job records open by default. You can still switch views anytime.")}
       >
         <Segmented
           ariaLabel="Default view"
@@ -139,6 +139,7 @@ export function SettingsModal({
   onDeleteAccount,
   initialCategory = "profile",
 }) {
+  const { t } = useLanguage();
   const [category, setCategory] = useState(initialCategory);
 
   return (
@@ -162,7 +163,7 @@ export function SettingsModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-6 py-4">
-          <h2 className="font-display text-xl font-semibold text-[var(--text-strong)]">Settings</h2>
+          <h2 className="font-display text-xl font-semibold text-[var(--text-strong)]">{t("phrases.Settings")}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -192,8 +193,8 @@ export function SettingsModal({
                 >
                   <Icon name={c.icon} className="h-4 w-4 shrink-0" />
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold">{c.label}</span>
-                    <span className="hidden text-[11px] font-medium opacity-70 sm:block">{c.hint}</span>
+                    <span className="block text-sm font-semibold">{t(`phrases.${c.label}`)}</span>
+                    <span className="hidden text-[11px] font-medium opacity-70 sm:block">{t(`phrases.${c.hint}`)}</span>
                   </span>
                 </button>
               );

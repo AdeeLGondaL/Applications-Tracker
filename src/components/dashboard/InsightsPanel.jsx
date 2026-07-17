@@ -2,19 +2,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { documentsProgress } from "@/utils/documents";
 import { parseDate } from "@/utils/date";
+import { useLanguage } from "@/i18n";
 
 function pct(part, whole) {
   return whole > 0 ? Math.round((part / whole) * 100) : 0;
 }
 
 function RateBar({ label, accepted, total }) {
+  const { t } = useLanguage();
   const value = pct(accepted, total);
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-[13px] font-semibold text-[var(--text-strong)]">{label}</span>
         <span className="text-[13px] font-bold tabular-nums text-[var(--text-muted)]">
-          {accepted}/{total} accepted · {value}%
+          {t("phrases.{accepted}/{total} accepted · {value}%", { accepted, total, value })}
         </span>
       </div>
       <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--surface-soft)] ring-1 ring-inset ring-[var(--border-subtle)]">
@@ -42,6 +44,7 @@ function Stat({ value, label, tone = "neutral" }) {
 // user's own records (status, document completeness, outcome reasons, and —
 // once statusHistory accumulates — submission timing vs deadline).
 export function InsightsPanel({ applications }) {
+  const { t } = useLanguage();
   const accepted = applications.filter((a) => a.status === "Accepted");
   const rejected = applications.filter((a) => a.status === "Rejected");
   const deferred = applications.filter((a) => a.status === "Deferred");
@@ -81,9 +84,9 @@ export function InsightsPanel({ applications }) {
       <CardContent className="p-4 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">Insights</h2>
+            <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{t("phrases.Insights")}</h2>
             <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
-              What your decided applications have in common. Private to you, computed on your device.
+              {t("phrases.What your decided applications have in common. Private to you, computed on your device.")}
             </p>
           </div>
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
@@ -93,10 +96,9 @@ export function InsightsPanel({ applications }) {
 
         {decided.length === 0 ? (
           <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-4">
-            <p className="text-sm font-bold text-[var(--text-strong)]">No outcomes yet.</p>
+            <p className="text-sm font-bold text-[var(--text-strong)]">{t("phrases.No outcomes yet.")}</p>
             <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
-              Once applications reach Accepted or Rejected, patterns show up here — document readiness, timing, and the
-              reasons you record.
+              {t("phrases.Once applications reach Accepted or Rejected, patterns show up here — document readiness, timing, and the reasons you record.")}
             </p>
           </div>
         ) : (
@@ -104,22 +106,22 @@ export function InsightsPanel({ applications }) {
             {/* Headline numbers */}
             <div>
               <div className="grid grid-cols-3 gap-2.5">
-                <Stat value={accepted.length} label="Accepted" tone="accent" />
-                <Stat value={rejected.length} label="Rejected" tone="danger" />
-                <Stat value={deferred.length} label="On hold" />
+                <Stat value={accepted.length} label={t("phrases.Accepted")} tone="accent" />
+                <Stat value={rejected.length} label={t("phrases.Rejected")} tone="danger" />
+                <Stat value={deferred.length} label={t("phrases.On hold")} />
               </div>
               <p className="mt-3 text-[13px] leading-6 text-[var(--text-muted)]">
-                <span className="font-bold text-[var(--text-strong)]">{pct(accepted.length, decided.length)}%</span> of
-                decided applications were accepted.
+                <span className="font-bold text-[var(--text-strong)]">{pct(accepted.length, decided.length)}%</span>{" "}
+                {t("phrases.of decided applications were accepted.")}
               </p>
 
               {topReasons.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">Top rejection reasons</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Top rejection reasons")}</p>
                   <ul className="mt-2 space-y-2">
                     {topReasons.map(([reason, count]) => (
                       <li key={reason} className="flex items-center gap-3">
-                        <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text-strong)]">{reason}</span>
+                        <span className="min-w-0 flex-1 truncate text-[13px] text-[var(--text-strong)]">{t(`phrases.${reason}`)}</span>
                         <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                           <span className="block h-full rounded-full bg-[var(--danger)]" style={{ width: `${pct(count, reasonMax)}%` }} />
                         </span>
@@ -134,30 +136,30 @@ export function InsightsPanel({ applications }) {
             {/* Success factors */}
             <div className="space-y-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">Documents at decision</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Documents at decision")}</p>
                 <div className="mt-2 space-y-3">
                   {decidedComplete.length > 0 && (
-                    <RateBar label="Checklist fully ready" accepted={acceptedComplete} total={decidedComplete.length} />
+                    <RateBar label={t("phrases.Checklist fully ready")} accepted={acceptedComplete} total={decidedComplete.length} />
                   )}
                   {decidedIncomplete.length > 0 && (
-                    <RateBar label="Checklist incomplete" accepted={acceptedIncomplete} total={decidedIncomplete.length} />
+                    <RateBar label={t("phrases.Checklist incomplete")} accepted={acceptedIncomplete} total={decidedIncomplete.length} />
                   )}
                 </div>
               </div>
 
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">Submission timing</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Submission timing")}</p>
                 {timed.length === 0 ? (
                   <p className="mt-2 text-[13px] leading-5 text-[var(--text-muted)]">
-                    Appears as new status changes are recorded (needs a submitted date and a deadline).
+                    {t("phrases.Appears as new status changes are recorded (needs a submitted date and a deadline).")}
                   </p>
                 ) : (
                   <div className="mt-2 space-y-3">
                     {early.length > 0 && (
-                      <RateBar label="Submitted ≥ 1 week early" accepted={early.filter((t) => t.app.status === "Accepted").length} total={early.length} />
+                      <RateBar label={t("phrases.Submitted ≥ 1 week early")} accepted={early.filter((entry) => entry.app.status === "Accepted").length} total={early.length} />
                     )}
                     {late.length > 0 && (
-                      <RateBar label="Submitted in the final week" accepted={late.filter((t) => t.app.status === "Accepted").length} total={late.length} />
+                      <RateBar label={t("phrases.Submitted in the final week")} accepted={late.filter((entry) => entry.app.status === "Accepted").length} total={late.length} />
                     )}
                   </div>
                 )}

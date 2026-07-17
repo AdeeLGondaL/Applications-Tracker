@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { trackOnce } from "@/utils/analytics";
+import { useLanguage } from "@/i18n";
 
 function getSteps(applications) {
   const aiUsed = (() => {
@@ -40,6 +41,7 @@ function getSteps(applications) {
 }
 
 export function OnboardingChecklist({ userId, applications, onAddApplication }) {
+  const { t } = useLanguage();
   const dismissedKey = `onboarding_dismissed_${userId}`;
 
   const [dismissed, setDismissed] = useState(() => {
@@ -89,7 +91,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
           {allDoneAnimating ? (
             <div className="flex items-center justify-center gap-3 py-2">
               <span className="text-base font-black text-[var(--applume-accent-hover)] dark:text-[var(--applume-accent-muted)]">
-                Your tracker foundation is ready.
+                {t("phrases.Your tracker foundation is ready.")}
               </span>
             </div>
           ) : (
@@ -102,10 +104,10 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[var(--text-strong)]">
-                      Build your structured tracker
+                      {t("phrases.Build your structured tracker")}
                     </p>
                     <p className="text-xs text-[var(--text-muted)]">
-                      {completedCount} of {steps.length} setup steps complete
+                      {t("phrases.{done} of {total} setup steps complete", { done: completedCount, total: steps.length })}
                     </p>
                   </div>
                 </div>
@@ -150,7 +152,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
 
                     {/* Step text */}
                     <span className={`flex-1 text-sm ${step.done ? "text-[var(--text-soft)] line-through" : "text-[var(--text-strong)]"}`}>
-                      {step.label}
+                      {t(`phrases.${step.label}`)}
                     </span>
 
                     {/* Action button or hint */}
@@ -160,12 +162,12 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                         onClick={onAddApplication}
                         className="shrink-0 rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)]"
                       >
-                        Add application
+                        {t("phrases.Add application")}
                       </button>
                     )}
                     {!step.done && step.id === "deadline" && (
                       <span className="shrink-0 text-[10px] font-semibold text-[var(--text-soft)]">
-                        Add a deadline inside any record
+                        {t("phrases.Add a deadline inside any record")}
                       </span>
                     )}
                   </li>

@@ -63,7 +63,7 @@ function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, se
           return (
             <div className="min-w-0">
               <span className={`text-xs font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-strong)]"}`}>
-                {docs.done}/{docs.total} ready
+                {t("phrases.{done}/{total} ready", { done: docs.done, total: docs.total })}
               </span>
               <span className="mt-0.5 block truncate text-xs text-[var(--text-soft)]">
                 {docs.items.map((item) => item.label).join(", ")}

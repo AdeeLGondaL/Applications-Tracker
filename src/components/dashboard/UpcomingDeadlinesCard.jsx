@@ -29,7 +29,7 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
           <div className="rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-4">
             <p className="text-sm font-bold text-[var(--applume-accent-hover)]">{t("phrases.No upcoming deadlines.")}</p>
             <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
-              Add a deadline to an application and it will appear here.
+              {t("phrases.Add a deadline to an application and it will appear here.")}
             </p>
             {onAddDeadline && (
               <button

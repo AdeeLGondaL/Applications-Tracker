@@ -299,17 +299,20 @@ export default function Dashboard({ session }) {
     const incompleteItems = applications
       .map((app) => {
         const docs = documentsProgress(app.documents);
+        const undone = docs.total - docs.done;
         const missing = [
-          !app.deadline && "deadline",
-          !docs.complete && (docs.total === 0 ? "documents" : `${docs.total - docs.done} document${docs.total - docs.done === 1 ? "" : "s"}`),
-          !String(app.link || "").trim() && "link",
-          !String(app.notes || "").trim() && "next step",
+          !app.deadline && t("phrases.deadline"),
+          !docs.complete && (docs.total === 0
+            ? t("phrases.documents")
+            : undone === 1 ? t("phrases.1 document") : t("phrases.{count} documents", { count: undone })),
+          !String(app.link || "").trim() && t("phrases.link"),
+          !String(app.notes || "").trim() && t("phrases.next step"),
         ].filter(Boolean);
         return { app, missing };
       })
       .filter((entry) => entry.missing.length > 0);
     return { documented, incompleteItems };
-  }, [applications]);
+  }, [applications, t]);
 
   const focusThisWeek = useMemo(() => {
     const overdueItems = applications.filter((app) => {
