@@ -167,18 +167,18 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
     }
   }
 
-  const heading = authMode === "signin" ? "Welcome back" : authMode === "reset" ? "Reset your password" : "Create your account";
+  const heading = authMode === "signin" ? t("phrases.Welcome back") : authMode === "reset" ? t("phrases.Reset your password") : t("phrases.Create your account");
   const subheading = authMode === "signin"
-    ? "Return to your structured application tracker."
+    ? t("phrases.Return to your structured application tracker.")
     : authMode === "reset"
-      ? "Enter your email and we'll send a link to choose a new password."
-      : "Start with one record. Grow it into your full tracker.";
+      ? t("phrases.Enter your email and we'll send a link to choose a new password.")
+      : t("phrases.Start with one record. Grow it into your full tracker.");
 
   const points = [
-    ["Application dossiers", "Notes, links and files stay attached to each opportunity."],
-    ["Deadline radar", "Urgent and overdue items surface without sorting columns."],
-    ["Table, cards or board", "Switch views without ever changing your data."],
-    ["Export anytime", "Download CSV or JSON whenever you want a backup."],
+    [t("phrases.Application dossiers"), t("phrases.Notes, links and files stay attached to each opportunity.")],
+    [t("phrases.Deadline radar"), t("phrases.Urgent and overdue items surface without sorting columns.")],
+    [t("phrases.Table, cards or board"), t("phrases.Switch views without ever changing your data.")],
+    [t("phrases.Export anytime"), t("phrases.Download CSV or JSON whenever you want a backup.")],
   ];
 
   return (
@@ -347,7 +347,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                             onChange={(e) => { setAuthPassword(e.target.value); setFieldErrors((f) => ({ ...f, password: "" })); setAuthError(""); }}
                             onKeyDown={(e) => { if (e.key === "Enter") handleAuthSubmit(); }}
                             type={showPassword ? "text" : "password"}
-                            placeholder={authMode === "signup" ? "Min. 6 characters" : "Enter your password"}
+                            placeholder={authMode === "signup" ? t("phrases.Min. 6 characters") : t("phrases.Enter your password")}
                             autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                             className={`${inputBase} pr-12 ${fieldErrors.password ? inputErr : inputOk}`}
                           />
@@ -402,9 +402,9 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                           className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border-strong)] accent-[var(--applume-accent)]"
                         />
                         <span className="text-[13px] leading-6 text-[var(--text-muted)]">
-                          I agree to the{" "}
-                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--applume-accent-hover)] hover:underline">Privacy Policy</a>
-                          . My data is stored securely and I can delete it at any time.
+                          {t("phrases.I agree to the")}{" "}
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--applume-accent-hover)] hover:underline">{t("phrases.Privacy Policy")}</a>
+                          . {t("phrases.My data is stored securely and I can delete it at any time.")}
                         </span>
                       </label>
                     )}
@@ -419,15 +419,15 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       {authLoading ? (
                         <span className="flex items-center justify-center gap-2">
                           <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
-                          {authMode === "signin" ? "Signing in..." : authMode === "reset" ? "Sending link..." : "Creating account..."}
+                          {authMode === "signin" ? t("phrases.Signing in...") : authMode === "reset" ? t("phrases.Sending link...") : t("phrases.Creating account...")}
                         </span>
-                      ) : authMode === "signin" ? t("phrases.Sign in") : authMode === "reset" ? "Send reset link" : t("phrases.Create account")}
+                      ) : authMode === "signin" ? t("phrases.Sign in") : authMode === "reset" ? t("phrases.Send reset link") : t("phrases.Create account")}
                     </button>
 
                     {authMode !== "reset" && (
                       <p className="text-center text-[11px] leading-5 text-[var(--text-soft)]">
-                        By continuing you agree to Applume's{" "}
-                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[var(--applume-accent-hover)] hover:underline">Privacy Policy</a>.
+                        {t("phrases.By continuing you agree to Applume's")}{" "}
+                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[var(--applume-accent-hover)] hover:underline">{t("phrases.Privacy Policy")}</a>.
                       </p>
                     )}
                   </div>
@@ -436,8 +436,8 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                   <div className="mt-7 flex items-start gap-3 border-t border-[var(--border)] pt-6">
                     <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[var(--applume-accent-soft)] text-[var(--applume-accent)]"><Icon name="shield" className="h-3.5 w-3.5" /></span>
                     <div>
-                      <p className="text-sm font-semibold text-[var(--ink)]">Your data stays private</p>
-                      <p className="mt-0.5 text-[13px] leading-6 text-[var(--text-muted)]">Applications are private to your account. Export or delete anytime — nothing is visible to anyone else unless you share a link yourself.</p>
+                      <p className="text-sm font-semibold text-[var(--ink)]">{t("phrases.Your data stays private")}</p>
+                      <p className="mt-0.5 text-[13px] leading-6 text-[var(--text-muted)]">{t("phrases.Applications are private to your account. Export or delete anytime — nothing is visible to anyone else unless you share a link yourself.")}</p>
                     </div>
                   </div>
                 </motion.div>
