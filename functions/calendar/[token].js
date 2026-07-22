@@ -48,6 +48,18 @@ function generateIcs(apps) {
   return lines.filter(Boolean).join("\r\n");
 }
 
+// Resolves a revocable calendar token to the owning user_id via share_tokens
+// (service role). Returns null once the token is revoked, so the feed empties.
+async function userIdForToken(supabaseUrl, serviceKey, token) {
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/share_tokens?calendar_token=eq.${token}&select=user_id`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!res.ok) return null;
+  const rows = await res.json();
+  return rows?.[0]?.user_id ?? null;
+}
+
 export async function onRequest(context) {
   // token is the filename without .ics extension
   const raw = context.params.token;
@@ -64,8 +76,13 @@ export async function onRequest(context) {
     return new Response("Server misconfigured", { status: 500 });
   }
 
+  const userId = await userIdForToken(supabaseUrl, serviceKey, token);
+  if (!userId) {
+    return new Response("This calendar link is no longer active", { status: 404 });
+  }
+
   const res = await fetch(
-    `${supabaseUrl}/rest/v1/applications?user_id=eq.${token}&select=id,name,programRole,type,status,priority,deadline,link,notes&order=deadline.asc`,
+    `${supabaseUrl}/rest/v1/applications?user_id=eq.${userId}&select=id,name,programRole,type,status,priority,deadline,link,notes&order=deadline.asc`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
 

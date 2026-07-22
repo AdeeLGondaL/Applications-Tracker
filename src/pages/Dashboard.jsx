@@ -28,6 +28,7 @@ import { OutcomeDialog } from "@/components/applications/OutcomeDialog";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
 import { documentsProgress, buildDocumentLibrary } from "@/utils/documents";
 import { DocumentLibraryView } from "@/components/documents/DocumentLibraryView";
+import { ensureShareToken } from "@/lib/shareTokens";
 import { toCsv } from "@/utils/csv";
 import { trackEvent, trackOnce } from "@/utils/analytics";
 import { useLanguage } from "@/i18n";
@@ -183,19 +184,25 @@ export default function Dashboard({ session }) {
     if (firstItem) openEdit(firstItem);
   }
 
-  function copyCalendarUrl() {
+  async function copyCalendarUrl() {
     if (!session?.user) return;
-    const url = `https://${window.location.host}/calendar/${session.user.id}.ics`;
+    const result = await ensureShareToken(session.user.id, "calendar");
+    if (result.unavailable) { notify(t("phrases.Sharing needs the database migration (see REDESIGN_PLAN.md)."), "error"); return; }
+    if (result.error || !result.token) { notify(result.error || "Could not create the link.", "error"); return; }
+    const url = `${window.location.origin}/calendar/${result.token}.ics`;
     navigator.clipboard.writeText(url);
     trackEvent("calendar_sync_connected", { method: "copied_url" });
-    notify("Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL.", "success");
+    notify(t("phrases.Calendar URL copied. Paste it in Google Calendar > Other calendars > From URL."), "success");
   }
 
-  function copyShareUrl() {
+  async function copyShareUrl() {
     if (!session?.user) return;
-    const url = `https://${window.location.host}/share/${session.user.id}`;
+    const result = await ensureShareToken(session.user.id, "share");
+    if (result.unavailable) { notify(t("phrases.Sharing needs the database migration (see REDESIGN_PLAN.md)."), "error"); return; }
+    if (result.error || !result.token) { notify(result.error || "Could not create the link.", "error"); return; }
+    const url = `${window.location.origin}/share/${result.token}`;
     navigator.clipboard.writeText(url);
-    notify("Share link copied! Anyone with this link can view your tracker.", "success");
+    notify(t("phrases.Share link copied. Manage or revoke it in Settings → Sharing."), "success");
   }
 
   function changeDefaultView(view) {
@@ -933,6 +940,7 @@ export default function Dashboard({ session }) {
             onChangeDefaultView={changeDefaultView}
             onSignOut={() => { setSettingsOpen(false); signOut(); }}
             onDeleteAccount={() => { setSettingsOpen(false); handleDeleteAccount(); }}
+            onNotify={notify}
             onClose={() => setSettingsOpen(false)}
           />
         )}

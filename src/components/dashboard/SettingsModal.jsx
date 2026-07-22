@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { useLanguage } from "@/i18n";
+import { loadShareTokens, ensureShareToken, rotateShareToken, revokeShareToken } from "@/lib/shareTokens";
 
 const CATEGORIES = [
   { id: "profile", label: "Profile", icon: "user", hint: "Account and session" },
+  { id: "sharing", label: "Sharing", icon: "share", hint: "Public links and access" },
   { id: "appearance", label: "Appearance", icon: "sliders", hint: "Theme and default view" },
 ];
 
@@ -93,6 +95,147 @@ function ProfilePanel({ session, onSignOut, onDeleteAccount }) {
   );
 }
 
+function LinkManager({ icon, title, description, token, url, busy, onCopy, onCreate, onRegenerate, onRevoke }) {
+  const { t } = useLanguage();
+  const active = !!token;
+  return (
+    <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-card)] text-[var(--text-muted)]">
+          <Icon name={icon} className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-[var(--text-strong)]">{title}</p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${active ? "bg-[var(--applume-accent-soft)] text-[var(--applume-accent-hover)]" : "bg-[var(--surface-card)] text-[var(--text-soft)] ring-1 ring-inset ring-[var(--border)]"}`}>
+              {active ? t("phrases.Active") : t("phrases.Off")}
+            </span>
+          </div>
+          <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{description}</p>
+
+          {active ? (
+            <>
+              <p className="mt-3 truncate rounded-[8px] border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1.5 font-mono text-[11px] text-[var(--text-muted)]" title={url}>{url}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={onCopy} className="inline-flex items-center gap-1.5 rounded-[9px] border border-[var(--border)] bg-[var(--surface-card)] px-3 py-1.5 text-xs font-semibold text-[var(--text-strong)] transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)]">
+                  <Icon name="copy" className="h-3.5 w-3.5" /> {t("phrases.Copy link")}
+                </button>
+                <button type="button" disabled={busy} onClick={onRegenerate} className="inline-flex items-center gap-1.5 rounded-[9px] border border-[var(--border)] bg-[var(--surface-card)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)] transition hover:text-[var(--text-strong)] disabled:opacity-50">
+                  <Icon name="reset" className="h-3.5 w-3.5" /> {t("phrases.Regenerate")}
+                </button>
+                <button type="button" disabled={busy} onClick={onRevoke} className="inline-flex items-center gap-1.5 rounded-[9px] border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[var(--danger-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--danger)] transition hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] disabled:opacity-50">
+                  <Icon name="close" className="h-3.5 w-3.5" /> {t("phrases.Revoke access")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <button type="button" disabled={busy} onClick={onCreate} className="mt-3 inline-flex items-center gap-1.5 rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)] disabled:opacity-50">
+              <Icon name="link" className="h-3.5 w-3.5" /> {t("phrases.Create link")}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SharingPanel({ session, onNotify }) {
+  const { t } = useLanguage();
+  const userId = session?.user?.id;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const [tokens, setTokens] = useState({ share: null, calendar: null });
+  const [unavailable, setUnavailable] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(null);
+
+  async function refresh() {
+    const r = await loadShareTokens(userId);
+    setTokens({ share: r.share, calendar: r.calendar });
+    setUnavailable(!!r.unavailable);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    let active = true;
+    loadShareTokens(userId).then((r) => {
+      if (!active) return;
+      setTokens({ share: r.share, calendar: r.calendar });
+      setUnavailable(!!r.unavailable);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [userId]);
+
+  function urlFor(which, token) {
+    return which === "share" ? `${origin}/share/${token}` : `${origin}/calendar/${token}.ics`;
+  }
+
+  async function copy(which) {
+    await navigator.clipboard.writeText(urlFor(which, tokens[which]));
+    onNotify?.(t("phrases.Link copied."), "success");
+  }
+
+  async function run(which, fn, successMsg) {
+    setBusy(which);
+    const r = await fn(userId, which);
+    setBusy(null);
+    if (r.unavailable) { setUnavailable(true); onNotify?.(t("phrases.Sharing needs the database migration (see REDESIGN_PLAN.md)."), "error"); return; }
+    if (r.error) { onNotify?.(r.error, "error"); return; }
+    await refresh();
+    onNotify?.(successMsg, "success");
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <svg className="h-5 w-5 animate-spin text-[var(--applume-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" /></svg>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[13px] leading-5 text-[var(--text-muted)]">
+        {t("phrases.Links are off until you create them. Anyone with an active link can view that data without signing in — revoke a link any time to cut off access instantly.")}
+      </p>
+
+      {unavailable && (
+        <div className="rounded-[12px] border border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-[var(--warning-soft)] px-3.5 py-3">
+          <p className="text-[13px] leading-5 text-[var(--warning-ink)]">
+            {t("phrases.Sharing needs a one-time database migration before it can be used. See REDESIGN_PLAN.md (Phase 5.5).")}
+          </p>
+        </div>
+      )}
+
+      <LinkManager
+        icon="share"
+        title={t("phrases.Shareable tracker link")}
+        description={t("phrases.A read-only view of your universities and jobs — names, statuses, deadlines and priorities.")}
+        token={tokens.share}
+        url={tokens.share ? urlFor("share", tokens.share) : ""}
+        busy={busy === "share"}
+        onCopy={() => copy("share")}
+        onCreate={() => run("share", ensureShareToken, t("phrases.Sharing link created."))}
+        onRegenerate={() => run("share", rotateShareToken, t("phrases.New link generated. The old one no longer works."))}
+        onRevoke={() => run("share", revokeShareToken, t("phrases.Access revoked. The link no longer works."))}
+      />
+
+      <LinkManager
+        icon="calendar"
+        title={t("phrases.Calendar feed")}
+        description={t("phrases.A subscribe-able .ics feed of your deadlines for Google Calendar, Apple Calendar, or Outlook.")}
+        token={tokens.calendar}
+        url={tokens.calendar ? urlFor("calendar", tokens.calendar) : ""}
+        busy={busy === "calendar"}
+        onCopy={() => copy("calendar")}
+        onCreate={() => run("calendar", ensureShareToken, t("phrases.Calendar feed created."))}
+        onRegenerate={() => run("calendar", rotateShareToken, t("phrases.New link generated. The old one no longer works."))}
+        onRevoke={() => run("calendar", revokeShareToken, t("phrases.Access revoked. The link no longer works."))}
+      />
+    </div>
+  );
+}
+
 function AppearancePanel({ dark, onSetTheme, defaultView, onChangeDefaultView }) {
   const { t } = useLanguage();
   return (
@@ -137,6 +280,7 @@ export function SettingsModal({
   onChangeDefaultView,
   onSignOut,
   onDeleteAccount,
+  onNotify,
   initialCategory = "profile",
 }) {
   const { t } = useLanguage();
@@ -205,6 +349,9 @@ export function SettingsModal({
           <div className="min-w-0 flex-1 overflow-y-auto p-6">
             {category === "profile" && (
               <ProfilePanel session={session} onSignOut={onSignOut} onDeleteAccount={onDeleteAccount} />
+            )}
+            {category === "sharing" && (
+              <SharingPanel session={session} onNotify={onNotify} />
             )}
             {category === "appearance" && (
               <AppearancePanel
