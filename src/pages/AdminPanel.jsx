@@ -11,6 +11,7 @@ export default function AdminPanel() {
   const [statusFilter, setStatusFilter] = useState("open");
   const [typeFilter, setTypeFilter] = useState("all");
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => { load(); }, []);
 
@@ -21,9 +22,38 @@ export default function AdminPanel() {
     if (data) setItems(data);
   }
 
+  // Feedback writes go through the service-key endpoint (RLS blocks the anon
+  // key from touching other users' rows, which is why direct updates silently
+  // reverted on reload). The endpoint re-verifies the admin identity server-side.
+  async function callAdmin(payload) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) return { ok: false, error: "Not signed in." };
+    try {
+      const res = await fetch("/api/admin-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        return { ok: false, error: body.error || `Request failed (${res.status}).` };
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err.message || "Network error." };
+    }
+  }
+
   async function toggleResolved(id, current) {
+    setActionError("");
     setItems((prev) => prev.map((f) => f.id === id ? { ...f, resolved: !current } : f));
-    await supabase.from("feedback").update({ resolved: !current }).eq("id", id);
+    const result = await callAdmin({ id, action: current ? "reopen" : "resolve" });
+    if (!result.ok) {
+      // revert the optimistic change so the UI reflects reality
+      setItems((prev) => prev.map((f) => f.id === id ? { ...f, resolved: current } : f));
+      setActionError(result.error);
+    }
   }
 
   async function deleteItem(id) {
@@ -33,8 +63,15 @@ export default function AdminPanel() {
       return;
     }
     setPendingDelete(null);
+    setActionError("");
+    const removed = items.find((f) => f.id === id);
     setItems((prev) => prev.filter((f) => f.id !== id));
-    await supabase.from("feedback").delete().eq("id", id);
+    const result = await callAdmin({ id, action: "delete" });
+    if (!result.ok) {
+      // restore the row on failure
+      if (removed) setItems((prev) => [removed, ...prev].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))));
+      setActionError(result.error);
+    }
   }
 
   const open     = items.filter((f) => !f.resolved).length;
@@ -56,6 +93,13 @@ export default function AdminPanel() {
         <Metric icon="close"         label="Bug reports"      value={bugs}     hint="Issues reported"         accent="violet"   delay={0.1}  />
         <Metric icon="check"         label="Feature requests" value={features} hint="Ideas submitted"         accent="slate"    delay={0.15} />
       </div>
+
+      {actionError && (
+        <div className="flex items-start gap-2 rounded-[12px] border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
+          <Icon name="close" className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
