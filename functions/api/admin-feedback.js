@@ -72,9 +72,16 @@ export async function onRequest(context) {
     return json({ error: "Invalid action" }, 400);
   }
 
-  if (!res.ok) return json({ error: "Update failed" }, 502);
-  const rows = await res.json().catch(() => []);
-  if (!Array.isArray(rows) || rows.length === 0) return json({ error: "Not found" }, 404);
+  if (!res.ok) {
+    // Surface the upstream reason (admin-only, JWT+email verified) so failures
+    // are diagnosable instead of an opaque 502.
+    const detail = await res.text().catch(() => "");
+    return json({ error: `Update failed (${res.status}): ${detail.slice(0, 300)}` }, 502);
+  }
+  const rows = await res.json().catch(() => null);
+  // With Prefer: return=representation a successful PATCH/DELETE returns the
+  // affected rows; some setups return no body — treat a 2xx as success.
+  if (Array.isArray(rows) && rows.length === 0) return json({ error: "Not found" }, 404);
 
   return json({ success: true });
 }

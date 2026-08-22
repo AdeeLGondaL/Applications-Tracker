@@ -5,6 +5,7 @@
 //   node scripts/i18n-translate.mjs [--dry] [--langs de,fr]
 //
 // API key: GROQ_API_KEY env var, or VITE_GROQ_API_KEY from .env.
+// Model: GROQ_MODEL env var (defaults to openai/gpt-oss-120b).
 //
 // Resilient by design: translations.js is rewritten after every batch (not
 // just at the end), and transient failures (429 rate limit, 5xx) are retried
@@ -14,7 +15,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadTranslations, writeTranslations } from "./i18n-lib.mjs";
 
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const BATCH = 20;
 const MAX_RETRIES = 6;
 const BATCH_DELAY_MS = 1500; // pace requests to stay under the TPM limit

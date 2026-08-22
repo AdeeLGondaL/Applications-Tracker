@@ -1,5 +1,6 @@
 const RATE_LIMIT_MAX = 10; // requests per window per user
 const RATE_LIMIT_WINDOW_S = 300;
+const DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"; // override with GROQ_MODEL env var
 const MAX_INPUT_CHARS = 20000;
 const MAX_PAGE_BYTES = 500 * 1024;
 const FETCH_TIMEOUT_MS = 15000;
@@ -140,7 +141,7 @@ export async function onRequest(context) {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${groqKey}` },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
       messages: [{ role: "user", content: buildPrompt(content) }],
       max_tokens: 1024,
     }),
