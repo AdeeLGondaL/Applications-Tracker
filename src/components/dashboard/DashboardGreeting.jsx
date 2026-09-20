@@ -126,7 +126,7 @@ export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, on
           <button
             type="button"
             onClick={insight.onCta}
-            className="mt-5 inline-flex items-center gap-2 rounded-[10px] bg-[var(--applume-accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+            className="mt-5 inline-flex items-center gap-2 rounded-[10px] bg-[var(--accent-solid)] px-4 py-2.5 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
           >
             {insight.cta === t("phrases.Add application") && <Icon name="plus" className="h-4 w-4" />}
             {insight.cta}

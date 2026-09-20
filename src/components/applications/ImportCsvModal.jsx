@@ -136,7 +136,7 @@ export function ImportCsvModal({ onClose, onImport }) {
                 type="button"
                 onClick={() => loadText(pasteValue)}
                 disabled={!pasteValue.trim()}
-                className="w-full rounded-2xl bg-[var(--applume-accent)] py-3 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)] disabled:opacity-50"
+                className="w-full rounded-2xl bg-[var(--accent-solid)] py-3 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)] disabled:opacity-50"
               >
                 Continue with pasted rows
               </button>
@@ -228,7 +228,7 @@ export function ImportCsvModal({ onClose, onImport }) {
               type="button"
               onClick={handleImport}
               disabled={!nameMapped || importing}
-              className="rounded-2xl bg-[var(--applume-accent)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)] disabled:opacity-50"
+              className="rounded-2xl bg-[var(--accent-solid)] px-6 py-3 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)] disabled:opacity-50"
             >
               {importing ? "Importing..." : `Import ${dataRows.length} application${dataRows.length === 1 ? "" : "s"}`}
             </button>

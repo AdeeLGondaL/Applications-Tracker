@@ -98,7 +98,7 @@ function Header() {
             <span className="text-[#17312E]">App</span><span className="text-[var(--applume-accent)]">lume</span>
           </span>
         </a>
-        <a href="/signup" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--applume-accent-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
+        <a href="/signup" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--accent-solid)] px-4 py-2 text-sm font-bold text-[var(--accent-solid-ink)] shadow-sm transition hover:bg-[var(--accent-solid-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
           Start tracking free
         </a>
       </nav>
@@ -122,7 +122,7 @@ export default function SeoPage({ slug }) {
         </p>
         <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">{page.h1}</h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-[#5A6B66] sm:text-lg sm:leading-8">{page.intro}</p>
-        <a href="/signup" className="mt-8 inline-flex rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-[var(--applume-accent-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
+        <a href="/signup" className="mt-8 inline-flex rounded-xl bg-[var(--accent-solid)] px-8 py-3.5 text-base font-bold text-[var(--accent-solid-ink)] shadow-sm transition hover:bg-[var(--accent-solid-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--applume-accent)]">
           Start tracking free
         </a>
 
@@ -187,7 +187,7 @@ export default function SeoPage({ slug }) {
           <p className="mt-3 max-w-xl text-sm leading-7 text-[#BFD3CF]">
             Deadlines, documents, portals, statuses, and next steps - for university and job applications alike. Import your spreadsheet and go.
           </p>
-          <a href="/signup" className="mt-6 inline-flex rounded-xl bg-[var(--applume-accent)] px-8 py-3.5 text-base font-bold text-white transition hover:bg-[var(--applume-accent-hover)]">
+          <a href="/signup" className="mt-6 inline-flex rounded-xl bg-[var(--accent-solid)] px-8 py-3.5 text-base font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)]">
             Start tracking free
           </a>
         </section>

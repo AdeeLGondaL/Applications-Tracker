@@ -189,7 +189,7 @@ function ProductDemo() {
             ))}
           </div>
           <div className="flex items-center gap-2 border-t border-[var(--border)] px-2 pt-2.5">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--applume-accent)] text-[10px] font-bold text-white">AC</span>
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--accent-solid)] text-[10px] font-bold text-[var(--accent-solid-ink)]">AC</span>
             <span className="text-xs font-medium text-[var(--text-muted)]">Aiden Chen</span>
           </div>
         </nav>
@@ -278,7 +278,7 @@ function HeroContent({ onGetStarted }) {
           {t("phrases.Track deadlines, documents, notes, links and next steps — without maintaining another spreadsheet.")}
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <button type="button" onClick={onGetStarted} className="inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--applume-accent-strong)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
+          <button type="button" onClick={onGetStarted} className="inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] px-6 text-[15px] font-semibold transition-colors hover:bg-[var(--accent-solid-hover)]">
             {t("phrases.Start tracking free")} <Icon name="plus" className="h-4 w-4" />
           </button>
           <a href="#how-it-works" className="inline-flex min-h-12 items-center gap-2 rounded-[11px] px-4 text-[15px] font-medium text-[var(--ink)] transition-colors hover:text-[var(--applume-accent-hover)]">
@@ -469,7 +469,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
 
   return (
     <div className="relative min-h-dvh bg-[var(--surface)] text-[var(--ink)]">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--applume-accent)] focus:px-4 focus:py-2 focus:text-white">{t("phrases.Skip to content")}</a>
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[var(--accent-solid)] focus:px-4 focus:py-2 focus:text-[var(--accent-solid-ink)]">{t("phrases.Skip to content")}</a>
 
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-md">
@@ -483,7 +483,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
           <div className="flex items-center gap-1.5">
             <LanguageSwitcher compact />
             <button type="button" onClick={onSignIn} className="hidden min-h-10 rounded-[9px] px-3.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--ink)] sm:block">{t("phrases.Sign in")}</button>
-            <button type="button" onClick={onGetStarted} className="inline-flex min-h-10 items-center rounded-[9px] bg-[var(--applume-accent-strong)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">{t("phrases.Start free")}</button>
+            <button type="button" onClick={onGetStarted} className="inline-flex min-h-10 items-center rounded-[9px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] px-4 text-sm font-semibold transition-colors hover:bg-[var(--accent-solid-hover)]">{t("phrases.Start free")}</button>
           </div>
         </div>
       </header>
@@ -604,7 +604,7 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
                 {t("phrases.Your applications deserve more than another abandoned spreadsheet.")}
               </h2>
               <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-[var(--text-muted)]">{t("phrases.Start free today. Move one application out of the spreadsheet and feel the difference.")}</p>
-              <button type="button" onClick={onGetStarted} className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--applume-accent-strong)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
+              <button type="button" onClick={onGetStarted} className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-[11px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] px-7 text-[15px] font-semibold transition-colors hover:bg-[var(--accent-solid-hover)]">
                 {t("phrases.Start tracking free")} <Icon name="plus" className="h-4 w-4" />
               </button>
               <p className="mt-6 text-[13px] text-[var(--text-soft)]">{t("phrases.Private to your account · CSV & JSON export · No credit card required")}</p>

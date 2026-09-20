@@ -200,7 +200,7 @@ export default function SharePage({ token }) {
         <p className="mt-1 text-xs text-[var(--text-muted)]">{t("phrases.Structured tracker - Export anytime - Private by default")}</p>
         <a
           href={appUrl}
-          className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-[var(--applume-accent)] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--applume-accent-hover)]"
+          className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-bold text-[var(--accent-solid-ink)] shadow-sm transition hover:bg-[var(--accent-solid-hover)]"
         >
           {t("phrases.Start tracking with Applume")}
           <Icon name="share" className="h-4 w-4" />

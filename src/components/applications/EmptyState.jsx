@@ -39,7 +39,7 @@ export function EmptyDashboard({ onAdd, onImport }) {
       <div className="mt-7 flex flex-wrap justify-center gap-2.5">
         <button
           onClick={onAdd}
-          className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--applume-accent-strong)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--applume-accent-ink)]"
+          className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] px-5 py-2.5 text-sm font-semibold transition hover:bg-[var(--accent-solid-hover)]"
         >
           <Icon name="plus" className="h-4 w-4" /> {t("phrases.Add application")}
         </button>

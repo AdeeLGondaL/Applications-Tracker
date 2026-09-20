@@ -18,6 +18,17 @@
     --brand-bright: #00b878;
     --brand-tint: var(--applume-accent-soft);
 
+    /* ── Solid accent surface ─────────────────────────────────────
+       One definition of the solid-accent pairing, because the accent
+       ramp inverts between themes: the same token is a DARK green in
+       light mode and a LIGHT green in dark mode, so white ink is only
+       legible on one of them. Call sites use these three and never a
+       `dark:` override — that is what kept drifting out of sync.
+       Used by primary buttons, avatars and numbered badges alike. */
+    --accent-solid: var(--applume-accent-strong);
+    --accent-solid-hover: var(--applume-accent-ink);
+    --accent-solid-ink: #ffffff;
+
     /* ── Surfaces: warm off-white, calm ───────────────────────── */
     --surface: #fbfbf8;
     --surface-page: #fbfbf8;
@@ -83,6 +94,11 @@
     --applume-accent-shadow: rgba(0, 0, 0, 0.4);
     --brand-bright: #2fd39c;
     --brand-tint: var(--applume-accent-soft);
+
+    /* Accent is light here, so the ink flips to near-black green. */
+    --accent-solid: var(--applume-accent);
+    --accent-solid-hover: var(--applume-accent-strong);
+    --accent-solid-ink: #06231a;
 
     --surface: #0e100f;
     --surface-page: #0e100f;

@@ -132,7 +132,7 @@ export function OnboardingWizard({ userId, onStart, onImport, onImportCsv, onSki
             <button
               type="button"
               onClick={() => setStep((current) => Math.min(1, current + 1))}
-              className="rounded-xl bg-[var(--applume-accent)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)]"
+              className="rounded-xl bg-[var(--accent-solid)] px-4 py-2 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)]"
             >
               Continue
             </button>

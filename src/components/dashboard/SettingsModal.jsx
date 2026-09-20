@@ -57,7 +57,7 @@ function ProfilePanel({ session, onSignOut, onDeleteAccount }) {
   return (
     <div>
       <div className="flex items-center gap-3.5 rounded-[14px] border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--applume-accent)] text-lg font-bold text-white">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--accent-solid)] text-lg font-bold text-[var(--accent-solid-ink)]">
           {email[0]?.toUpperCase() || "?"}
         </span>
         <div className="min-w-0">

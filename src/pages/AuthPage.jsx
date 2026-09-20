@@ -56,7 +56,7 @@ function SuccessPanel({ title, email, body, onBack }) {
       <div className="mt-4 rounded-[10px] border border-[color-mix(in_srgb,var(--warning)_28%,transparent)] bg-[var(--warning-soft)] px-4 py-3 text-left">
         <p className="text-xs font-medium text-[var(--warning-ink)]">Not in your inbox? Check your spam folder — it may take a minute to arrive.</p>
       </div>
-      <button type="button" onClick={onBack} className="mt-6 h-12 w-full rounded-[10px] bg-[var(--applume-accent-strong)] text-sm font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)]">
+      <button type="button" onClick={onBack} className="mt-6 h-12 w-full rounded-[10px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] text-sm font-semibold transition-colors hover:bg-[var(--accent-solid-hover)]">
         Back to sign in
       </button>
     </motion.div>
@@ -414,7 +414,7 @@ export default function AuthPage({ mode: initialMode, onModeChange, onClose }) {
                       type="button"
                       onClick={handleAuthSubmit}
                       disabled={authLoading || oauthLoading || (authMode === "signup" && !agreedToPrivacy)}
-                      className="h-12 w-full rounded-[10px] bg-[var(--applume-accent-strong)] text-sm font-semibold text-white transition-colors hover:bg-[var(--applume-accent-ink)] disabled:opacity-50 disabled:hover:bg-[var(--applume-accent-strong)]"
+                      className="h-12 w-full rounded-[10px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] text-sm font-semibold transition-colors hover:bg-[var(--accent-solid-hover)] disabled:opacity-50 disabled:hover:bg-[var(--accent-solid)]"
                     >
                       {authLoading ? (
                         <span className="flex items-center justify-center gap-2">

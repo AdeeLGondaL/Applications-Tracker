@@ -178,7 +178,7 @@ export function ApplicationDrawer({ form, editingId, onChange, onBatchChange, on
                       type="button"
                       onClick={handleExtract}
                       disabled={afLoading || !afInput.trim()}
-                      className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--applume-accent-strong)] py-2.5 text-xs font-bold text-white transition hover:bg-[var(--applume-accent-ink)] disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] py-2.5 text-xs font-bold transition hover:bg-[var(--accent-solid-hover)] disabled:opacity-50"
                     >
                       {afLoading ? (
                         <>

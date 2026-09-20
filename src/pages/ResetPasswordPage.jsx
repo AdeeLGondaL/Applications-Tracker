@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
               <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
                 Password reset links only work once and expire quickly. Request a new one from the sign-in page.
               </p>
-              <a href="/" className="mt-6 block w-full rounded-[10px] bg-[var(--applume-accent)] px-4 py-3 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)]">
+              <a href="/" className="mt-6 block w-full rounded-[10px] bg-[var(--accent-solid)] px-4 py-3 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)]">
                 Back to sign in
               </a>
             </div>
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !password}
-                className="mt-5 w-full rounded-[10px] bg-[var(--applume-accent)] px-4 py-3 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)] disabled:opacity-60"
+                className="mt-5 w-full rounded-[10px] bg-[var(--accent-solid)] px-4 py-3 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)] disabled:opacity-60"
               >
                 {saving ? "Saving..." : "Save new password"}
               </button>
@@ -127,7 +127,7 @@ export default function ResetPasswordPage() {
               </div>
               <h1 className="font-display text-2xl font-semibold tracking-[-0.01em] text-[var(--text-strong)]">Password updated</h1>
               <p className="mt-2 text-sm text-[var(--text-muted)]">You're signed in with your new password.</p>
-              <a href="/" className="mt-6 block w-full rounded-[10px] bg-[var(--applume-accent)] px-4 py-3 text-sm font-bold text-white transition hover:bg-[var(--applume-accent-hover)]">
+              <a href="/" className="mt-6 block w-full rounded-[10px] bg-[var(--accent-solid)] px-4 py-3 text-sm font-bold text-[var(--accent-solid-ink)] transition hover:bg-[var(--accent-solid-hover)]">
                 Go to your tracker
               </a>
             </div>

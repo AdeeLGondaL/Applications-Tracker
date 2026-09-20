@@ -82,7 +82,7 @@ export function ProfileMenu({ email, onSettings, onCalendarSync, onShareTracker,
         }}
         className="flex h-9 shrink-0 items-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface-card)] p-1 pr-1 text-left transition-colors hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] sm:pr-2.5"
       >
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--applume-accent)] text-xs font-bold text-white">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--accent-solid)] text-xs font-bold text-[var(--accent-solid-ink)]">
           {email?.[0]?.toUpperCase() || "?"}
         </span>
         <span className="hidden max-w-[8rem] truncate text-xs font-semibold text-[var(--ink)] lg:block">

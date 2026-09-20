@@ -12,7 +12,7 @@ const sizes = {
 
 const variants = {
   default:
-    "bg-[var(--applume-accent-strong)] text-white shadow-sm hover:bg-[var(--applume-accent-ink)] dark:bg-[var(--applume-accent)] dark:text-[#06231a] dark:hover:bg-[var(--applume-accent-strong)]",
+    "bg-[var(--accent-solid)] text-[var(--accent-solid-ink)] shadow-sm hover:bg-[var(--accent-solid-hover)]",
   outline:
     "border border-[var(--border-strong)] bg-[var(--surface-card)] text-[var(--ink)] hover:border-[var(--applume-accent-border)] hover:bg-[var(--surface-soft)]",
   ghost:
