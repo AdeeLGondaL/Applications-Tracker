@@ -12,6 +12,7 @@ import { DashboardGreeting } from "@/components/dashboard/DashboardGreeting";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
 import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
+import { FeedbackPrompt } from "@/components/dashboard/FeedbackPrompt";
 import { ProfileMenu } from "@/components/dashboard/ProfileMenu";
 import { Toolbar } from "@/components/applications/Toolbar";
 import { ApplicationTable } from "@/components/applications/ApplicationTable";
@@ -23,6 +24,7 @@ import { BulkActionBar } from "@/components/applications/BulkActionBar";
 import { EmptyDashboard } from "@/components/applications/EmptyState";
 import AdminPanel from "@/pages/AdminPanel";
 import { useTheme } from "@/hooks/useTheme";
+import { useFeedbackPrompt } from "@/hooks/useFeedbackPrompt";
 import { STATUSES, ACTIONABLE_STATUSES, ADMIN_EMAIL, EMPTY_FORM, OUTCOME_STATUSES } from "@/utils/constants";
 import { OutcomeDialog } from "@/components/applications/OutcomeDialog";
 import { makeId, todayIso, daysUntil, deadlineInfo, priorityRank, normalize } from "@/utils/date";
@@ -82,6 +84,23 @@ export default function Dashboard({ session }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const exportMenuRef = useRef(null);
   const importInputRef = useRef(null);
+
+  // Only ask for feedback when the user is looking at their own records with
+  // nothing else demanding attention — never over a dialog, a bulk selection,
+  // or while they are still being onboarded.
+  const feedbackPrompt = useFeedbackPrompt({
+    applications,
+    session,
+    enabled:
+      onboardingWizardDone &&
+      !drawerOpen &&
+      !settingsOpen &&
+      !feedbackOpen &&
+      !csvImportOpen &&
+      !outcomePrompt &&
+      selectedIds.size === 0 &&
+      sidebarView !== "admin",
+  });
 
   useEffect(() => {
     if (!session?.user) return;
@@ -949,6 +968,16 @@ export default function Dashboard({ session }) {
       <AnimatePresence>
         {feedbackOpen && (
           <FeedbackModal session={session} onClose={() => setFeedbackOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {feedbackPrompt.trigger && (
+          <FeedbackPrompt
+            trigger={feedbackPrompt.trigger}
+            onAccept={() => { feedbackPrompt.accept(); setFeedbackOpen(true); }}
+            onDismiss={feedbackPrompt.dismiss}
+          />
         )}
       </AnimatePresence>
 
