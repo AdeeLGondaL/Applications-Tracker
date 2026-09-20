@@ -34,7 +34,7 @@ export function Priority({ priority }) {
   return <Badge tone={tone}>{label("priority", priority)}</Badge>;
 }
 
-export function IconButton({ icon, label, onClick, danger = false }) {
+export function IconButton({ icon, label, onClick, danger = false, compact = false }) {
   const dangerClass = danger
     ? "text-[var(--danger)] hover:border-[color-mix(in_srgb,var(--danger)_30%,transparent)] hover:bg-[var(--danger-soft)]"
     : "text-[var(--text-muted)] hover:border-[var(--applume-accent-border)] hover:text-[var(--applume-accent-hover)] hover:bg-[var(--applume-accent-soft)]";
@@ -43,9 +43,9 @@ export function IconButton({ icon, label, onClick, danger = false }) {
       type="button"
       title={label}
       onClick={onClick}
-      className={`grid h-9 w-9 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-card)] transition ${dangerClass}`}
+      className={`grid place-items-center border border-[var(--border)] bg-[var(--surface-card)] transition ${compact ? "h-8 w-8 rounded-[9px]" : "h-9 w-9 rounded-[10px]"} ${dangerClass}`}
     >
-      <Icon name={icon} />
+      <Icon name={icon} className={compact ? "h-3.5 w-3.5" : ""} />
     </button>
   );
 }

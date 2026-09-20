@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { statusTone } from "@/utils/statusTone";
 import { Icon } from "@/components/ui/Icon";
+import { EmptyState } from "@/components/applications/EmptyState";
 import { STATUSES } from "@/utils/constants";
 import { useLanguage } from "@/i18n";
 
@@ -17,6 +18,18 @@ const COLUMN_BORDER = {
   "Accepted":          "border-l-[var(--applume-accent)]",
   "Rejected":          "border-l-[var(--danger)]",
   "Deferred":          "border-l-[var(--border-strong)]",
+};
+
+// Same 5-tone system, used as the colour cue on a collapsed rail where the full
+// status badge does not fit. The rail always carries the status name as well, so
+// colour is never the only signal.
+const TONE_DOT = {
+  success: "bg-[var(--applume-accent)]",
+  info:    "bg-[var(--info)]",
+  warning: "bg-[var(--warning)]",
+  notice:  "bg-[var(--warning)]",
+  danger:  "bg-[var(--danger)]",
+  neutral: "bg-[var(--border-strong)]",
 };
 
 const PRIORITY_COLOR = {
@@ -104,27 +117,68 @@ function KanbanCard({ app, onEdit, onDelete }) {
   );
 }
 
-function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
-  const { label, t } = useLanguage();
+// Shared drag-and-drop wiring for both the full column and the collapsed rail so
+// an empty status stays a valid drop target either way.
+function useColumnDrop(status, onStatusChange) {
   const [dragOver, setDragOver] = useState(false);
+  return {
+    dragOver,
+    handlers: {
+      onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setDragOver(true);
+      },
+      onDragLeave() {
+        setDragOver(false);
+      },
+      onDrop(e) {
+        e.preventDefault();
+        setDragOver(false);
+        const appId = e.dataTransfer.getData("appId");
+        if (appId) onStatusChange(appId, status);
+      },
+    },
+  };
+}
 
-  function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setDragOver(true);
-  }
+// Empty statuses shrink to a slim vertical rail: the board stays scannable and
+// horizontally compact, while the rail remains a full-height drop target.
+function CollapsedColumn({ status, onExpand, onStatusChange }) {
+  const { label, t } = useLanguage();
+  const { dragOver, handlers } = useColumnDrop(status, onStatusChange);
+  const statusLabel = label("status", status);
 
-  function handleDragLeave() {
-    setDragOver(false);
-  }
+  return (
+    <button
+      type="button"
+      onClick={onExpand}
+      {...handlers}
+      title={`${statusLabel} · ${t("phrases.Expand column")}`}
+      aria-label={`${statusLabel} · 0 · ${t("phrases.Expand column")}`}
+      className={`flex w-[56px] shrink-0 flex-col items-center gap-3 self-stretch rounded-[14px] border border-dashed py-3.5 transition-colors ${
+        dragOver
+          ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]"
+          : "border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)]"
+      }`}
+    >
+      <span className={`h-2 w-2 shrink-0 rounded-full ${TONE_DOT[statusTone(status)] || TONE_DOT.neutral}`} />
+      <span
+        style={{ writingMode: "vertical-rl" }}
+        className="min-h-0 flex-1 truncate text-center text-xs font-bold tracking-wide text-[var(--text-muted)]"
+      >
+        {statusLabel}
+      </span>
+      <span className="shrink-0 text-[var(--text-soft)]">
+        {dragOver ? <Icon name="plus" className="h-3.5 w-3.5" /> : <span className="text-xs font-bold tabular-nums">0</span>}
+      </span>
+    </button>
+  );
+}
 
-  function handleDrop(e) {
-    e.preventDefault();
-    setDragOver(false);
-    const appId = e.dataTransfer.getData("appId");
-    if (appId) onStatusChange(appId, status);
-  }
-
+function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange, onCollapse }) {
+  const { label, t } = useLanguage();
+  const { dragOver, handlers } = useColumnDrop(status, onStatusChange);
   const tone = statusTone(status);
 
   return (
@@ -134,22 +188,32 @@ function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
           ? "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]"
           : "border-[var(--border)] bg-[var(--surface-soft)]"
       }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      {...handlers}
     >
       {/* Column header */}
       <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-card)] px-3.5 py-3">
         <div className="flex items-center gap-2">
           <Badge tone={tone}>{label("status", status)}</Badge>
         </div>
-        <span className="text-xs font-bold text-[var(--text-soft)]">{apps.length}</span>
+        {onCollapse ? (
+          <button
+            type="button"
+            onClick={onCollapse}
+            title={t("phrases.Collapse column")}
+            aria-label={t("phrases.Collapse column")}
+            className="grid h-6 w-6 place-items-center rounded-lg text-[var(--text-soft)] transition hover:bg-[var(--surface-soft)] hover:text-[var(--text-strong)]"
+          >
+            <Icon name="close" className="h-3 w-3" />
+          </button>
+        ) : (
+          <span className="text-xs font-bold tabular-nums text-[var(--text-soft)]">{apps.length}</span>
+        )}
       </div>
 
       {/* Cards area */}
-      <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-2.5" style={{ minHeight: 80 }}>
+      <div className="flex flex-1 flex-col gap-2.5 p-2.5" style={{ minHeight: 80 }}>
         {apps.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center rounded-[10px] border-2 border-dashed border-[var(--border)] px-3 py-6">
+          <div className="grid min-h-[80px] place-items-center rounded-[10px] border-2 border-dashed border-[var(--border)] px-3 py-5">
             <p className="text-center text-xs text-[var(--text-soft)]">{t("phrases.Drop here")}</p>
           </div>
         ) : (
@@ -168,6 +232,20 @@ function KanbanColumn({ status, apps, onEdit, onDelete, onStatusChange }) {
 }
 
 export function KanbanBoard({ apps, onEdit, onDelete, onStatusChange }) {
+  // Statuses the user pinned open even though they hold nothing yet.
+  const [expanded, setExpanded] = useState(() => new Set());
+
+  function toggleExpanded(status) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
+  }
+
+  if (!apps.length) return <EmptyState />;
+
   const byStatus = {};
   STATUSES.forEach((s) => {
     byStatus[s] = apps.filter((a) => a.status === s);
@@ -175,17 +253,34 @@ export function KanbanBoard({ apps, onEdit, onDelete, onStatusChange }) {
 
   return (
     <div className="w-full overflow-x-auto pb-4">
-      <div className="flex gap-3" style={{ minWidth: "max-content" }}>
-        {STATUSES.map((status) => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            apps={byStatus[status]}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onStatusChange={onStatusChange}
-          />
-        ))}
+      <div className="flex items-stretch gap-3" style={{ minWidth: "max-content" }}>
+        {STATUSES.map((status) => {
+          const columnApps = byStatus[status];
+          const isEmpty = columnApps.length === 0;
+
+          if (isEmpty && !expanded.has(status)) {
+            return (
+              <CollapsedColumn
+                key={status}
+                status={status}
+                onExpand={() => toggleExpanded(status)}
+                onStatusChange={onStatusChange}
+              />
+            );
+          }
+
+          return (
+            <KanbanColumn
+              key={status}
+              status={status}
+              apps={columnApps}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onStatusChange={onStatusChange}
+              onCollapse={isEmpty ? () => toggleExpanded(status) : undefined}
+            />
+          );
+        })}
       </div>
     </div>
   );

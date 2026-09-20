@@ -6,78 +6,105 @@ import { EmptyState } from "@/components/applications/EmptyState";
 import { documentsProgress } from "@/utils/documents";
 import { useLanguage } from "@/i18n";
 
+// Anything matching this selector handles its own click, so a click that lands
+// inside it must not also open the record.
+const INTERACTIVE = "button, a, input, select, textarea, label, [data-no-row-click]";
+
 function ApplicationRow({ app, onEdit, onDelete, onDuplicate, onStatusChange, selected, onToggleSelect }) {
   const { deadlineInfo, formatDate, t } = useLanguage();
   const info = deadlineInfo(app.deadline);
+  const docs = documentsProgress(app.documents);
+  const meta = [app.programRole, app.city, app.applicationType, app.employmentType, app.workMode, app.language]
+    .filter(Boolean)
+    .join(" · ");
+
+  function handleRowClick(e) {
+    if (e.target.closest(INTERACTIVE)) return;
+    onEdit(app);
+  }
+
   return (
-    <tr className={`transition-colors hover:bg-[var(--surface-soft)] ${selected ? "bg-[var(--applume-accent-soft)]" : ""}`}>
-      <td className="px-4 py-4 align-top">
+    <tr
+      onClick={handleRowClick}
+      className={`cursor-pointer transition-colors hover:bg-[var(--surface-soft)] ${selected ? "bg-[var(--applume-accent-soft)]" : ""}`}
+    >
+      <td className="px-4 py-2 align-middle" data-no-row-click>
         <input
           type="checkbox"
           className="h-4 w-4 cursor-pointer rounded accent-[var(--applume-accent)]"
           checked={selected}
           onChange={() => onToggleSelect(app.id)}
+          aria-label={t("phrases.Select record")}
         />
       </td>
-      <td className="px-5 py-4 align-top">
-        <div className="flex gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
-            <Icon name={app.type === "University" ? "university" : "job"} />
+      <td className="max-w-[320px] px-5 py-2 align-middle">
+        <div className="flex items-center gap-2.5">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-muted)]">
+            <Icon name={app.type === "University" ? "university" : "job"} className="h-3.5 w-3.5" />
           </div>
-          <div>
-            <p className="font-bold text-[var(--text-strong)]">{app.name}</p>
-            <p className="mt-0.5 text-[var(--text-muted)]">{app.programRole}</p>
-            <p className="mt-1 text-xs text-[var(--text-soft)]">
-              {app.city || "No city"} · {app.applicationType || "No channel"}
-              {(app.employmentType || app.workMode || app.language)
-                ? ` · ${[app.employmentType, app.workMode, app.language].filter(Boolean).join(" · ")}`
-                : ""}
-            </p>
-            {app.link && (
-              <a
-                href={app.link}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--applume-accent-hover)]"
-              >
-                <Icon name="link" className="h-3 w-3" /> {t("phrases.Open link")}
-              </a>
+          <div className="min-w-0">
+            <button
+              type="button"
+              title={t("phrases.Open details")}
+              onClick={() => onEdit(app)}
+              className="block max-w-full truncate rounded text-left text-sm font-bold leading-tight text-[var(--text-strong)] transition-colors hover:text-[var(--applume-accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2"
+            >
+              {app.name}
+            </button>
+            {meta && (
+              <p className="mt-0.5 truncate text-xs leading-tight text-[var(--text-soft)]" title={meta}>
+                {meta}
+              </p>
             )}
           </div>
         </div>
       </td>
-      <td className="px-4 py-4 align-top">
+      <td className="px-4 py-2 align-middle">
         <InlineStatusPicker status={app.status} onStatusChange={(s) => onStatusChange(app.id, s)} />
       </td>
-      <td className="px-4 py-4 align-top">
+      <td className="whitespace-nowrap px-4 py-2 align-middle">
         <Badge tone={info.tone}>{info.label}</Badge>
-        <p className="mt-1 text-xs text-[var(--text-soft)]">{formatDate(app.deadline)}</p>
+        {app.deadline && (
+          <p className="mt-0.5 text-xs leading-tight text-[var(--text-soft)]">{formatDate(app.deadline)}</p>
+        )}
       </td>
-      <td className="px-4 py-4 align-top">
+      <td className="px-4 py-2 align-middle">
         <Priority priority={app.priority} />
       </td>
-      <td className="max-w-[240px] px-4 py-4 align-top text-[var(--text-muted)]">
-        {(() => {
-          const docs = documentsProgress(app.documents);
-          if (docs.total === 0) return <span>—</span>;
-          return (
-            <div className="min-w-0">
-              <span className={`text-xs font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-strong)]"}`}>
-                {t("phrases.{done}/{total} ready", { done: docs.done, total: docs.total })}
-              </span>
-              <span className="mt-0.5 block truncate text-xs text-[var(--text-soft)]">
-                {docs.items.map((item) => item.label).join(", ")}
-              </span>
-            </div>
-          );
-        })()}
+      <td className="max-w-[220px] px-4 py-2 align-middle text-[var(--text-muted)]">
+        {docs.total === 0 ? (
+          <span className="text-[var(--text-soft)]">—</span>
+        ) : (
+          <div className="flex min-w-0 items-baseline gap-1.5">
+            <span className={`shrink-0 text-xs font-bold tabular-nums ${docs.complete ? "text-[var(--applume-accent-hover)]" : "text-[var(--text-strong)]"}`}>
+              {t("phrases.{done}/{total} ready", { done: docs.done, total: docs.total })}
+            </span>
+            <span
+              className="truncate text-xs text-[var(--text-soft)]"
+              title={docs.items.map((item) => item.label).join(", ")}
+            >
+              {docs.items.map((item) => item.label).join(", ")}
+            </span>
+          </div>
+        )}
       </td>
-      <td className="px-4 py-4 align-top text-[var(--text-soft)]">{formatDate(app.lastUpdated)}</td>
-      <td className="px-5 py-4 align-top">
-        <div className="flex justify-end gap-2">
-          <IconButton label={t("phrases.Duplicate")} icon="copy" onClick={() => onDuplicate(app)} />
-          <IconButton label={t("phrases.Edit")} icon="edit" onClick={() => onEdit(app)} />
-          <IconButton label={t("phrases.Delete")} icon="trash" danger onClick={() => onDelete(app.id)} />
+      <td className="whitespace-nowrap px-4 py-2 align-middle text-xs text-[var(--text-soft)]">{formatDate(app.lastUpdated)}</td>
+      <td className="px-5 py-2 align-middle">
+        <div className="flex justify-end gap-1.5">
+          {app.link && (
+            <a
+              href={app.link}
+              target="_blank"
+              rel="noreferrer"
+              title={t("phrases.Open link")}
+              className="grid h-8 w-8 place-items-center rounded-[9px] border border-[var(--border)] bg-[var(--surface-card)] text-[var(--text-muted)] transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)]"
+            >
+              <Icon name="link" className="h-3.5 w-3.5" />
+            </a>
+          )}
+          <IconButton compact label={t("phrases.Duplicate")} icon="copy" onClick={() => onDuplicate(app)} />
+          <IconButton compact label={t("phrases.Edit")} icon="edit" onClick={() => onEdit(app)} />
+          <IconButton compact label={t("phrases.Delete")} icon="trash" danger onClick={() => onDelete(app.id)} />
         </div>
       </td>
     </tr>
@@ -95,21 +122,22 @@ export function ApplicationTable({ apps, onEdit, onDelete, onDuplicate, onStatus
           <table className="w-full min-w-[1060px] text-left text-sm">
             <thead className="border-b border-[var(--border)] bg-[var(--surface-soft)] text-xs uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
-                <th className="px-4 py-4">
+                <th className="px-4 py-2.5">
                   <input
                     type="checkbox"
                     className="h-4 w-4 cursor-pointer rounded accent-[var(--applume-accent)]"
                     checked={allSelected}
                     onChange={() => onSelectAll(apps.map((a) => a.id))}
+                    aria-label={t("phrases.Select all")}
                   />
                 </th>
-                <th className="px-5 py-4">{t("phrases.Application")}</th>
-                <th className="px-4 py-4">{t("phrases.Status")}</th>
-                <th className="px-4 py-4">{t("phrases.Deadline")}</th>
-                <th className="px-4 py-4">{t("phrases.Priority")}</th>
-                <th className="px-4 py-4">{t("phrases.Documents")}</th>
-                <th className="px-4 py-4">{t("phrases.Updated")}</th>
-                <th className="px-5 py-4 text-right">{t("phrases.Actions")}</th>
+                <th className="px-5 py-2.5">{t("phrases.Application")}</th>
+                <th className="px-4 py-2.5">{t("phrases.Status")}</th>
+                <th className="px-4 py-2.5">{t("phrases.Deadline")}</th>
+                <th className="px-4 py-2.5">{t("phrases.Priority")}</th>
+                <th className="px-4 py-2.5">{t("phrases.Documents")}</th>
+                <th className="px-4 py-2.5">{t("phrases.Updated")}</th>
+                <th className="px-5 py-2.5 text-right">{t("phrases.Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)]">
