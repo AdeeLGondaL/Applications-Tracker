@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Applume — Every application. One calm place.</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/music/audio-data.js"></script>
+    <style>
+      /* ── Brand fonts, shipped locally (latin subsets of the same Google
+           families the product's own index.html loads) ─────────────────── */
+      @font-face {
+        font-family: "Fraunces";
+        src: url("assets/fonts/Fraunces-latin.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-latin.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: block;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #fbfbf8;
+      }
+
+      #root {
+        /* Applume design tokens, verbatim from src/index.css :root */
+        --surface: #fbfbf8;
+        --surface-soft: #f4f6f2;
+        --card: #ffffff;
+        --ink: #15181a;
+        --muted: #5b6560;
+        --border: #e6e8e2;
+        --border-subtle: #eceee8;
+        --border-strong: #d2d6cf;
+        --accent: #009966;
+        --accent-strong: #007c53;
+        --accent-border: rgba(0, 153, 102, 0.2);
+        --warning: #b7791f;
+        --warning-soft: #f9f2e2;
+        --warning-ink: #8a5a12;
+        --info: #3763d8;
+        --info-soft: #eef2fd;
+
+        /* Audio-reactive: bass envelope, written per sample by the timeline.
+           Consumed by exactly two non-text properties, both ≤ a few percent. */
+        --bass: 0.3;
+
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--ink);
+      }
+
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: var(--surface);
+      }
+
+      .clip {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .card {
+        width: 1180px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 46px 48px;
+      }
+
+      .eyebrow {
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ── Scene 1 · the spreadsheet row ─────────────────────────────── */
+      #sheet-card {
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02), 0 18px 50px -40px rgba(12, 20, 16, 0.3);
+      }
+      .sheet-table {
+        margin-top: 32px;
+      }
+      .sheet-head,
+      .sheet-row {
+        display: grid;
+        grid-template-columns: 1fr 340px 200px;
+        align-items: center;
+        gap: 24px;
+      }
+      .sheet-head {
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .sheet-row {
+        padding: 18px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 30px;
+        color: var(--muted);
+      }
+      .sheet-row:last-child {
+        border-bottom: none;
+        padding-bottom: 4px;
+      }
+      .cell-status {
+        position: relative;
+        display: inline-block;
+        justify-self: start;
+        padding: 7px 16px;
+        border-radius: 9px;
+        background: rgba(249, 242, 226, 0);
+      }
+      .cell-ul {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 3px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--warning);
+      }
+      #qmark {
+        display: inline-block;
+        font-weight: 600;
+      }
+
+      /* ── Scene 2 · the Applume record ──────────────────────────────── */
+      #rec-card {
+        border-color: var(--accent-border);
+        /* the one place bass moves anything: shadow depth, 0.45 → ~0.66 alpha */
+        box-shadow: 0 18px 50px -30px rgba(0, 153, 102, calc(0.45 + var(--bass) * 0.3));
+      }
+      #rec-eyebrow {
+        color: var(--accent-strong);
+      }
+      #rec-title {
+        margin-top: 24px;
+        font-size: 38px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      .pill-row {
+        display: flex;
+        gap: 14px;
+        margin-top: 22px;
+      }
+      .pill {
+        font-size: 21px;
+        font-weight: 600;
+        padding: 9px 20px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+      }
+      .pill-warn {
+        border-color: rgba(183, 121, 31, 0.3);
+        background: var(--warning-soft);
+        color: var(--warning-ink);
+      }
+      .check-list {
+        margin-top: 34px;
+        display: grid;
+        gap: 18px;
+      }
+      .check-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 28px;
+        color: var(--muted);
+      }
+      .check-row.is-done {
+        color: var(--ink);
+      }
+      .box {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        flex: none;
+        border: 2px solid var(--border-strong);
+        border-radius: 9px;
+      }
+      .box-fill {
+        position: absolute;
+        inset: -2px;
+        border-radius: 9px;
+        background: var(--accent);
+        display: grid;
+        place-items: center;
+        color: #ffffff;
+      }
+      .box-fill svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* the badge that sits between the two cards during the morph */
+      #stage-stack {
+        display: grid;
+        place-items: center;
+      }
+      #stage-stack > * {
+        grid-area: 1 / 1;
+      }
+      #badge {
+        width: 92px;
+        height: 92px;
+        border-radius: 999px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        box-shadow: 0 6px 18px -8px rgba(12, 20, 16, 0.35);
+      }
+      #badge svg {
+        width: 36px;
+        height: 36px;
+      }
+
+      /* ── Scene 3 · the thesis ──────────────────────────────────────── */
+      #thesis {
+        width: 1480px;
+        text-align: center;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 74px;
+        font-weight: 500;
+        line-height: 1.14;
+        letter-spacing: -0.02em;
+      }
+      #thesis-2 {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ── Scene 4 · paste → autofill ────────────────────────────────── */
+      #auto-panel {
+        position: relative;
+        width: 1300px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 40px 44px 44px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02), 0 28px 70px -44px rgba(12, 20, 16, 0.4);
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+      .field-label {
+        margin-top: 26px;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .paste-row {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+      }
+      #paste-field {
+        flex: 1;
+        height: 72px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface-soft);
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+        overflow: hidden;
+      }
+      #chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 22px;
+        color: var(--muted);
+      }
+      #chip svg {
+        width: 20px;
+        height: 20px;
+        flex: none;
+        color: var(--muted);
+      }
+      #add-btn {
+        position: relative;
+        height: 72px;
+        padding: 0 34px;
+        border-radius: 14px;
+        background: var(--accent-strong);
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: 600;
+        display: grid;
+        place-items: center;
+        white-space: nowrap;
+      }
+      #cursor {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 38px;
+        height: 38px;
+        z-index: 5;
+      }
+      #divider {
+        height: 1px;
+        background: var(--border);
+        margin: 30px 0 6px;
+      }
+      .frow {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        align-items: center;
+        gap: 24px;
+        padding: 17px 0;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .frow:last-child {
+        border-bottom: none;
+      }
+      .flabel {
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .fslot {
+        position: relative;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+      }
+      .fdash {
+        width: 56px;
+        height: 3px;
+        border-radius: 3px;
+        background: var(--border-strong);
+      }
+      .fvalue {
+        position: absolute;
+        left: 0;
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--ink);
+        white-space: nowrap;
+      }
+
+      /* ── Scene 5 · the board, then the lockup ──────────────────────── */
+      #outro-stack {
+        display: grid;
+        place-items: center;
+      }
+      #outro-stack > * {
+        grid-area: 1 / 1;
+      }
+      #board {
+        display: flex;
+        gap: 26px;
+      }
+      .col {
+        width: 372px;
+        background: var(--surface-soft);
+        border: 1px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 16px;
+        min-height: 250px;
+      }
+      .col-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 8px 16px;
+        font-size: 21px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .col-head span:last-child {
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .bcard {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .bcard.t-warn {
+        border-left-color: var(--warning);
+      }
+      .bcard.t-info {
+        border-left-color: var(--info);
+      }
+      .bcard.t-accent {
+        border-left-color: var(--accent);
+      }
+      .bcard b {
+        display: block;
+        font-size: 23px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .bcard i {
+        display: block;
+        font-style: normal;
+        font-size: 18px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .bcard u {
+        display: block;
+        text-decoration: none;
+        font-size: 17px;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+
+      #lockup {
+        display: grid;
+        place-items: center;
+      }
+      #lockup-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      #mark-scaler {
+        /* the second and last audio-reactive target: ≤2% on the mark */
+        transform: scale(calc(1 + var(--bass) * 0.02));
+      }
+      #outro-mark {
+        display: block;
+        width: 104px;
+        height: 104px;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+      #wordmark {
+        font-size: 56px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: var(--ink);
+      }
+      #wordmark em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      #outro-head {
+        margin-top: 44px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 76px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        text-align: center;
+        color: var(--ink);
+      }
+      #outro-sub {
+        margin-top: 30px;
+        font-size: 24px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-9tzr" id="root" data-composition-id="main" data-start="0" data-duration="24.9" data-width="1920" data-height="1080">
+      <div data-hf-id="hf-2xc0" id="bg"></div>
+
+      <!-- ══ Scene 1 · the row ═══════════════════════════════════════ -->
+      <section data-hf-id="hf-8bm2" id="sc-stage" class="clip" data-start="0" data-duration="8.95" data-track-index="0">
+        <div data-hf-id="hf-d6n2" id="stage-stack">
+        <div data-hf-id="hf-x1xp" id="sheet-inner">
+          <div data-hf-id="hf-83zk" class="card" id="sheet-card">
+            <p data-hf-id="hf-27ep" class="eyebrow">A spreadsheet row</p>
+            <div data-hf-id="hf-asua" class="sheet-table">
+              <div data-hf-id="hf-b3ys" class="sheet-head">
+                <span data-hf-id="hf-d8je">Name</span><span data-hf-id="hf-1743">Status</span><span data-hf-id="hf-k64d">Date</span>
+              </div>
+              <div data-hf-id="hf-hntu" class="sheet-row">
+                <span data-hf-id="hf-niea">TU Munich</span>
+                <span data-hf-id="hf-cydq" class="cell-status" id="st-1">applying?<span data-hf-id="hf-w6by" class="cell-ul" id="ul-1"></span></span>
+                <span data-hf-id="hf-v502">15/6</span>
+              </div>
+              <div data-hf-id="hf-75c6" class="sheet-row">
+                <span data-hf-id="hf-g3y5">SAP intern</span>
+                <span data-hf-id="hf-77kk" class="cell-status" id="st-2">sent<span data-hf-id="hf-q0m5" class="cell-ul" id="ul-2"></span></span>
+                <span data-hf-id="hf-53zj">—</span>
+              </div>
+              <div data-hf-id="hf-7jn7" class="sheet-row">
+                <span data-hf-id="hf-mupq">Zalando</span>
+                <span data-hf-id="hf-qebj" class="cell-status" id="st-3">todo<span data-hf-id="hf-p8yc" class="cell-ul" id="ul-3"></span></span>
+                <span data-hf-id="hf-uckh"><span data-hf-id="hf-3jrd" id="qmark">?</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- ══ Scene 2 · row becomes record ════════════════════════════ -->
+        <div id="badge" data-layout-allow-occlusion="true">
+          <svg data-hf-id="hf-n58i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path data-hf-id="hf-um4s" d="M12 5v14" />
+            <path data-hf-id="hf-4zix" d="m19 12-7 7-7-7" />
+          </svg>
+        </div>
+        <div data-hf-id="hf-hzea" id="rec-inner">
+          <div data-hf-id="hf-4hox" class="card" id="rec-card">
+            <p data-hf-id="hf-7e94" class="eyebrow" id="rec-eyebrow">An Applume record</p>
+            <p data-hf-id="hf-b58b" id="rec-title">TU Munich · M.Sc. Computer Science</p>
+            <div data-hf-id="hf-t5je" class="pill-row">
+              <span data-hf-id="hf-guy0" class="pill pill-warn rec-pill">Deadline 15 Jun · 9 days</span>
+              <span data-hf-id="hf-003u" class="pill rec-pill">Next: upload transcript</span>
+            </div>
+            <div data-hf-id="hf-dn3x" class="check-list">
+              <div data-hf-id="hf-hc8y" class="check-row is-done" id="chk-1">
+                <span data-hf-id="hf-2l5s" class="box"><span data-hf-id="hf-2319" class="box-fill" id="fill-1"><svg data-hf-id="hf-ky1v" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-2q26" d="M20 6 9 17l-5-5" /></svg></span></span>
+                <span data-hf-id="hf-xa87">Curriculum vitae</span>
+              </div>
+              <div data-hf-id="hf-fpli" class="check-row" id="chk-2">
+                <span data-hf-id="hf-qahk" class="box"></span>
+                <span data-hf-id="hf-azbj">Transcript</span>
+              </div>
+              <div data-hf-id="hf-aevc" class="check-row is-done" id="chk-3">
+                <span data-hf-id="hf-p3kh" class="box"><span data-hf-id="hf-9z9b" class="box-fill" id="fill-3"><svg data-hf-id="hf-8wv7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-l5ki" d="M20 6 9 17l-5-5" /></svg></span></span>
+                <span data-hf-id="hf-ewr3">Motivation letter</span>
+              </div>
+              <div data-hf-id="hf-6grb" class="check-row is-done" id="chk-4">
+                <span data-hf-id="hf-phvi" class="box"><span data-hf-id="hf-dxdc" class="box-fill" id="fill-4"><svg data-hf-id="hf-8ik6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-ljvj" d="M20 6 9 17l-5-5" /></svg></span></span>
+                <span data-hf-id="hf-w1oe">Portal link saved</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </section>
+      
+
+      <!-- ══ Scene 3 · the line ══════════════════════════════════════ -->
+      <section data-hf-id="hf-dgr1" id="sc-thesis" class="clip" data-start="8.95" data-duration="4.72" data-track-index="1">
+        <div data-hf-id="hf-nwvx" id="thesis">
+          <div data-hf-id="hf-3iqn" id="thesis-1">A spreadsheet remembers the row.</div>
+          <div data-hf-id="hf-3gtz" id="thesis-2">Applume remembers the application.</div>
+        </div>
+      </section>
+
+      <!-- ══ Scene 4 · paste it in ═══════════════════════════════════ -->
+      <section data-hf-id="hf-azq9" id="sc-auto" class="clip" data-start="13.67" data-duration="5.37" data-track-index="2">
+        <div data-hf-id="hf-5bu9" id="auto-panel">
+          <div data-hf-id="hf-95fx" class="panel-head"><span data-hf-id="hf-9gry" class="dot"></span><span data-hf-id="hf-ytf3">New application</span></div>
+          <p data-hf-id="hf-xcsx" class="field-label">Paste the source</p>
+          <div data-hf-id="hf-psua" class="paste-row">
+            <div data-hf-id="hf-4esd" id="paste-field">
+              <span data-hf-id="hf-kws6" id="chip">
+                <svg data-hf-id="hf-h0hq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path data-hf-id="hf-79cc" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path data-hf-id="hf-v8sj" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+                …/msc-computer-science/apply
+              </span>
+            </div>
+            <div data-hf-id="hf-4rte" id="add-btn">
+              Add application
+              <svg data-hf-id="hf-xglo" id="cursor" viewBox="0 0 24 24" fill="#15181a" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round">
+                <path data-hf-id="hf-jblx" d="M5 3l14 7.5-6.2 1.6L9.6 19 5 3z" />
+              </svg>
+            </div>
+          </div>
+          <div data-hf-id="hf-5i2k" id="divider"></div>
+          <div data-hf-id="hf-dbbe" class="frow">
+            <span data-hf-id="hf-szg9" class="flabel">Institution</span>
+            <span data-hf-id="hf-u4np" class="fslot"><span data-hf-id="hf-rljt" class="fdash" id="dash-1"></span><span data-hf-id="hf-6ome" class="fvalue" id="val-1">TU Munich</span></span>
+          </div>
+          <div data-hf-id="hf-2rf2" class="frow">
+            <span data-hf-id="hf-180v" class="flabel">Program</span>
+            <span data-hf-id="hf-zivd" class="fslot"><span data-hf-id="hf-vjnu" class="fdash" id="dash-2"></span><span data-hf-id="hf-7wbu" class="fvalue" id="val-2">M.Sc. Computer Science</span></span>
+          </div>
+          <div data-hf-id="hf-35q3" class="frow">
+            <span data-hf-id="hf-ppi6" class="flabel">City</span>
+            <span data-hf-id="hf-0psg" class="fslot"><span data-hf-id="hf-zhrv" class="fdash" id="dash-3"></span><span data-hf-id="hf-tmlb" class="fvalue" id="val-3">Munich</span></span>
+          </div>
+          <div data-hf-id="hf-3k14" class="frow">
+            <span data-hf-id="hf-swrt" class="flabel">Deadline</span>
+            <span data-hf-id="hf-0bhf" class="fslot"><span data-hf-id="hf-c0ac" class="fdash" id="dash-4"></span><span data-hf-id="hf-ivun" class="fvalue" id="val-4">15 Jun</span></span>
+          </div>
+          <div data-hf-id="hf-0rvx" class="frow">
+            <span data-hf-id="hf-6d35" class="flabel">Type</span>
+            <span data-hf-id="hf-ybya" class="fslot"><span data-hf-id="hf-cry5" class="fdash" id="dash-5"></span><span data-hf-id="hf-4565" class="fvalue" id="val-5">University</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Scene 5 · one calm place ════════════════════════════════ -->
+      <section data-hf-id="hf-x7kr" id="sc-outro" class="clip" data-start="19.04" data-duration="5.86" data-track-index="3">
+        <div data-hf-id="hf-io6l" id="outro-stack">
+          <div data-hf-id="hf-7y3j" id="board">
+            <div data-hf-id="hf-7s1i" class="col">
+              <div data-hf-id="hf-m9zl" class="col-head"><span data-hf-id="hf-uoq9">Applying</span><span data-hf-id="hf-ikog">1</span></div>
+              <div data-hf-id="hf-k5r0" class="bcard t-warn" id="bc-1">
+                <b data-hf-id="hf-2v5i">TU Munich</b><i data-hf-id="hf-2scc">M.Sc. Computer Science</i><u data-hf-id="hf-dgjn">Deadline 15 Jun</u>
+              </div>
+            </div>
+            <div data-hf-id="hf-vmze" class="col">
+              <div data-hf-id="hf-q1dx" class="col-head"><span data-hf-id="hf-wu6u">Submitted</span><span data-hf-id="hf-cy6g">1</span></div>
+              <div data-hf-id="hf-tgzv" class="bcard t-info" id="bc-2">
+                <b data-hf-id="hf-2mz2">BMW Group</b><i data-hf-id="hf-xvia">Working Student, QA</i><u data-hf-id="hf-vogm">Awaiting reply</u>
+              </div>
+            </div>
+            <div data-hf-id="hf-w1af" class="col">
+              <div data-hf-id="hf-r8b0" class="col-head"><span data-hf-id="hf-md8o">Interview</span><span data-hf-id="hf-br9d">1</span></div>
+              <div data-hf-id="hf-pivu" class="bcard t-info" id="bc-3">
+                <b data-hf-id="hf-u5fv">SAP</b><i data-hf-id="hf-ukrt">Frontend Engineering Intern</i><u data-hf-id="hf-fadi">Round 2</u>
+              </div>
+            </div>
+            <div data-hf-id="hf-wflg" class="col">
+              <div data-hf-id="hf-qtzz" class="col-head"><span data-hf-id="hf-u1os">Accepted</span><span data-hf-id="hf-c5ke">1</span></div>
+              <div data-hf-id="hf-kcdn" class="bcard t-accent" id="bc-4">
+                <b data-hf-id="hf-b6zl">Saarland University</b><i data-hf-id="hf-qeyl">M.Sc. Visual Computing</i><u data-hf-id="hf-z1pt">Offer received</u>
+              </div>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-mlav" id="lockup">
+            <div data-hf-id="hf-gh7o" id="lockup-row">
+              <span data-hf-id="hf-3i7u" id="mark-scaler"><img data-hf-id="hf-o6yt" id="outro-mark" src="assets/img/Logo.png" alt="Applume"></span>
+              <span data-hf-id="hf-3r5g" id="wordmark">App<em data-hf-id="hf-jbv6">lume</em></span>
+            </div>
+            <div data-hf-id="hf-qlxa" id="outro-head">Every application. One calm place.</div>
+            <div data-hf-id="hf-04xz" id="outro-sub">applume.app · Free to use · Private by default · Export anytime</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Audio ═══════════════════════════════════════════════════
+           Music on track 10, SFX ascending from 11 so no two overlapping
+           clips share a lane. Volume on the bed is a lane, not a tween. -->
+      <audio data-hf-id="hf-e0ec" id="bgm" src="assets/music/hitslab-product-launch-advertisement-commercial-music-301409.mp3" data-media-start="1.02" data-start="0" data-duration="24.9" data-track-index="10" data-automation="{&quot;version&quot;:1,&quot;lanes&quot;:[{&quot;target&quot;:&quot;volume&quot;,&quot;points&quot;:[{&quot;t&quot;:0,&quot;v&quot;:0},{&quot;t&quot;:0.3,&quot;v&quot;:0.195},{&quot;t&quot;:23.8,&quot;v&quot;:0.195},{&quot;t&quot;:24.9,&quot;v&quot;:0}]}]}"></audio>
+
+      <audio data-hf-id="hf-yd1w" id="sfx-tick-1" src="assets/sfx/ui/rollover2.ogg" data-start="1.27" data-duration="0.06" data-track-index="11" data-volume="0.22"></audio>
+      <audio data-hf-id="hf-tlug" id="sfx-tick-2" src="assets/sfx/ui/rollover2.ogg" data-start="1.91" data-duration="0.06" data-track-index="12" data-volume="0.22"></audio>
+      <audio data-hf-id="hf-t9xo" id="sfx-tick-3" src="assets/sfx/ui/rollover2.ogg" data-start="2.53" data-duration="0.06" data-track-index="13" data-volume="0.26"></audio>
+
+      <audio data-hf-id="hf-whb2" id="sfx-morph" src="assets/sfx/impact/impactSoft_medium_002.ogg" data-start="4.33" data-duration="0.14" data-track-index="14" data-volume="0.45"></audio>
+      <audio data-hf-id="hf-dnq1" id="sfx-check-1" src="assets/sfx/ui/click2.ogg" data-start="5.59" data-duration="0.06" data-track-index="15" data-volume="0.30"></audio>
+      <audio data-hf-id="hf-0e7l" id="sfx-check-3" src="assets/sfx/ui/click2.ogg" data-start="6.77" data-duration="0.06" data-track-index="16" data-volume="0.30"></audio>
+      <audio data-hf-id="hf-nqo1" id="sfx-check-4" src="assets/sfx/ui/click2.ogg" data-start="7.33" data-duration="0.06" data-track-index="17" data-volume="0.30"></audio>
+
+      <audio data-hf-id="hf-4qgb" id="sfx-click" src="assets/sfx/interface/click_002.ogg" data-start="14.27" data-duration="0.02" data-track-index="18" data-volume="0.50"></audio>
+      <audio data-hf-id="hf-ka81" id="sfx-fill-a" src="assets/sfx/ui/rollover2.ogg" data-start="14.87" data-duration="0.06" data-track-index="19" data-volume="0.20"></audio>
+      <audio data-hf-id="hf-sax0" id="sfx-fill-b" src="assets/sfx/ui/rollover2.ogg" data-start="17.15" data-duration="0.06" data-track-index="20" data-volume="0.20"></audio>
+
+      <audio data-hf-id="hf-dt4m" id="sfx-card-1" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="19.58" data-duration="0.12" data-track-index="21" data-volume="0.24"></audio>
+      <audio data-hf-id="hf-ji5a" id="sfx-card-2" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="20.13" data-duration="0.12" data-track-index="22" data-volume="0.24"></audio>
+      <audio data-hf-id="hf-dxax" id="sfx-card-3" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="20.71" data-duration="0.12" data-track-index="23" data-volume="0.24"></audio>
+      <audio data-hf-id="hf-tqov" id="sfx-card-4" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="21.29" data-duration="0.12" data-track-index="24" data-volume="0.30"></audio>
+      <audio data-hf-id="hf-sz20" id="sfx-logo" src="assets/sfx/interface/bong_001.ogg" data-start="22.05" data-duration="0.12" data-track-index="25" data-volume="0.50"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const EASE_IN = "power3.out";
+
+      /* ── Scene 1 · the spreadsheet row ──────────────────────────────
+         Everything is settled at frame 0 — the hook is recognition, not
+         a build-on. Only the Status column lights, top to bottom.
+         // beat-grid: cells at 1.27s, 1.91s, 2.53s (101.33 BPM, beat ≈ 0.592s) */
+      [
+        ["#st-1", "#ul-1", 1.27],
+        ["#st-2", "#ul-2", 1.91],
+        ["#st-3", "#ul-3", 2.53],
+      ].forEach(function (row) {
+        tl.to(row[0], { backgroundColor: "rgba(249,242,226,1)", color: "#8a5a12", duration: 0.34, ease: "power2.out" }, row[2]);
+        tl.fromTo(row[1], { scaleX: 0 }, { scaleX: 1, transformOrigin: "left center", duration: 0.36, ease: "power2.out" }, row[2]);
+      });
+      /* the '?' is the punchline of the hook — it lands with its own row */
+      tl.to("#qmark", { scale: 1.3, color: "#8a5a12", duration: 0.22, ease: "power2.out" }, 2.53);
+      tl.to("#qmark", { scale: 1, duration: 0.3, ease: "power2.inOut" }, 2.75);
+
+      /* ── Scene 2 · row becomes record ───────────────────────────────
+         The landing page's SpreadsheetMorph, played as an edit.
+         // beat-locked: 3.81s strong cue (music 4.83s) */
+      tl.to("#sheet-inner", { y: -40, scale: 0.94, opacity: 0, duration: 0.5, ease: "power2.in" }, 3.81);
+      tl.fromTo("#badge", { opacity: 0, scale: 0.8 }, { opacity: 0.95, scale: 1, duration: 0.28, ease: EASE_IN }, 3.93);
+      tl.to("#badge", { opacity: 0, duration: 0.25, ease: "power2.in" }, 4.35);
+      tl.fromTo("#rec-inner", { y: 56, scale: 0.94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: EASE_IN }, 4.33);
+      tl.fromTo("#rec-eyebrow", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: EASE_IN }, 4.55);
+      tl.fromTo("#rec-title", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: EASE_IN }, 4.7);
+      tl.fromTo(".rec-pill", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: EASE_IN }, 4.9);
+
+      /* // beat-grid: checklist rows at 5.47 / 6.05 / 6.65 / 7.21. The last
+         one settles on the 7.62s strong cue, so the completed card lands on
+         a hit. Transcript (row 2) stays unticked and silent — that is the
+         point of a checklist. The full set then holds ~1.15s before the cut. */
+      [
+        ["#chk-1", "#fill-1", 5.47],
+        ["#chk-2", null, 6.05],
+        ["#chk-3", "#fill-3", 6.65],
+        ["#chk-4", "#fill-4", 7.21],
+      ].forEach(function (row) {
+        tl.fromTo(row[0], { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: EASE_IN }, row[2]);
+        if (row[1]) {
+          tl.fromTo(row[1], { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, row[2] + 0.12);
+        }
+      });
+      tl.to("#rec-inner", { opacity: 0, y: -16, duration: 0.24, ease: "power2.in" }, 8.71);
+
+      /* ── Scene 3 · the thesis ───────────────────────────────────────
+         Nine words, no chrome, no SFX. Line 1 lands on the 9.53s strong cue,
+         line 2 // beat-locked: 11.43s strong cue (music 12.45s). The complete
+         statement is settled by 11.93s and holds 1.5s to the cut at 13.67s. */
+      tl.fromTo("#thesis-1", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: EASE_IN }, 9.53);
+      tl.fromTo("#thesis-2", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: EASE_IN }, 11.43);
+      tl.to("#thesis", { opacity: 0, duration: 0.24, ease: "power2.in" }, 13.43);
+
+      /* ── Scene 4 · paste → autofill ─────────────────────────────────
+         The working app. The form skeleton is present from the cut, so the
+         only new reading is the five values. The click lands on the 14.27s beat. */
+      tl.fromTo("#auto-panel", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: EASE_IN }, 13.72);
+      tl.fromTo("#chip", { opacity: 0, x: -28 }, { opacity: 1, x: 0, duration: 0.4, ease: EASE_IN }, 14.0);
+      tl.fromTo("#cursor", { opacity: 0, x: -300, y: 168 }, { opacity: 1, x: -4, y: 2, duration: 0.42, ease: "power2.inOut" }, 13.85);
+      tl.to("#add-btn", { scale: 0.97, duration: 0.1, ease: "power2.out" }, 14.27);
+      tl.to("#add-btn", { scale: 1, duration: 0.18, ease: "power2.out" }, 14.37);
+      tl.to("#cursor", { opacity: 0, duration: 0.3, ease: "power2.in" }, 14.7);
+
+      /* // beat-grid: values at 14.87 / 15.48 / 16.04 / 16.59 / 17.15.
+         The final value // beat-locked: 17.15s strong cue (music 18.17s), so
+         the form completes on the hit. Values accumulate rather than replace,
+         so the full set is settled on screen from 17.47s to the cut. */
+      [14.87, 15.48, 16.04, 16.59, 17.15].forEach(function (t, i) {
+        const n = i + 1;
+        tl.to("#dash-" + n, { opacity: 0, duration: 0.2, ease: "power2.in" }, t);
+        tl.fromTo("#val-" + n, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.32, ease: EASE_IN }, t);
+      });
+      tl.to("#auto-panel", { opacity: 0, y: -14, duration: 0.24, ease: "power2.in" }, 18.8);
+
+      /* ── Scene 5 · the board, then the lockup ───────────────────────
+         // beat-grid: cards at 19.58 / 20.13 / 20.71 / 21.29; the green
+         Accepted card lands last, on the 21.29s strong cue (music 22.31s).
+         Card text is scenery, not reading. */
+      tl.fromTo("#board", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: EASE_IN }, 19.1);
+      tl.set(".bcard", { opacity: 0 }, 19.04);
+      [
+        ["#bc-1", 19.58],
+        ["#bc-2", 20.13],
+        ["#bc-3", 20.71],
+        ["#bc-4", 21.29],
+      ].forEach(function (row) {
+        tl.fromTo(row[0], { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.38, ease: EASE_IN }, row[1]);
+      });
+
+      /* // beat-grid: board recedes 21.89, lockup 22.05, headline 22.20,
+         subline 22.60. The headline then holds settled for ~1.55s. */
+      tl.to("#board", { opacity: 0, scale: 0.97, y: -14, duration: 0.45, ease: "power2.inOut" }, 21.89);
+      tl.fromTo("#lockup-row", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.5, ease: EASE_IN }, 22.05);
+      tl.fromTo("#outro-head", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, ease: EASE_IN }, 22.2);
+      tl.fromTo("#outro-sub", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 22.6);
+      tl.to("#lockup", { opacity: 0, duration: 0.6, ease: "power2.inOut" }, 24.3);
+
+      /* ── Audio-reactive: subtle ─────────────────────────────────────
+         Pre-extracted bass envelope, sampled onto one CSS custom property
+         every other frame (15Hz). Two consumers, both non-text and tiny:
+         the record card's green shadow depth and a ≤2% scale on the mark.
+         Zero-duration sets, so it is seek-safe and deterministic. */
+      (function () {
+        const AD = window.AUDIO_DATA;
+        const root = document.getElementById("root");
+        for (let f = 0; f < AD.totalFrames; f += 2) {
+          tl.set(root, { "--bass": AD.bass[f] }, f / AD.fps);
+        }
+      })();
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

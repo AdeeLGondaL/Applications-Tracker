@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Applume — Every application. One calm place.</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/music/audio-data.js"></script>
+    <style>
+      /* ── Brand fonts, shipped locally (latin subsets of the same Google
+           families the product's own index.html loads) ─────────────────── */
+      @font-face {
+        font-family: "Fraunces";
+        src: url("assets/fonts/Fraunces-latin.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-latin.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: block;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0e100f;
+      }
+
+      #root {
+        /* Applume dark-theme tokens, verbatim from src/index.css `.dark`.
+           The dark stage is the product's real second skin, not a costume. */
+        --surface: #0e100f;
+        --surface-alt: #161a18;
+        --surface-soft: #1a1f1d;
+        --card: #171b19;
+        --ink: #eaece9;
+        --text-strong: #f5f7f4;
+        --muted: #99a09a;
+        --text-soft: #6d746f;
+        --border: #262b28;
+        --border-subtle: #21251f;
+        --border-strong: #343a35;
+        --accent: #17b083;
+        --accent-strong: #23c091;
+        --accent-ink: #9fe4cd;
+        --accent-bright: #2fd39c;
+        --accent-soft: rgba(23, 176, 131, 0.14);
+        --accent-border: rgba(23, 176, 131, 0.28);
+        --accent-solid: #17b083;
+        --accent-solid-ink: #06231a;
+
+        /* Light-theme tokens, verbatim from src/index.css `:root`.
+           Used only by scene 6, after the stage flips. */
+        --l-surface: #fbfbf8;
+        --l-card: #ffffff;
+        --l-ink: #15181a;
+        --l-strong: #0c0e0f;
+        --l-muted: #5b6560;
+        --l-accent: #009966;
+        --l-accent-solid: #007c53;
+
+        /* Status tones, as low-alpha tints of the same product hues. */
+        --warning: #b7791f;
+        --warning-dim: #e2b264;
+        --info: #3763d8;
+        --info-dim: #8ba5ea;
+        --danger: #c8394f;
+        --danger-dim: #f08a97;
+
+        /* Audio-reactive: bass envelope, written per sample by the timeline.
+           Exactly two consumers, both non-text and tiny. */
+        --bass: 0.3;
+
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--ink);
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Untimed full-bleed layers get their own positioning — the runtime
+         only auto-lays-out elements that carry data-start. */
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: var(--surface);
+      }
+
+      /* The glow wall: the dark-theme stand-in for the reference film's
+         violet backlight. Static base + a bass-reactive overlay. */
+      #glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          78% 62% at 50% 46%,
+          rgba(23, 176, 131, 0.17) 0%,
+          rgba(23, 176, 131, 0.07) 42%,
+          rgba(23, 176, 131, 0) 74%
+        );
+      }
+      #glow-pulse {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          58% 46% at 50% 46%,
+          rgba(47, 211, 156, 0.2) 0%,
+          rgba(23, 176, 131, 0.05) 50%,
+          rgba(23, 176, 131, 0) 76%
+        );
+        /* audio-reactive consumer #1 — glow intensity only */
+        opacity: calc(0.18 + var(--bass) * 0.42);
+      }
+      #vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(120% 90% at 50% 50%, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, 0.55) 100%);
+      }
+
+      /* Dither: a fixed-seed feTurbulence tile, laid over the gradients so the
+         low-alpha radial ramps don't band into visible rings at 8-bit. SVG
+         turbulence is seeded and deterministic, so every render matches. */
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' seed='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+      #grain { opacity: 0.055; }
+      #grain-light { opacity: 0.05; z-index: 1; }
+
+      .clip {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      /* ── Shared product primitives ─────────────────────────────────── */
+      .icon { width: 1em; height: 1em; display: block; }
+
+      .kcard {
+        position: relative;
+        width: 330px;
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--border-strong);
+        border-radius: 12px;
+        background: var(--card);
+        padding: 18px 18px 16px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 26px 60px -34px rgba(0, 0, 0, 0.8);
+      }
+      .kcard-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .type-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .type-chip .icon { font-size: 13px; }
+      .pri-dot { width: 11px; height: 11px; border-radius: 999px; display: block; }
+      .kcard-name { font-size: 20px; font-weight: 700; color: var(--text-strong); line-height: 1.15; }
+      .kcard-role { margin-top: 3px; font-size: 15px; color: var(--muted); }
+      .dl-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 13px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+        padding: 4px 11px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .dl-pill .icon { font-size: 13px; }
+      .tone-warn { border-color: rgba(183, 121, 31, 0.34); background: rgba(183, 121, 31, 0.13); color: var(--warning-dim); }
+      .tone-info { border-color: rgba(55, 99, 216, 0.34); background: rgba(55, 99, 216, 0.14); color: var(--info-dim); }
+      .tone-ok { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent-ink); }
+      .rule-warn { border-left-color: var(--warning); }
+      .rule-info { border-left-color: var(--info); }
+      .rule-ok { border-left-color: var(--accent); }
+      .rule-neutral { border-left-color: var(--border-strong); }
+
+      /* ── Scene 1 · Scattered ───────────────────────────────────────── */
+      #hook-cards { position: absolute; inset: 0; }
+      #hook-cards .kcard {
+        position: absolute;
+        filter: blur(6px);
+      }
+      #hk-1 { left: 196px; top: 236px; }
+      #hk-2 { right: 214px; top: 186px; }
+      #hk-3 { left: 302px; bottom: 178px; }
+      #hk-4 { right: 276px; bottom: 208px; }
+
+      #hook-line {
+        position: relative;
+        z-index: 2;
+        /* sized so the question breaks as two balanced lines:
+           "Tired of filling spreadsheets" / "for every application?" */
+        max-width: 950px;
+        text-align: center;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 86px;
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: -0.018em;
+        color: var(--text-strong);
+      }
+      #hook-line .w { display: inline-block; }
+      #hook-line .dim { color: var(--text-soft); }
+
+      /* ── Scene 2 · The lockup ──────────────────────────────────────── */
+      #lockup-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 34px;
+      }
+      #lockup-row { display: flex; align-items: center; gap: 22px; }
+      #lockup-row img { width: 108px; height: 108px; object-fit: contain; display: block; }
+      .wordmark {
+        font-size: 80px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--text-strong);
+        line-height: 1;
+      }
+      .wordmark .lume { color: var(--accent); }
+      #badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-soft);
+        color: var(--accent-ink);
+        border-radius: 999px;
+        padding: 16px 32px;
+        font-size: 27px;
+        font-weight: 600;
+        letter-spacing: 0.005em;
+        box-shadow: 0 0 60px rgba(23, 176, 131, 0.22), inset 0 1px 0 rgba(159, 228, 205, 0.12);
+      }
+      #badge .icon { font-size: 24px; color: var(--accent-strong); }
+
+      /* ── Scene 3 · Action queue ────────────────────────────────────── */
+      #focus-card {
+        position: relative;
+        width: 1460px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--card);
+        padding: 44px 46px 46px;
+        overflow: hidden;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 40px 110px -56px rgba(0, 0, 0, 0.9);
+      }
+      #accent-wash {
+        position: absolute;
+        right: -130px;
+        top: -150px;
+        width: 420px;
+        height: 420px;
+        /* the real component's corner wash deliberately bleeds past the
+           card's rounded clip — decorative only, no text underneath */
+        border-radius: 999px;
+        background: rgba(23, 176, 131, 0.3);
+        filter: blur(72px);
+      }
+      #focus-body { position: relative; }
+      .eyebrow {
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent-strong);
+      }
+      #focus-h2 {
+        margin-top: 8px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 1.1;
+        color: var(--text-strong);
+      }
+      #focus-sub { margin-top: 8px; font-size: 19px; color: var(--muted); }
+      #rq-btn {
+        position: absolute;
+        right: 46px;
+        top: 52px;
+        z-index: 3;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-soft);
+        color: var(--accent-ink);
+        border-radius: 11px;
+        padding: 14px 22px;
+        font-size: 20px;
+        font-weight: 700;
+        font-family: "Inter", system-ui, sans-serif;
+        white-space: nowrap;
+        /* explicit zero-alpha start so the spotlight glow interpolates */
+        box-shadow: 0 0 0 rgba(23, 176, 131, 0);
+      }
+      #tiles {
+        margin-top: 34px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+      .tile {
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        border-radius: 14px;
+        padding: 22px 22px 24px;
+        min-height: 196px;
+        display: flex;
+        flex-direction: column;
+      }
+      .tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+      .tile-ico {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 21px;
+      }
+      .tile-act {
+        border: 1px solid var(--border);
+        background: var(--card);
+        /* --muted, not --text-soft: the softer token only reaches 3.6:1 on
+           the card and these pills are small text, which needs 4.5:1. */
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 6px 13px;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+      .tile-val {
+        margin-top: 28px;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 54px;
+        font-weight: 600;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        color: var(--text-strong);
+      }
+      .tile-lab { margin-top: 12px; font-size: 20px; font-weight: 600; color: var(--text-strong); }
+      .t-danger { border-color: rgba(200, 57, 79, 0.3); background: rgba(200, 57, 79, 0.1); }
+      .t-danger .tile-ico { background: rgba(200, 57, 79, 0.16); border-color: rgba(200, 57, 79, 0.24); color: var(--danger-dim); }
+      .t-danger .tile-val { color: var(--danger-dim); }
+      .t-warn { border-color: rgba(183, 121, 31, 0.32); background: rgba(183, 121, 31, 0.11); }
+      .t-warn .tile-ico { background: rgba(183, 121, 31, 0.18); border-color: rgba(183, 121, 31, 0.26); color: var(--warning-dim); }
+      .t-warn .tile-val { color: var(--warning-dim); }
+
+      /* ── Scene 4 · Paste it, and it's drafted ──────────────────────── */
+      #auto-panel {
+        position: relative;
+        width: 1180px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--card);
+        padding: 46px 48px 44px;
+        /* third layer starts at zero alpha so the "saved" glow interpolates */
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 40px 110px -56px rgba(0, 0, 0, 0.9), 0 0 0 rgba(23, 176, 131, 0);
+      }
+      #paste-label { font-size: 17px; font-weight: 700; color: var(--muted); }
+      #paste-row { margin-top: 14px; display: flex; align-items: stretch; gap: 16px; }
+      #paste-field {
+        flex: 1;
+        min-width: 0;
+        height: 72px;
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+      }
+      #chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        border: 1px solid var(--border-strong);
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 9px;
+        padding: 9px 16px;
+        font-size: 20px;
+        font-weight: 500;
+      }
+      #chip .icon { font-size: 19px; color: var(--muted); }
+      #add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        height: 72px;
+        padding: 0 28px;
+        border: 0;
+        border-radius: 11px;
+        background: var(--accent-solid);
+        color: var(--accent-solid-ink);
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 21px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      #add-btn .icon { font-size: 20px; }
+      #fields { margin-top: 34px; border-top: 1px solid var(--border-subtle); }
+      .frow {
+        display: grid;
+        grid-template-columns: 290px 1fr;
+        align-items: center;
+        gap: 24px;
+        padding: 17px 4px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .flab { font-size: 19px; font-weight: 600; color: var(--muted); }
+      .fslot { position: relative; min-height: 30px; }
+      .fdash { position: absolute; left: 0; top: 2px; font-size: 22px; color: var(--border-strong); }
+      .fval { position: absolute; left: 0; top: 0; font-size: 22px; font-weight: 600; color: var(--text-strong); }
+      #saved-chip {
+        position: absolute;
+        right: 48px;
+        top: 46px;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-soft);
+        color: var(--accent-ink);
+        border-radius: 999px;
+        padding: 9px 18px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      #saved-chip .icon { font-size: 18px; color: var(--accent-strong); }
+      #cursor {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 34px;
+        height: 34px;
+        z-index: 5;
+        pointer-events: none;
+        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.6));
+      }
+
+      /* ── Scene 5 · The board ───────────────────────────────────────── */
+      #board {
+        display: grid;
+        grid-template-columns: repeat(4, 360px);
+        gap: 30px;
+      }
+      .col {
+        border: 1px solid var(--border);
+        background: rgba(22, 26, 24, 0.7);
+        border-radius: 16px;
+        padding: 20px 15px 22px;
+        min-height: 330px;
+      }
+      .col-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5px 16px;
+      }
+      .col-name { font-size: 21px; font-weight: 700; color: var(--text-strong); }
+      .col-count {
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 12px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .col .kcard { width: 100%; }
+
+      /* ── Scene 6 · One calm place ──────────────────────────────────── */
+      #light-wash {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(86% 72% at 50% 44%, rgba(0, 153, 102, 0.055) 0%, rgba(0, 153, 102, 0) 78%),
+          var(--l-surface);
+      }
+      #outro-col {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 50px;
+      }
+      #outro-head {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 96px;
+        font-weight: 600;
+        line-height: 1.06;
+        letter-spacing: -0.02em;
+        color: var(--l-strong);
+        text-align: center;
+      }
+      #outro-head .l { display: block; }
+      #outro-head .calm { color: var(--l-accent); }
+      #outro-lockup { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+      #outro-row { display: flex; align-items: center; gap: 18px; }
+      #outro-mark {
+        /* audio-reactive consumer #2 — its own wrapper, so the CSS transform
+           never collides with a GSAP tween on the lockup. */
+        display: block;
+        transform: scale(calc(1 + var(--bass) * 0.02));
+      }
+      #outro-mark img { width: 66px; height: 66px; object-fit: contain; display: block; mix-blend-mode: multiply; }
+      #outro-word { font-size: 50px; font-weight: 700; letter-spacing: -0.03em; color: var(--l-ink); line-height: 1; }
+      #outro-word .lume { color: var(--l-accent); }
+      #url-pill {
+        background: var(--l-accent-solid);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 17px 40px;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.005em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="24.9"
+      data-fps="30"
+    >
+      <div id="bg"></div>
+      <div id="glow"></div>
+      <div id="glow-pulse"></div>
+      <div id="vignette"></div>
+      <div id="grain" class="grain"></div>
+
+      <!-- ══ Scene 1 · The grind — 0.00 → 4.92 ══════════════════════════ -->
+      <section id="sc-hook" class="clip" data-start="0" data-duration="4.92" data-track-index="1">
+        <div id="hook-cards">
+          <!-- Real KanbanCard markup and demo records from src/pages/LandingPage.jsx -->
+          <div id="hk-1" class="kcard rule-warn">
+            <div class="kcard-top">
+              <span class="type-chip">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" /></svg>
+                University
+              </span>
+              <span class="pri-dot" style="background: #c8394f"></span>
+            </div>
+            <p class="kcard-name">TU Munich</p>
+            <p class="kcard-role">M.Sc. Computer Science</p>
+            <span class="dl-pill tone-warn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+              9 days left
+            </span>
+          </div>
+
+          <div id="hk-2" class="kcard rule-info">
+            <div class="kcard-top">
+              <span class="type-chip">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg>
+                Job
+              </span>
+              <span class="pri-dot" style="background: #b7791f"></span>
+            </div>
+            <p class="kcard-name">SAP</p>
+            <p class="kcard-role">Frontend Engineering Intern</p>
+            <span class="dl-pill tone-info">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+              Round 2
+            </span>
+          </div>
+
+          <div id="hk-3" class="kcard rule-info">
+            <div class="kcard-top">
+              <span class="type-chip">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg>
+                Job
+              </span>
+              <span class="pri-dot" style="background: #343a35"></span>
+            </div>
+            <p class="kcard-name">BMW Group</p>
+            <p class="kcard-role">Working Student, QA</p>
+            <span class="dl-pill tone-info">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+              Awaiting reply
+            </span>
+          </div>
+
+          <div id="hk-4" class="kcard rule-neutral">
+            <div class="kcard-top">
+              <span class="type-chip">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg>
+                Job
+              </span>
+              <span class="pri-dot" style="background: #343a35"></span>
+            </div>
+            <p class="kcard-name">Zalando</p>
+            <p class="kcard-role">Junior Product Analyst</p>
+            <span class="dl-pill">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+              No deadline
+            </span>
+          </div>
+        </div>
+
+        <!-- Pain first, phrased the way the audience would say it. The dimmed
+             word is the thing failing them, not a rhetorical flourish. -->
+        <h1 id="hook-line">
+          <span class="w">Tired</span> <span class="w">of</span> <span class="w">filling</span>
+          <span class="w dim">spreadsheets</span> <span class="w">for</span> <span class="w">every</span>
+          <span class="w">application?</span>
+        </h1>
+      </section>
+
+      <!-- ══ Scene 2 · The lockup — 4.92 → 7.21 ═════════════════════════ -->
+      <section id="sc-lockup" class="clip" data-start="4.92" data-duration="2.29" data-track-index="2">
+        <div id="lockup-col">
+          <div id="lockup-row">
+            <img src="assets/img/logo-dark.png" alt="Applume" />
+            <span class="wordmark">App<span class="lume">lume</span></span>
+          </div>
+          <span id="badge">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" /></svg>
+            University + Job applications
+          </span>
+        </div>
+      </section>
+
+      <!-- ══ Scene 3 · Action queue — 7.21 → 12.51 ══════════════════════ -->
+      <section id="sc-focus" class="clip" data-start="7.21" data-duration="5.3" data-track-index="3">
+        <!-- Recreates src/components/dashboard/FocusThisWeek.jsx -->
+        <div id="focus-card">
+          <span id="accent-wash" data-layout-allow-overflow="true"></span>
+          <div id="focus-body">
+            <p class="eyebrow">Today focus</p>
+            <h2 id="focus-h2">Action queue</h2>
+            <p id="focus-sub">Deadlines, interviews, and setup gaps that need you.</p>
+
+            <div id="tiles">
+              <div class="tile t-danger" id="tile-1">
+                <div class="tile-top">
+                  <span class="tile-ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6M4 10a8 8 0 1 0 2-5" /></svg></span>
+                  <span class="tile-act">Review</span>
+                </div>
+                <p class="tile-val" id="val-1">0</p>
+                <p class="tile-lab">Overdue</p>
+              </div>
+
+              <div class="tile t-warn" id="tile-2">
+                <div class="tile-top">
+                  <span class="tile-ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg></span>
+                  <span class="tile-act">Open</span>
+                </div>
+                <p class="tile-val" id="val-2">0</p>
+                <p class="tile-lab">Due in 7 days</p>
+              </div>
+
+              <div class="tile" id="tile-3">
+                <div class="tile-top">
+                  <span class="tile-ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg></span>
+                  <span class="tile-act">Filter</span>
+                </div>
+                <p class="tile-val" id="val-3">0</p>
+                <p class="tile-lab">Interviews</p>
+              </div>
+
+              <div class="tile" id="tile-4">
+                <div class="tile-top">
+                  <span class="tile-ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg></span>
+                  <span class="tile-act">Fix</span>
+                </div>
+                <p class="tile-val" id="val-4">0</p>
+                <p class="tile-lab">Missing docs</p>
+              </div>
+            </div>
+          </div>
+          <button id="rq-btn" type="button">Review queue</button>
+        </div>
+      </section>
+
+      <!-- ══ Scene 4 · Paste it, and it's drafted — 12.51 → 17.76 ═══════ -->
+      <section id="sc-auto" class="clip" data-start="12.51" data-duration="5.25" data-track-index="4">
+        <div id="auto-panel">
+          <p id="paste-label">Paste the source</p>
+          <div id="paste-row">
+            <div id="paste-field">
+              <!-- Truncated path, no domain — nothing identifying on screen -->
+              <span id="chip">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1" /></svg>
+                …/msc-computer-science/apply
+              </span>
+            </div>
+            <button id="add-btn" type="button">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              Add application
+            </button>
+          </div>
+
+          <div id="fields">
+            <div class="frow">
+              <span class="flab">Institution</span>
+              <span class="fslot"><span class="fdash" id="dash-1">—</span><span class="fval" id="fv-1">TU Munich</span></span>
+            </div>
+            <div class="frow">
+              <span class="flab">Program</span>
+              <span class="fslot"><span class="fdash" id="dash-2">—</span><span class="fval" id="fv-2">M.Sc. Computer Science</span></span>
+            </div>
+            <div class="frow">
+              <span class="flab">City</span>
+              <span class="fslot"><span class="fdash" id="dash-3">—</span><span class="fval" id="fv-3">Munich</span></span>
+            </div>
+            <div class="frow">
+              <span class="flab">Deadline</span>
+              <span class="fslot"><span class="fdash" id="dash-4">—</span><span class="fval" id="fv-4">15 Jun</span></span>
+            </div>
+            <div class="frow">
+              <span class="flab">Type</span>
+              <span class="fslot"><span class="fdash" id="dash-5">—</span><span class="fval" id="fv-5">University</span></span>
+            </div>
+          </div>
+
+          <span id="saved-chip">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+            Saved
+          </span>
+
+          <svg id="cursor" viewBox="0 0 24 24" fill="#f5f7f4" stroke="#0e100f" stroke-width="1.2" stroke-linejoin="round">
+            <path d="M5 2.5 5 21 10 16.2 13 22.2 16.4 20.6 13.4 14.8 19.8 14.4Z" />
+          </svg>
+        </div>
+      </section>
+
+      <!-- ══ Scene 5 · The board — 17.76 → 21.90 ════════════════════════ -->
+      <section id="sc-board" class="clip" data-start="17.76" data-duration="4.14" data-track-index="5">
+        <!-- Recreates src/components/applications/KanbanBoard.jsx -->
+        <div id="board">
+          <div class="col">
+            <div class="col-head"><span class="col-name">Applying</span><span class="col-count">1</span></div>
+            <div class="kcard rule-warn bcard" id="bc-1">
+              <div class="kcard-top">
+                <span class="type-chip">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" /></svg>
+                  University
+                </span>
+                <span class="pri-dot" style="background: #c8394f"></span>
+              </div>
+              <p class="kcard-name">TU Munich</p>
+              <p class="kcard-role">M.Sc. Computer Science</p>
+              <span class="dl-pill tone-warn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+                9 days left
+              </span>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="col-head"><span class="col-name">Submitted</span><span class="col-count">1</span></div>
+            <div class="kcard rule-info bcard" id="bc-2">
+              <div class="kcard-top">
+                <span class="type-chip">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg>
+                  Job
+                </span>
+                <span class="pri-dot" style="background: #343a35"></span>
+              </div>
+              <p class="kcard-name">BMW Group</p>
+              <p class="kcard-role">Working Student, QA</p>
+              <span class="dl-pill tone-info">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+                Awaiting reply
+              </span>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="col-head"><span class="col-name">Interview</span><span class="col-count">1</span></div>
+            <div class="kcard rule-info bcard" id="bc-3">
+              <div class="kcard-top">
+                <span class="type-chip">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4V7Zm4 0V5h8v2M4 12h16" /></svg>
+                  Job
+                </span>
+                <span class="pri-dot" style="background: #b7791f"></span>
+              </div>
+              <p class="kcard-name">SAP</p>
+              <p class="kcard-role">Frontend Engineering Intern</p>
+              <span class="dl-pill tone-info">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4V5Zm4-2v4m8-4v4M4 10h16" /></svg>
+                Round 2
+              </span>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="col-head"><span class="col-name">Accepted</span><span class="col-count">1</span></div>
+            <div class="kcard rule-ok bcard" id="bc-4">
+              <div class="kcard-top">
+                <span class="type-chip">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5Zm-6 9v5c3 2 9 2 12 0v-5" /></svg>
+                  University
+                </span>
+                <span class="pri-dot" style="background: #343a35"></span>
+              </div>
+              <p class="kcard-name">Saarland University</p>
+              <p class="kcard-role">M.Sc. Visual Computing</p>
+              <span class="dl-pill tone-ok">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                Accepted
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Scene 6 · One calm place — 21.29 → 24.90 ═══════════════════ -->
+      <section id="sc-outro" class="clip" data-start="21.29" data-duration="3.61" data-track-index="6">
+        <div id="light-wash"></div>
+        <div id="grain-light" class="grain"></div>
+        <div id="outro-col">
+          <h2 id="outro-head">
+            <span class="l">Every application.</span>
+            <span class="l">One <span class="calm">calm</span> place.</span>
+          </h2>
+          <div id="outro-lockup">
+            <div id="outro-row">
+              <span id="outro-mark"><img src="assets/img/Logo.png" alt="Applume" /></span>
+              <span id="outro-word">App<span class="lume">lume</span></span>
+            </div>
+            <span id="url-pill">applume.app</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Audio ══════════════════════════════════════════════════════
+           Music: user-supplied. data-media-start trims the track's 1.02s
+           lead-in so video frame 0 lands on its first strong downbeat.
+           Volume is an automation lane (fade in 0→0.3s, out 23.8→24.9s). -->
+      <audio
+        id="bgm"
+        src="assets/music/hitslab-product-launch-advertisement-commercial-music-301409.mp3"
+        data-start="0"
+        data-duration="24.9"
+        data-media-start="1.02"
+        data-track-index="10"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.3,"v":0.23},{"t":23.8,"v":0.23},{"t":24.9,"v":0}]}]}'
+      ></audio>
+
+      <!-- S1 · cards drifting in, then the line landing -->
+      <audio id="sfx-drift-2" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="0.3" data-duration="0.12" data-track-index="11" data-volume="0.11"></audio>
+      <audio id="sfx-drift-3" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="0.6" data-duration="0.12" data-track-index="12" data-volume="0.11"></audio>
+      <audio id="sfx-drift-4" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="0.9" data-duration="0.12" data-track-index="13" data-volume="0.13"></audio>
+      <audio id="sfx-line" src="assets/sfx/impact/impactSoft_heavy_002.ogg" data-start="1.85" data-duration="0.57" data-track-index="14" data-volume="0.38"></audio>
+
+      <!-- S2 · the lockup and its badge -->
+      <audio id="sfx-lockup" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="4.95" data-duration="0.18" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="sfx-badge" src="assets/sfx/interface/bong_001.ogg" data-start="5.47" data-duration="0.12" data-track-index="16" data-volume="0.26"></audio>
+
+      <!-- S3 · the card rising, four tile taps, the button lifting out -->
+      <audio id="sfx-card-rise" src="assets/sfx/impact/impactSoft_medium_003.ogg" data-start="7.26" data-duration="0.14" data-track-index="17" data-volume="0.3"></audio>
+      <audio id="sfx-tile-1" src="assets/sfx/ui/click2.ogg" data-start="8.36" data-duration="0.06" data-track-index="18" data-volume="0.24"></audio>
+      <audio id="sfx-tile-2" src="assets/sfx/ui/click2.ogg" data-start="8.95" data-duration="0.06" data-track-index="19" data-volume="0.24"></audio>
+      <audio id="sfx-tile-3" src="assets/sfx/ui/click2.ogg" data-start="9.53" data-duration="0.06" data-track-index="20" data-volume="0.24"></audio>
+      <audio id="sfx-tile-4" src="assets/sfx/ui/click2.ogg" data-start="10.15" data-duration="0.06" data-track-index="21" data-volume="0.26"></audio>
+      <audio id="sfx-spot" src="assets/sfx/impact/impactSoft_heavy_003.ogg" data-start="11.43" data-duration="0.54" data-track-index="22" data-volume="0.3"></audio>
+
+      <!-- S4 · chip drop, the press, five quiet settles, the confirm -->
+      <audio id="sfx-chip" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="13.09" data-duration="0.12" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sfx-press" src="assets/sfx/interface/click_002.ogg" data-start="13.67" data-duration="0.02" data-track-index="24" data-volume="0.45"></audio>
+      <audio id="sfx-fill-1" src="assets/sfx/ui/rollover2.ogg" data-start="14.27" data-duration="0.06" data-track-index="25" data-volume="0.15"></audio>
+      <audio id="sfx-fill-2" src="assets/sfx/ui/rollover2.ogg" data-start="14.57" data-duration="0.06" data-track-index="26" data-volume="0.15"></audio>
+      <audio id="sfx-fill-3" src="assets/sfx/ui/rollover2.ogg" data-start="14.86" data-duration="0.06" data-track-index="27" data-volume="0.15"></audio>
+      <audio id="sfx-fill-4" src="assets/sfx/ui/rollover2.ogg" data-start="15.16" data-duration="0.06" data-track-index="28" data-volume="0.15"></audio>
+      <audio id="sfx-fill-5" src="assets/sfx/ui/rollover2.ogg" data-start="15.45" data-duration="0.06" data-track-index="29" data-volume="0.17"></audio>
+      <audio id="sfx-saved" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="17.15" data-duration="0.45" data-track-index="30" data-volume="0.3"></audio>
+
+      <!-- S5 · four cards landing on the board -->
+      <audio id="sfx-bc-1" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="18.37" data-duration="0.12" data-track-index="31" data-volume="0.22"></audio>
+      <audio id="sfx-bc-2" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="19.04" data-duration="0.12" data-track-index="32" data-volume="0.22"></audio>
+      <audio id="sfx-bc-3" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="19.58" data-duration="0.12" data-track-index="33" data-volume="0.22"></audio>
+      <audio id="sfx-bc-4" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="20.13" data-duration="0.12" data-track-index="34" data-volume="0.28"></audio>
+
+      <!-- S6 · the flip, then the lockup -->
+      <audio id="sfx-flip" src="assets/sfx/impact/impactSoft_heavy_001.ogg" data-start="21.29" data-duration="0.57" data-track-index="35" data-volume="0.45"></audio>
+      <audio id="sfx-logo" src="assets/sfx/interface/bong_001.ogg" data-start="22.46" data-duration="0.12" data-track-index="36" data-volume="0.42"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const EASE_IN = "power3.out";
+
+      /* ── Scene 1 · The grind — 0.00 → 4.92 ──────────────────────────
+         Four real application cards drift in at depth, blurred and dim:
+         scenery, not reading. // beat-grid at half-beat spacing so all four
+         are settled before the headline starts (beat ≈ 0.592s). */
+      [
+        ["#hk-1", 0.0, -70, 34, -4.5, 0.86],
+        ["#hk-2", 0.3, 62, -30, 5.5, 0.8],
+        ["#hk-3", 0.6, -56, -26, 3.5, 0.92],
+        ["#hk-4", 0.9, 74, 30, -6, 0.84],
+      ].forEach(function (c) {
+        tl.fromTo(
+          c[0],
+          { opacity: 0, x: c[2] * 1.6, y: c[3] * 1.6, rotate: c[4] * 1.8, scale: c[5] * 0.9 },
+          { opacity: 0.5, x: c[2], y: c[3], rotate: c[4], scale: c[5], duration: 0.62, ease: EASE_IN },
+          c[1]
+        );
+      });
+
+      /* The pain question wipes in word by word from the 1.27s beat. The low
+         hit at 1.85s peaks on the 1.91s strong cue, landing the line. Fully
+         settled at 2.23s and held to 4.70s — 2.47s on seven words, clear of
+         the 0.3s/word floor. Scene 1 took an extra beat from scene 2 to buy
+         that hold. */
+      tl.fromTo(
+        "#hook-line .w",
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.3, ease: EASE_IN, stagger: 0.11 },
+        1.27
+      );
+
+      /* // beat-locked: 3.81s strong cue (music 4.83s) — the cards fall back
+         and blur out, leaving the line alone. */
+      tl.to("#hook-cards .kcard", { opacity: 0.14, scale: "-=0.05", duration: 0.55, ease: "power2.inOut" }, 3.81);
+      tl.to("#hook-line", { opacity: 0, y: -12, duration: 0.2, ease: "power2.in" }, 4.7);
+
+      /* ── Scene 2 · The lockup — 4.92 → 7.21 ─────────────────────────
+         The answer to the question scene 1 just asked. The real dark-theme
+         mark and wordmark, then the badge that says which applications:
+         both kinds. Badge settles at 5.83s and holds to 7.00s. */
+      tl.fromTo("#lockup-row", { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.44, ease: EASE_IN }, 4.96);
+      tl.fromTo("#badge", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.36, ease: EASE_IN }, 5.47);
+      tl.to("#lockup-col", { opacity: 0, y: -14, duration: 0.2, ease: "power2.in" }, 7.0);
+
+      /* ── Scene 3 · Action queue — 7.21 → 12.51 ──────────────────────
+         The dashboard's FocusThisWeek card, with a slow push-in across the
+         whole scene (no zoom punch — the tone is app-store, not chaotic). */
+      tl.fromTo("#focus-card", { opacity: 0, y: 44, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.52, ease: EASE_IN }, 7.26);
+      /* Push-in starts where the entrance tween ends (7.78s), so the two
+         never fight over `scale`. */
+      tl.to("#focus-card", { scale: 1.035, duration: 4.5, ease: "none" }, 7.78);
+
+      /* // beat-grid: tiles at 8.36 / 8.95 / 9.53 / 10.15. Four short labels
+         arriving on consecutive beats, then the complete set holds still
+         from 10.51s to 11.43s — the "reveal fast, hold the set" pattern. */
+      tl.set(".tile", { opacity: 0 }, 0);
+      [
+        ["#tile-1", "#val-1", 2, 8.36],
+        ["#tile-2", "#val-2", 5, 8.95],
+        ["#tile-3", "#val-3", 3, 9.53],
+        ["#tile-4", "#val-4", 4, 10.15],
+      ].forEach(function (row) {
+        const el = document.querySelector(row[1]);
+        const counter = { v: 0 };
+        tl.fromTo(row[0], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.36, ease: EASE_IN }, row[3]);
+        /* Count-up driven by a proxy object, so seeking re-renders it. */
+        tl.to(
+          counter,
+          {
+            v: row[2],
+            duration: 0.42,
+            ease: "power2.out",
+            onUpdate: function () {
+              el.textContent = String(Math.round(counter.v));
+            },
+          },
+          row[3]
+        );
+      });
+
+      /* // beat-grid: 11.43s — the card dims to almost nothing and the one
+         control lifts out of it, glowing. The reference film's isolated
+         "New mail" shot, done with Applume's own Review queue button.
+         The button text has been readable since 7.78s, so this adds no
+         new reading load. */
+      tl.to("#focus-body", { opacity: 0.14, duration: 0.5, ease: "power2.inOut" }, 11.43);
+      tl.to("#accent-wash", { opacity: 0.25, duration: 0.5, ease: "power2.inOut" }, 11.43);
+      tl.to(
+        "#rq-btn",
+        {
+          x: -600,
+          y: 142,
+          scale: 1.55,
+          boxShadow: "0 0 70px rgba(23,176,131,0.55)",
+          borderColor: "rgba(23,176,131,0.6)",
+          duration: 0.6,
+          ease: "power2.inOut",
+        },
+        11.43
+      );
+      tl.to("#focus-card", { opacity: 0, duration: 0.22, ease: "power2.in" }, 12.28);
+
+      /* ── Scene 4 · Paste it, and it's drafted — 12.51 → 17.76 ───────
+         The working flow: a truncated link chip lands in the field, a cursor
+         presses the solid-accent button, and the fields fill themselves. */
+      tl.fromTo("#auto-panel", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.42, ease: EASE_IN }, 12.56);
+      tl.to("#auto-panel", { scale: 1.03, duration: 4.8, ease: "none" }, 12.9);
+
+      tl.set("#saved-chip", { opacity: 0 }, 0);
+      tl.set(".fval", { opacity: 0 }, 0);
+
+      /* // beat-grid: 13.09s — the chip drops into the field. */
+      tl.fromTo("#chip", { opacity: 0, y: -22, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: EASE_IN }, 13.09);
+
+      /* // beat-locked: 13.67s strong cue (music 14.69s) — the click lands
+         on the hit. The cursor arrives just before it and leaves after. */
+      tl.fromTo("#cursor", { opacity: 0, x: -340, y: 120 }, { opacity: 1, x: 296, y: -150, duration: 0.42, ease: "power2.inOut" }, 13.25);
+      tl.to("#add-btn", { scale: 0.97, duration: 0.1, ease: "power2.out" }, 13.67);
+      tl.to("#add-btn", { scale: 1, duration: 0.18, ease: "power2.out" }, 13.77);
+      tl.to("#cursor", { opacity: 0, duration: 0.28, ease: "power2.in" }, 14.0);
+
+      /* // beat-grid: values at 14.27 / 14.57 / 14.86 / 15.16 / 15.45 —
+         half-beat spacing, so the form fills fast the way the reference's
+         does. Values accumulate rather than replace, and the complete set
+         then holds still from 15.75s to 17.62s (1.87s). */
+      [14.27, 14.57, 14.86, 15.16, 15.45].forEach(function (t, i) {
+        const n = i + 1;
+        /* The placeholder clears just BEFORE its value arrives rather than
+           cross-fading with it — the two share one absolutely-positioned
+           slot, so overlapping them would stack two text blocks. */
+        tl.to("#dash-" + n, { opacity: 0, duration: 0.16, ease: "power2.in" }, t - 0.2);
+        tl.fromTo("#fv-" + n, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, ease: EASE_IN }, t);
+      });
+
+      /* // beat-locked: 17.15s strong cue (music 18.17s) — the record saves
+         on the hit and the panel picks up the accent border. */
+      tl.fromTo("#saved-chip", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2)" }, 17.15);
+      tl.to("#auto-panel", { borderColor: "rgba(23,176,131,0.45)", boxShadow: "0 1px 0 rgba(0,0,0,0.2), 0 40px 110px -56px rgba(0,0,0,0.9), 0 0 70px rgba(23,176,131,0.22)", duration: 0.4, ease: "power2.out" }, 17.15);
+      tl.to("#auto-panel", { opacity: 0, duration: 0.14, ease: "power2.in" }, 17.62);
+
+      /* ── Scene 5 · The board — 17.76 → 21.90 ────────────────────────
+         Column headers are readable from 18.26s; the cards are scenery.
+         // beat-grid: cards at 18.37 / 19.04 / 19.58 / 20.13, the green
+         Accepted card landing last. */
+      /* Stable baseline first, so #board has one resting state rather than
+         inheriting whichever fromTo was authored last. */
+      tl.set("#board", { filter: "blur(0px)" }, 0);
+      tl.fromTo("#board", { opacity: 0, y: 26, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.42, ease: EASE_IN }, 17.84);
+      tl.set(".bcard", { opacity: 0 }, 0);
+      [
+        ["#bc-1", 18.37],
+        ["#bc-2", 19.04],
+        ["#bc-3", 19.58],
+        ["#bc-4", 20.13],
+      ].forEach(function (row) {
+        tl.fromTo(row[0], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.38, ease: EASE_IN }, row[1]);
+      });
+
+      /* ── Scene 6 · One calm place — 21.29 → 24.90 ───────────────────
+         // beat-locked: 21.29s strong cue (music 22.31s) — the stage flips
+         out of the product's dark theme into its light one. The board is
+         gone by 21.57s and the wash is opaque at 21.74s, so no text is ever
+         measured against a half-opacity ground. */
+      tl.to("#board", { opacity: 0, scale: 1.05, filter: "blur(10px)", duration: 0.28, ease: "power2.in" }, 21.29);
+      tl.fromTo("#light-wash", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.inOut" }, 21.29);
+
+      /* // beat-grid: headline 21.89, lockup 22.46, URL 23.01. The headline
+         is settled at 22.34s and holds to 24.50s — 2.16s on five words. */
+      tl.fromTo("#outro-head", { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.45, ease: EASE_IN }, 21.89);
+      tl.fromTo("#outro-row", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.48, ease: EASE_IN }, 22.46);
+      tl.fromTo("#url-pill", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.38, ease: EASE_IN }, 23.01);
+      tl.to("#outro-col", { opacity: 0, duration: 0.34, ease: "power2.inOut" }, 24.5);
+
+      /* ── Audio-reactive: subtle ─────────────────────────────────────
+         Pre-extracted bass envelope for this exact track and trim, sampled
+         onto one CSS custom property every other frame (15Hz) as
+         zero-duration sets, so it stays seek-safe and deterministic.
+         Two consumers, both non-text: the glow wall's intensity and a ≤2%
+         scale on the closing logo mark. */
+      (function () {
+        const AD = window.AUDIO_DATA;
+        if (!AD || !AD.bass) return;
+        const root = document.getElementById("root");
+        for (let f = 0; f < AD.totalFrames; f += 2) {
+          tl.set(root, { "--bass": AD.bass[f] }, f / AD.fps);
+        }
+      })();
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+POST — attach brag.mp4 as a native Facebook video
+═══════════════════════════════════════════════════
+
+Not sure if this is useful to anyone else, but sharing anyway.
+
+I was applying for my Masters and completely lost track of everything in a
+spreadsheet — which uni still needed which document, whether a deadline was
+uni-assist's or the university's, which version of my motivation letter went
+where. I'd open the sheet after two weeks and half of it made no sense to me
+anymore.
+
+So I ended up building something for myself. Every application is its own
+record with its deadline, documents, portal link and one next step, so you can
+actually pick it back up later. You can paste a programme or job link and it
+fills in the details for you. It works for job applications too — I needed
+that part sooner than I expected.
+
+Free, and you can import your spreadsheet if you already have one.
+
+applume.app
+
+If you try it and something's annoying or missing, just tell me.
+
+
+SHORTER, if the group is strict about long posts
+═══════════════════════════════════════════════════
+
+Lost track of my Masters applications in a spreadsheet one too many times, so
+I made something instead. Each application keeps its own deadline, documents,
+link and next step, and you can paste a programme or job link to fill it in.
+Job applications too.
+
+Free, imports your existing sheet. applume.app
+
+Built it for myself, so tell me what's missing.
+
+
+NOTES
+═══════════════════════════════════════════════════
+
+"uni-assist" is Germany-only. Swap it for whatever your group deals with —
+UCAS, Studielink, "the portal", or just "the deadline was in two places and
+I trusted neither."
+
+Worth adding: how many unis you applied to, and the deadline you actually
+nearly missed. I left those out rather than make them up. One real detail is
+what makes it read as you.
+
+Upload the mp4 natively, not as a YouTube link. It works on mute.
+
+Check the group's self-promo rules first, and don't post the same text in
+several groups the same day.
