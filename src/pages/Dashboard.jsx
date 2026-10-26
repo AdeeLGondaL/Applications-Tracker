@@ -640,18 +640,31 @@ export default function Dashboard({ session }) {
   }
 
   return (
-    <div className={`${dark ? "dark" : ""} min-h-dvh overflow-x-hidden bg-[var(--surface-page)] text-[var(--ink)]`}>
+    // overflow-x-clip (not hidden) here and on <main>: "hidden" turns the
+    // element into a scroll container, which silently breaks position: sticky
+    // on the sidebar and header while the window does the scrolling.
+    <div className={`${dark ? "dark" : ""} min-h-dvh overflow-x-clip bg-[var(--surface-page)] text-[var(--ink)]`}>
       <div className="flex min-h-dvh min-w-0">
 
-        {/* Sidebar */}
-        {/* Sticky so the collapse toggle at the bottom stays in view on long pages */}
+        {/* Sidebar — pinned to the viewport while the content scrolls */}
         <aside
           className={`sticky top-0 h-dvh max-md:hidden md:flex shrink-0 flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--surface-card)] transition-[width] duration-200 ease-out motion-reduce:transition-none ${
             sidebarCollapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
-          <div className={`border-b border-[var(--border)] py-4 ${sidebarCollapsed ? "flex justify-center px-2" : "px-5"}`}>
-            <Brand dark={dark} compact={sidebarCollapsed} />
+          {/* Browser-style toggle in the top row, same height as the page header */}
+          <div className={`box-content flex h-16 shrink-0 items-center border-b border-[var(--border)] ${sidebarCollapsed ? "justify-center px-2" : "justify-between gap-2 pl-5 pr-3"}`}>
+            {!sidebarCollapsed && <Brand dark={dark} />}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-expanded={!sidebarCollapsed}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-soft)] hover:text-[var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)]"
+            >
+              <Icon name={sidebarCollapsed ? "panelLeftOpen" : "panelLeftClose"} className="h-[18px] w-[18px]" />
+            </button>
           </div>
 
           <div className={`flex-1 overflow-y-auto overflow-x-hidden py-5 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
@@ -667,22 +680,6 @@ export default function Dashboard({ session }) {
               )}
             </nav>
 
-          </div>
-
-          <div className={`border-t border-[var(--border)] py-3 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              aria-expanded={!sidebarCollapsed}
-              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className={`flex h-10 w-full items-center gap-2.5 rounded-xl text-sm font-semibold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-soft)] hover:text-[var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] ${
-                sidebarCollapsed ? "justify-center" : "px-3"
-              }`}
-            >
-              <Icon name="panelLeft" className="h-4 w-4 shrink-0" />
-              {!sidebarCollapsed && <span className="truncate">Collapse</span>}
-            </button>
           </div>
         </aside>
 
@@ -731,11 +728,11 @@ export default function Dashboard({ session }) {
         </nav>
 
         {/* Main */}
-        <main className="min-w-0 flex-1 overflow-x-hidden pb-20 md:pb-0">
+        <main className="min-w-0 flex-1 overflow-x-clip pb-20 md:pb-0">
 
           {/* Header */}
           <header className="sticky top-0 z-30 max-w-full border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-card)_85%,transparent)] backdrop-blur-md">
-            <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6">
+            <div className="flex h-16 min-w-0 items-center justify-between gap-2 px-3 sm:px-6">
               <motion.div key={sidebarView} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-[var(--text-muted)]">{headerSummary}</p>
                 <h1 className="truncate text-xl font-semibold leading-tight tracking-[-0.01em] text-[var(--text-strong)]">{t(`phrases.${VIEW_META[sidebarView]?.title}`)}</h1>
