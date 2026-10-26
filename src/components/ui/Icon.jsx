@@ -33,6 +33,7 @@ export function Icon({ name, className = "" }) {
     table: "M3 5h18v14H3V5Zm0 5h18M9 10v9",
     columns: "M4 5h4v14H4V5Zm6 0h4v14h-4V5Zm6 0h4v14h-4V5Z",
     chevronRight: "m9 6 6 6-6 6",
+    panelLeft: "M4 5h16v14H4V5Zm5 0v14",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

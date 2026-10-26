@@ -64,6 +64,10 @@ export default function Dashboard({ session }) {
     } catch { return "cards"; }
   });
   const [viewMode, setViewMode] = useState(defaultView);
+  const SIDEBAR_COLLAPSED_KEY = "applume_sidebar_collapsed";
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [outcomePrompt, setOutcomePrompt] = useState(null); // { id, name, status }
   const outcomeMigrationWarned = useRef(false);
@@ -229,6 +233,14 @@ export default function Dashboard({ session }) {
     try { localStorage.setItem(DEFAULT_VIEW_KEY, view); } catch { /* ignore storage failures */ }
     setDefaultView(view);
     setViewMode(view);
+  }
+
+  function toggleSidebar() {
+    setSidebarCollapsed((value) => {
+      const next = !value;
+      try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* ignore storage failures */ }
+      return next;
+    });
   }
 
   function setThemeMode(mode) {
@@ -632,24 +644,45 @@ export default function Dashboard({ session }) {
       <div className="flex min-h-dvh min-w-0">
 
         {/* Sidebar */}
-        <aside className="max-md:hidden md:flex w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface-card)]">
-          <div className="border-b border-[var(--border)] px-5 py-4">
-            <Brand dark={dark} />
+        {/* Sticky so the collapse toggle at the bottom stays in view on long pages */}
+        <aside
+          className={`sticky top-0 h-dvh max-md:hidden md:flex shrink-0 flex-col overflow-hidden border-r border-[var(--border)] bg-[var(--surface-card)] transition-[width] duration-200 ease-out motion-reduce:transition-none ${
+            sidebarCollapsed ? "w-[4.25rem]" : "w-60"
+          }`}
+        >
+          <div className={`border-b border-[var(--border)] py-4 ${sidebarCollapsed ? "flex justify-center px-2" : "px-5"}`}>
+            <Brand dark={dark} compact={sidebarCollapsed} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 py-5">
-            <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)]">Menu</p>
+          <div className={`flex-1 overflow-y-auto overflow-x-hidden py-5 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
+            <p className={`mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-soft)] ${sidebarCollapsed ? "sr-only" : ""}`}>Menu</p>
             <nav className="space-y-0.5">
-              <NavItem active={sidebarView === "dashboard"}    onClick={() => handleSidebarView("dashboard")}    icon="dashboard"  label="Dashboard"      />
-              <NavItem active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities"    count={stats.universities} />
-              <NavItem active={sidebarView === "jobs"}         onClick={() => handleSidebarView("jobs")}         icon="job"        label="Jobs"            count={stats.jobs} />
-              <NavItem active={sidebarView === "urgent"}       onClick={() => handleSidebarView("urgent")}       icon="calendar"   label="Urgent"          count={stats.actionNeeded} alert={stats.actionNeeded > 0} />
-              <NavItem active={sidebarView === "documents"}    onClick={() => handleSidebarView("documents")}    icon="file"       label="Documents"       count={documentLibrary.length} />
+              <NavItem collapsed={sidebarCollapsed} active={sidebarView === "dashboard"}    onClick={() => handleSidebarView("dashboard")}    icon="dashboard"  label="Dashboard"      />
+              <NavItem collapsed={sidebarCollapsed} active={sidebarView === "universities"} onClick={() => handleSidebarView("universities")} icon="university" label="Universities"    count={stats.universities} />
+              <NavItem collapsed={sidebarCollapsed} active={sidebarView === "jobs"}         onClick={() => handleSidebarView("jobs")}         icon="job"        label="Jobs"            count={stats.jobs} />
+              <NavItem collapsed={sidebarCollapsed} active={sidebarView === "urgent"}       onClick={() => handleSidebarView("urgent")}       icon="calendar"   label="Urgent"          count={stats.actionNeeded} alert={stats.actionNeeded > 0} />
+              <NavItem collapsed={sidebarCollapsed} active={sidebarView === "documents"}    onClick={() => handleSidebarView("documents")}    icon="file"       label="Documents"       count={documentLibrary.length} />
               {session?.user?.email === ADMIN_EMAIL && (
-                <NavItem active={sidebarView === "admin"} onClick={() => handleSidebarView("admin")} icon="shield" label="Feedback inbox" />
+                <NavItem collapsed={sidebarCollapsed} active={sidebarView === "admin"} onClick={() => handleSidebarView("admin")} icon="shield" label="Feedback inbox" />
               )}
             </nav>
 
+          </div>
+
+          <div className={`border-t border-[var(--border)] py-3 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-expanded={!sidebarCollapsed}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={`flex h-10 w-full items-center gap-2.5 rounded-xl text-sm font-semibold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-soft)] hover:text-[var(--ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] ${
+                sidebarCollapsed ? "justify-center" : "px-3"
+              }`}
+            >
+              <Icon name="panelLeft" className="h-4 w-4 shrink-0" />
+              {!sidebarCollapsed && <span className="truncate">Collapse</span>}
+            </button>
           </div>
         </aside>
 
