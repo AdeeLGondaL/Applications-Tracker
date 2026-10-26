@@ -267,7 +267,8 @@ export default function Dashboard({ session }) {
     const total = applications.length;
     const universities = applications.filter((app) => app.type === "University").length;
     const jobs = applications.filter((app) => app.type === "Job").length;
-    const submitted = applications.filter((app) => ["Submitted", "Awaiting Response", "Interview", "Accepted"].includes(app.status)).length;
+    // Anything past "Applying" was submitted, including decided outcomes.
+    const submitted = applications.filter((app) => ["Submitted", "Awaiting Response", "Interview", ...OUTCOME_STATUSES].includes(app.status)).length;
     const accepted = applications.filter((app) => app.status === "Accepted").length;
     const interviews = applications.filter((app) => app.status === "Interview").length;
     const dueSoon7 = applications.filter((app) => {
@@ -822,7 +823,6 @@ export default function Dashboard({ session }) {
                           missingDocs={focusThisWeek.missingDocumentItems.length}
                           onReviewUrgent={() => openUrgentQueue("greeting")}
                           onReviewInterviews={() => openInterviewQueue(focusThisWeek.interviewItems[0])}
-                          onReviewDocuments={() => openDocumentQueue(focusThisWeek.missingDocumentItems[0])}
                           onAddApplication={() => openNewTracked("University", "greeting")}
                         />
                         <OnboardingChecklist

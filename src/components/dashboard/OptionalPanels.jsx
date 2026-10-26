@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { STATUSES } from "@/utils/constants";
 import { useLanguage } from "@/i18n";
+import { RecordName, RowAction } from "@/components/dashboard/RecordRowParts";
 
 const STATUS_DISTRIBUTION_COLORS = {
   "Not Open Yet": "bg-slate-400",
@@ -84,12 +85,14 @@ export function RecentActivityPanel({ applications, onOpenRecord }) {
       ) : (
         <div className="space-y-2.5">
           {recent.map((app) => (
-            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} aria-label={`Open ${app.name} application`} className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]">
+            <button key={app.id} type="button" onClick={() => onOpenRecord?.(app)} aria-label={`Open ${app.name} application`} className="group flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]">
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
-              <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">{label("status", app.status)} - {formatDate(app.lastUpdated)}</span>
+                <RecordName app={app} />
+                <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">
+                  <span className="font-semibold text-[var(--text-strong)]">{label("status", app.status)}</span> · {formatDate(app.lastUpdated)}
+                </span>
               </span>
-              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">{t("phrases.Open")}</span>
+              <RowAction>{t("phrases.Open")}</RowAction>
             </button>
           ))}
         </div>

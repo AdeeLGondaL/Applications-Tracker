@@ -13,8 +13,8 @@ function toneForDeadline(info) {
 export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
   const { deadlineInfo, formatDate, label, t } = useLanguage();
   return (
-    <Card className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
-      <CardContent className="p-4 sm:p-6">
+    <Card className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
+      <CardContent className="flex h-full flex-col p-4 sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 className="font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{t("phrases.Upcoming deadlines")}</h2>
@@ -26,16 +26,20 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
         </div>
 
         {apps.length === 0 ? (
-          <div className="rounded-[10px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-4">
-            <p className="text-sm font-bold text-[var(--applume-accent-hover)]">{t("phrases.No upcoming deadlines.")}</p>
-            <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
+          // Fills the card so it matches the height of its neighbour in the row.
+          <div className="flex flex-1 flex-col items-center justify-center rounded-[10px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-soft)] px-4 py-8 text-center">
+            <span className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-[var(--surface-card)] text-[var(--text-muted)] ring-1 ring-[var(--border)]">
+              <Icon name="calendar" className="h-4 w-4" />
+            </span>
+            <p className="text-sm font-bold text-[var(--text-strong)]">{t("phrases.No upcoming deadlines.")}</p>
+            <p className="mt-1 max-w-xs text-sm leading-6 text-[var(--text-muted)]">
               {t("phrases.Add a deadline to an application and it will appear here.")}
             </p>
             {onAddDeadline && (
               <button
                 type="button"
                 onClick={onAddDeadline}
-                className="mt-3 rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--surface-card)] px-3 py-2 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+                className="mt-3 rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-xs font-bold text-[var(--text-strong)] transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
               >
                 {t("phrases.Add deadline")}
               </button>
@@ -69,7 +73,7 @@ export function UpcomingDeadlinesCard({ apps, onOpenRecord, onAddDeadline }) {
                         type="button"
                         onClick={() => onOpenRecord(app)}
                         aria-label={`${t("phrases.Open")} ${app.name}`}
-                        className="rounded-lg px-2 py-1 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+                        className="rounded-lg px-2 py-1 text-xs font-bold text-[var(--text-soft)] transition hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
                       >
                         {t("phrases.Open")}
                       </button>

@@ -32,6 +32,7 @@ export function Icon({ name, className = "" }) {
     sliders: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
     table: "M3 5h18v14H3V5Zm0 5h18M9 10v9",
     columns: "M4 5h4v14H4V5Zm6 0h4v14h-4V5Zm6 0h4v14h-4V5Z",
+    chevronRight: "m9 6 6 6-6 6",
   };
   return (
     <svg className={`h-4 w-4 ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

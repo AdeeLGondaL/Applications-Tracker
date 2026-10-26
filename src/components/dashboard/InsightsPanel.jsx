@@ -26,16 +26,21 @@ function RateBar({ label, accepted, total }) {
   );
 }
 
-function Stat({ value, label, tone = "neutral" }) {
-  const valueClass = {
-    accent: "text-[var(--applume-accent-hover)]",
-    danger: "text-[var(--danger)]",
-    neutral: "text-[var(--text-strong)]",
-  }[tone];
+// Numbers stay neutral; outcome colour lives in a small dot next to the label,
+// so a large rejected count reads as information rather than an alarm.
+function Stat({ value, label, marker = "neutral" }) {
+  const dotClass = {
+    accent: "bg-[var(--applume-accent)]",
+    danger: "bg-[var(--danger)]",
+    neutral: "bg-[var(--border-strong)]",
+  }[marker];
   return (
     <div className="min-w-0 rounded-[12px] border border-[var(--border-subtle)] bg-[var(--surface-soft)] px-4 py-3 text-center">
-      <p className={`font-display text-2xl font-semibold tabular-nums leading-none ${valueClass}`}>{value}</p>
-      <p className="mt-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--text-muted)]">{label}</p>
+      <p className="font-display text-2xl font-semibold tabular-nums leading-none text-[var(--text-strong)]">{value}</p>
+      <p className="mt-1.5 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">
+        <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} />
+        <span className="truncate">{label}</span>
+      </p>
     </div>
   );
 }
@@ -106,8 +111,8 @@ export function InsightsPanel({ applications }) {
             {/* Headline numbers */}
             <div>
               <div className="grid grid-cols-3 gap-2.5">
-                <Stat value={accepted.length} label={t("phrases.Accepted")} tone="accent" />
-                <Stat value={rejected.length} label={t("phrases.Rejected")} tone="danger" />
+                <Stat value={accepted.length} label={t("phrases.Accepted")} marker="accent" />
+                <Stat value={rejected.length} label={t("phrases.Rejected")} marker="danger" />
                 <Stat value={deferred.length} label={t("phrases.On hold")} />
               </div>
               <p className="mt-3 text-[13px] leading-6 text-[var(--text-muted)]">
@@ -117,7 +122,7 @@ export function InsightsPanel({ applications }) {
 
               {topReasons.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Top rejection reasons")}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{t("phrases.Top rejection reasons")}</p>
                   <ul className="mt-2 space-y-2">
                     {topReasons.map(([reason, count]) => (
                       <li key={reason} className="flex items-center gap-3">
@@ -136,7 +141,7 @@ export function InsightsPanel({ applications }) {
             {/* Success factors */}
             <div className="space-y-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Documents at decision")}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{t("phrases.Documents at decision")}</p>
                 <div className="mt-2 space-y-3">
                   {decidedComplete.length > 0 && (
                     <RateBar label={t("phrases.Checklist fully ready")} accepted={acceptedComplete} total={decidedComplete.length} />
@@ -147,13 +152,15 @@ export function InsightsPanel({ applications }) {
                 </div>
               </div>
 
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-soft)]">{t("phrases.Submission timing")}</p>
-                {timed.length === 0 ? (
-                  <p className="mt-2 text-[13px] leading-5 text-[var(--text-muted)]">
-                    {t("phrases.Appears as new status changes are recorded (needs a submitted date and a deadline).")}
-                  </p>
-                ) : (
+              {timed.length === 0 ? (
+                // No data yet: one quiet line instead of a full section.
+                <p className="border-t border-[var(--border-subtle)] pt-3 text-xs leading-5 text-[var(--text-muted)]">
+                  <span className="font-bold text-[var(--text-strong)]">{t("phrases.Submission timing")}:</span>{" "}
+                  {t("phrases.Appears as new status changes are recorded (needs a submitted date and a deadline).")}
+                </p>
+              ) : (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{t("phrases.Submission timing")}</p>
                   <div className="mt-2 space-y-3">
                     {early.length > 0 && (
                       <RateBar label={t("phrases.Submitted ≥ 1 week early")} accepted={early.filter((entry) => entry.app.status === "Accepted").length} total={early.length} />
@@ -162,8 +169,8 @@ export function InsightsPanel({ applications }) {
                       <RateBar label={t("phrases.Submitted in the final week")} accepted={late.filter((entry) => entry.app.status === "Accepted").length} total={late.length} />
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}

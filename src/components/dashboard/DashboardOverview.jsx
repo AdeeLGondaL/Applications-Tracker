@@ -4,11 +4,12 @@ import { PipelineCard } from "@/components/dashboard/PipelineCard";
 import { UpcomingDeadlinesCard } from "@/components/dashboard/UpcomingDeadlinesCard";
 import { RecentActivityPanel } from "@/components/dashboard/OptionalPanels";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
+import { RecordName, RowAction } from "@/components/dashboard/RecordRowParts";
 import { useLanguage } from "@/i18n";
 
 function PanelGrid({ children }) {
   return (
-    <div className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-12 min-[900px]:items-start min-[900px]:gap-6">
+    <div className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-12 min-[900px]:items-stretch min-[900px]:gap-6">
       {children}
     </div>
   );
@@ -24,8 +25,9 @@ function PanelSpan({ span = 6, children }) {
     12: "min-[900px]:col-span-12",
   }[span] || "min-[900px]:col-span-6";
 
+  // Flex column so the card inside stretches to the tallest card in its row.
   return (
-    <div className={`min-w-0 ${spanClass}`}>
+    <div className={`flex min-w-0 flex-col [&>*]:flex-1 ${spanClass}`}>
       {children}
     </div>
   );
@@ -33,22 +35,23 @@ function PanelSpan({ span = 6, children }) {
 
 function SectionHeading({ children }) {
   return (
-    <h2 className="mb-3 flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">
+    <h2 className="mb-3 flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-[var(--text-muted)]">
       {children}
       <span className="h-px flex-1 bg-[var(--border)]" />
     </h2>
   );
 }
 
-function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenRecord }) {
+// Measures full setup (deadline, documents, link, next step) rather than
+// documents alone — the "Missing docs" tile above already owns that count.
+function ApplicationReadinessPanel({ total, incompleteItems, onOpenRecord }) {
   const { t } = useLanguage();
-  const pct = total > 0 ? Math.round((documented / total) * 100) : 0;
-  const summary = t("phrases.{pct}% ready · {documented} of {total} records have every document checked off · {missing} need setup", {
-    pct,
-    documented,
-    total,
-    missing: incompleteItems.length,
-  });
+  const ready = Math.max(total - incompleteItems.length, 0);
+  const pct = total > 0 ? Math.round((ready / total) * 100) : 0;
+  const summary = t("phrases.{ready} of {total} records fully set up", { ready, total });
+  // Records missing the most come first; ties keep most-recently-updated order.
+  // This also stops the list mirroring Recent activity row for row.
+  const worstFirst = [...incompleteItems].sort((a, b) => b.missing.length - a.missing.length);
 
   return (
     <div className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] p-4 shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)] sm:p-6">
@@ -67,23 +70,26 @@ function ApplicationReadinessPanel({ total, documented, incompleteItems, onOpenR
       <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-soft)]" aria-label={`${pct}% application readiness`}>
         <div className="h-full rounded-full bg-[var(--applume-accent)]" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-3 text-sm font-semibold leading-6 text-[var(--text-strong)]">{summary}</p>
+      <p className="mt-3 flex items-baseline justify-between gap-3 text-sm leading-6">
+        <span className="font-semibold text-[var(--text-strong)]">{summary}</span>
+        <span className="shrink-0 font-bold tabular-nums text-[var(--text-muted)]">{pct}%</span>
+      </p>
 
       {incompleteItems.length > 0 ? (
         <div className="mt-4 space-y-2">
-          {incompleteItems.slice(0, 5).map(({ app, missing }) => (
+          {worstFirst.slice(0, 5).map(({ app, missing }) => (
             <button
               key={app.id}
               type="button"
               onClick={() => onOpenRecord?.(app)}
               aria-label={`Fix missing ${missing.join(", ")} for ${app.name}`}
-              className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+              className="group flex w-full min-w-0 items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 text-left transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-[var(--text-strong)]">{app.name}</span>
+                <RecordName app={app} />
                 <span className="block truncate text-[13px] leading-5 text-[var(--text-muted)]">{t("phrases.Missing {list}", { list: missing.join(", ") })}</span>
               </span>
-              <span className="shrink-0 text-xs font-bold text-[var(--applume-accent-hover)]">{t("phrases.Fix")}</span>
+              <RowAction>{t("phrases.Fix")}</RowAction>
             </button>
           ))}
         </div>
@@ -138,7 +144,6 @@ export function DashboardOverview({
             <PanelSpan span={6}>
               <ApplicationReadinessPanel
                 total={total}
-                documented={documentReadiness.documented}
                 incompleteItems={documentReadiness.incompleteItems}
                 onOpenRecord={onOpenRecord}
               />

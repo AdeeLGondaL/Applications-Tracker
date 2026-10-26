@@ -10,7 +10,8 @@ function greetingKey(hour) {
 }
 
 // Pick the single most useful thing to say right now, in priority order:
-// overdue → due soon → interviews → missing setup → all caught up.
+// overdue → due soon → interviews → nothing urgent. Setup gaps (missing docs)
+// live in the action queue below, so the greeting doesn't repeat that count.
 // Sentences are t() keys with {count}/{pct} params so every language works.
 function resolveInsight(t, { overdue, dueSoon, interviews, missingDocs, progress }, handlers) {
   if (overdue > 0) {
@@ -46,21 +47,12 @@ function resolveInsight(t, { overdue, dueSoon, interviews, missingDocs, progress
       onCta: handlers.onReviewInterviews,
     };
   }
-  if (missingDocs > 0) {
-    return {
-      tone: "accent",
-      icon: "check",
-      text: missingDocs === 1
-        ? t("phrases.1 record still needs its documents checked off to be decision-ready.")
-        : t("phrases.{count} records still need their documents checked off to be decision-ready.", { count: missingDocs }),
-      cta: t("phrases.Complete setup"),
-      onCta: handlers.onReviewDocuments,
-    };
-  }
   return {
     tone: "accent",
     icon: "sparkles",
-    text: t("phrases.You're all caught up — nothing urgent today. {pct}% of your applications are submitted or beyond.", { pct: progress }),
+    text: missingDocs > 0
+      ? t("phrases.Nothing urgent today. {pct}% of your applications are submitted or beyond.", { pct: progress })
+      : t("phrases.You're all caught up — nothing urgent today. {pct}% of your applications are submitted or beyond.", { pct: progress }),
     cta: t("phrases.Add application"),
     onCta: handlers.onAddApplication,
   };
@@ -77,13 +69,13 @@ function Stat({ value, label }) {
   return (
     <div className="min-w-0 rounded-[12px] border border-[var(--border-subtle)] bg-[var(--surface-soft)] px-4 py-3 text-center">
       <p className="text-2xl font-black tabular-nums leading-none text-[var(--text-strong)]">{value}</p>
-      <p className="mt-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--text-muted)]">{label}</p>
+      <p className="mt-1.5 text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">{label}</p>
     </div>
   );
 }
 
-export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, onReviewInterviews, onReviewDocuments, onAddApplication }) {
-  const { t } = useLanguage();
+export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, onReviewInterviews, onAddApplication }) {
+  const { label, t } = useLanguage();
   const hour = new Date().getHours();
   const greetingWord = t(`phrases.${greetingKey(hour)}`);
   const greeting = name ? `${greetingWord}, ${name}` : greetingWord;
@@ -96,7 +88,7 @@ export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, on
       missingDocs,
       progress: stats.progress,
     },
-    { onReviewUrgent, onReviewInterviews, onReviewDocuments, onAddApplication },
+    { onReviewUrgent, onReviewInterviews, onAddApplication },
   );
 
   return (
@@ -136,7 +128,8 @@ export function DashboardGreeting({ name, stats, missingDocs, onReviewUrgent, on
         <div className="grid shrink-0 grid-cols-3 gap-2.5 sm:gap-3 lg:w-[340px]">
           <Stat value={stats.total} label={t("phrases.Tracked")} />
           <Stat value={`${stats.progress}%`} label={t("phrases.Submitted")} />
-          <Stat value={stats.actionNeeded} label={t("phrases.Needs action")} />
+          {/* Overdue + due in 7 days — same count as the Urgent nav badge */}
+          <Stat value={stats.actionNeeded} label={label("view", "Urgent")} />
         </div>
       </div>
     </motion.section>

@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { useLanguage } from "@/i18n";
 
-// Tiles stay neutral by default; only genuine attention items (overdue, due soon)
-// pick up a soft token tint. Interviews / missing-docs read calmly in neutral.
+// Tiles with something in them pick up their tone so the eye lands there;
+// empty tiles recede (muted number, faded chip) instead of shouting "0".
 const HOT_TONE = {
   danger: {
     tile: "border-[color-mix(in_srgb,var(--danger)_24%,var(--border))] bg-[var(--danger-soft)]",
@@ -15,29 +15,39 @@ const HOT_TONE = {
     chip: "bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-[var(--warning-ink)]",
     value: "text-[var(--warning-ink)]",
   },
+  info: {
+    tile: "border-[color-mix(in_srgb,var(--info)_26%,var(--border))] bg-[var(--info-soft)]",
+    chip: "bg-[color-mix(in_srgb,var(--info)_16%,transparent)] text-[var(--info)]",
+    value: "text-[var(--info)]",
+  },
+  accent: {
+    tile: "border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)]",
+    chip: "bg-[color-mix(in_srgb,var(--applume-accent)_16%,transparent)] text-[var(--applume-accent-hover)]",
+    value: "text-[var(--applume-accent-hover)]",
+  },
 };
 
-function FocusTile({ icon, label, value, detail, hot = false, tone = null, actionLabel, onClick, ariaLabel }) {
-  const t = hot && tone ? HOT_TONE[tone] : null;
+function FocusTile({ icon, label, value, detail, tone, onClick, ariaLabel }) {
+  const empty = value === 0;
+  const t = empty ? null : HOT_TONE[tone];
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`flex min-h-[9rem] min-w-0 flex-col rounded-[12px] border p-4 text-left transition hover:border-[var(--applume-accent-border)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)] sm:p-5 ${
+      className={`group flex min-h-[9rem] min-w-0 flex-col rounded-[12px] border p-4 text-left transition hover:border-[var(--applume-accent-border)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)] sm:p-5 ${
         t ? t.tile : "border-[var(--border)] bg-[var(--surface-soft)]"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${t ? t.chip : "bg-[var(--surface-card)] text-[var(--text-muted)] ring-1 ring-[var(--border)]"}`}>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${t ? t.chip : "bg-[var(--surface-card)] text-[var(--text-soft)] ring-1 ring-[var(--border)]"}`}>
           <Icon name={icon} className="h-4 w-4" />
         </span>
-        <span className="rounded-full border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[var(--text-soft)]">
-          {actionLabel}
-        </span>
+        {/* The whole tile is the button; the chevron just signals that. */}
+        <Icon name="chevronRight" className="mt-2 h-4 w-4 text-[var(--text-soft)] transition-colors group-hover:text-[var(--applume-accent-hover)]" />
       </div>
-      <p className={`mt-5 font-display text-[30px] font-semibold tabular-nums leading-none ${t ? t.value : "text-[var(--text-strong)]"}`}>{value}</p>
-      <p className="mt-2 text-sm font-semibold text-[var(--text-strong)]">{label}</p>
+      <p className={`mt-5 font-display text-[30px] font-semibold tabular-nums leading-none ${t ? t.value : "text-[var(--text-soft)]"}`}>{value}</p>
+      <p className={`mt-2 text-sm font-semibold ${empty ? "text-[var(--text-muted)]" : "text-[var(--text-strong)]"}`}>{label}</p>
       <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">{detail}</p>
     </button>
   );
@@ -60,7 +70,7 @@ export function FocusThisWeek({
       <CardContent className="relative p-4 sm:p-6">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--applume-accent-hover)]">{t("phrases.Today focus")}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--applume-accent-hover)]">{t("phrases.Today focus")}</p>
             <h2 className="mt-1 font-display text-lg font-semibold leading-tight text-[var(--text-strong)]">{t("phrases.Action queue")}</h2>
             <p className="mt-1 text-[13px] leading-5 text-[var(--text-muted)]">
               {t("phrases.Deadlines, interviews, and setup gaps that need you.")}
@@ -70,7 +80,7 @@ export function FocusThisWeek({
             type="button"
             onClick={onReviewUrgent}
             aria-label="Review overdue and urgent applications"
-            className="rounded-[9px] border border-[var(--applume-accent-border)] bg-[var(--applume-accent-soft)] px-3 py-2 text-xs font-bold text-[var(--applume-accent-hover)] transition hover:bg-[var(--applume-accent-soft-2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
+            className="rounded-[9px] border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-xs font-bold text-[var(--text-strong)] transition hover:border-[var(--applume-accent-border)] hover:bg-[var(--applume-accent-soft)] hover:text-[var(--applume-accent-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--applume-accent)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[var(--surface-card)]"
           >
             {t("phrases.Review queue")}
           </button>
@@ -81,9 +91,7 @@ export function FocusThisWeek({
             label={t("phrases.Overdue")}
             value={overdueCount}
             detail={overdueCount > 0 ? t("phrases.Needs attention before anything else.") : t("phrases.No overdue active records.")}
-            hot={overdueCount > 0}
             tone="danger"
-            actionLabel={t("phrases.Review")}
             onClick={onReviewUrgent}
             ariaLabel="Review overdue applications"
           />
@@ -92,9 +100,7 @@ export function FocusThisWeek({
             label={t("phrases.Due in 7 days")}
             value={dueSoonCount}
             detail={dueSoonCount > 0 ? t("phrases.Upcoming deadlines to prepare now.") : t("phrases.Nothing due in the next week.")}
-            hot={dueSoonCount > 0}
             tone="warning"
-            actionLabel={t("phrases.Open")}
             onClick={onReviewUrgent}
             ariaLabel="Open applications due in the next seven days"
           />
@@ -103,7 +109,7 @@ export function FocusThisWeek({
             label={t("phrases.Interviews")}
             value={interviewCount}
             detail={interviewCount > 0 ? t("phrases.Active interview-stage records.") : t("phrases.No active interview records yet.")}
-            actionLabel={t("phrases.Filter")}
+            tone="info"
             onClick={onReviewInterviews}
             ariaLabel="Filter interview applications"
           />
@@ -112,7 +118,7 @@ export function FocusThisWeek({
             label={t("phrases.Missing docs")}
             value={missingDocsCount}
             detail={missingDocsCount > 0 ? t("phrases.Records with unchecked documents.") : t("phrases.Every document is checked off.")}
-            actionLabel={t("phrases.Fix")}
+            tone="accent"
             onClick={onReviewDocuments}
             ariaLabel="Fix applications with missing document context"
           />

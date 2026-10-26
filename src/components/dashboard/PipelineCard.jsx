@@ -36,14 +36,20 @@ export function PipelineCard({ pipeline, total }) {
     ...phase,
     count: phase.statuses.reduce((sum, status) => sum + (pipeline.find((p) => p.status === status)?.count || 0), 0),
   }));
-  const submittedOrBeyond = segments.find((segment) => segment.label === "Submitted")?.count || 0;
+  // Decided applications (accepted / rejected / deferred) were submitted too,
+  // so "beyond" includes the Outcome phase.
+  const submittedOrBeyond = segments
+    .filter((segment) => segment.label === "Submitted" || segment.label === "Outcome")
+    .reduce((sum, segment) => sum + segment.count, 0);
   const submittedPct = total > 0 ? Math.round((submittedOrBeyond / total) * 100) : 0;
-  const insight = submittedOrBeyond > 0
-    ? t("phrases.Most applications are already submitted or waiting for response.")
-    : t("phrases.Start by moving records from planning into preparation.");
+  const insight = submittedPct >= 50
+    ? t("phrases.Most of your applications are submitted or already decided.")
+    : submittedOrBeyond > 0
+      ? t("phrases.Some applications are submitted. Keep moving the rest forward.")
+      : t("phrases.Start by moving records from planning into preparation.");
 
   return (
-    <Card className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
+    <Card className="h-full rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-card)] shadow-[0_1px_0_rgba(0,0,0,0.02),0_18px_50px_-40px_rgba(12,20,16,0.28)]">
       <CardContent className="p-4 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>

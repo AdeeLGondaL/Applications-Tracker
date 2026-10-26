@@ -166,7 +166,7 @@ export function OnboardingChecklist({ userId, applications, onAddApplication }) 
                       </button>
                     )}
                     {!step.done && step.id === "deadline" && (
-                      <span className="shrink-0 text-[10px] font-semibold text-[var(--text-soft)]">
+                      <span className="shrink-0 text-xs font-semibold text-[var(--text-soft)]">
                         {t("phrases.Add a deadline inside any record")}
                       </span>
                     )}
